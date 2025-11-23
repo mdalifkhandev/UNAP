@@ -79,7 +79,7 @@ const OTPVerification = () => {
             text="Verify OTP"
             textColor="#2B2B2B"
             backGroundColor="#E8EBEE"
-            onPress={() => {}}
+            onPress={() => router.push("/screens/auth/reset-password")}
             className="mt-4"
           />
 
