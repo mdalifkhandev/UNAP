@@ -39,7 +39,7 @@ const WelcomeScreen = () => {
           />
 
           <TouchableOpacity
-            onPress={() => router.push("/(auth)/signup")}
+            onPress={() => router.push("/screens/auth/notice")}
             className="p-3 bg-[#00000066] rounded-full mt-3 border border-[#FFFFFF1A]"
           >
             <Text className="font-roboto-bold text-[#FFFFFF] text-center">

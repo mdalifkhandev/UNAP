@@ -25,9 +25,9 @@ const ShadowButton = ({
           width: 0,
           height: 0,
         },
-        shadowOpacity: 0.8,
-        shadowRadius: 25,
-        elevation: 15,
+        shadowOpacity: 0.4,
+        shadowRadius: 10,
+        elevation: 5,
       }}
     >
       <Text

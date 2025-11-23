@@ -48,7 +48,7 @@ const ResetPassword = () => {
             text="Update Password"
             textColor="#2B2B2B"
             backGroundColor="#E8EBEE"
-            onPress={() => router.push("/screens/auth/otp-verify")}
+            onPress={() => router.push("/(auth)/login")}
             className="mt-4"
           />
         </GradientCard>
