@@ -7,7 +7,7 @@ const SplashScreen = () => {
   // replesh to welcome screen after 2 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace("/(auth)/welcome");
+      router.replace("/screens/auth/welcome");
     }, 2000);
 
     return () => clearTimeout(timer);

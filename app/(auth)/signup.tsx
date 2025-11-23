@@ -10,9 +10,8 @@ import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const Login = () => {
+const Signup = () => {
   const [rememberMe, setRememberMe] = useState(false);
-
   return (
     <GradientBackground>
       <SafeAreaView
@@ -28,11 +27,11 @@ const Login = () => {
             Welcome Back!
           </Text>
           <Text className="font-roboto-medium text-secondary text-sm text-center mt-1.5">
-            Login to your account
+            Create your account
           </Text>
         </View>
 
-        {/* login inpute */}
+        {/* signup inpute */}
         <GradientCard>
           <Inpute title="Phone" placeholder="+880 123 123 123" />
           <Inpute
@@ -82,10 +81,10 @@ const Login = () => {
             <Text className="text-secondary_second font-roboto-regular text-sm">
               Don't have an account?{" "}
             </Text>
-            <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
+            <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
               <Text className="font-roboto-bold text-secondary_second text-sm">
                 {" "}
-                Register
+                Log In
               </Text>
             </TouchableOpacity>
           </View>
@@ -124,4 +123,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

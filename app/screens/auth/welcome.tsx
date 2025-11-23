@@ -31,16 +31,6 @@ const WelcomeScreen = () => {
 
         {/* buttons */}
         <View className="m-6">
-          {/* <TouchableOpacity
-            onPress={() => router.push("/(auth)/login")}
-            // className="p-3 bg-[#E8EBEE] rounded-full "
-            className="p-3 bg-[#E8EBEE] rounded-full shadow-2xl shadow-[#ffffff]"
-          >
-            <Text className="font-roboto-bold text-[#2B2B2B] text-center">
-              Get Started
-            </Text>
-          </TouchableOpacity> */}
-
           <ShadowButton
             text="Get Started"
             textColor="#2B2B2B"
@@ -48,7 +38,10 @@ const WelcomeScreen = () => {
             onPress={() => router.push("/(auth)/login")}
           />
 
-          <TouchableOpacity className="p-3 bg-[#00000066] rounded-full mt-3 border border-[#FFFFFF1A]">
+          <TouchableOpacity
+            onPress={() => router.push("/(auth)/signup")}
+            className="p-3 bg-[#00000066] rounded-full mt-3 border border-[#FFFFFF1A]"
+          >
             <Text className="font-roboto-bold text-[#FFFFFF] text-center">
               Create Account
             </Text>
