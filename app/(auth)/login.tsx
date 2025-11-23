@@ -76,7 +76,7 @@ const Login = () => {
             text="Login"
             textColor="#2B2B2B"
             backGroundColor="#E8EBEE"
-            onPress={() => {}}
+            onPress={() => router.push("/(tabs)/home")}
             className="mt-4"
           />
 

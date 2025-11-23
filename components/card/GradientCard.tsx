@@ -1,7 +1,13 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 
-const GradientCard = ({ children }: { children: React.ReactNode }) => {
+const GradientCard = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
   return (
     <LinearGradient
       colors={["#1E252F", "#0E0F10", "#1E252F"]}
@@ -11,7 +17,7 @@ const GradientCard = ({ children }: { children: React.ReactNode }) => {
       style={{
         borderRadius: 24,
       }}
-      className="mt-6 p-6 border border-[#FFFFFF1A] rounded-3xl bg-[#FFFFFF0D]"
+      className={`mt-6 p-6 border border-[#FFFFFF1A] rounded-3xl bg-[#FFFFFF0D] ${className} `}
     >
       {children}
     </LinearGradient>

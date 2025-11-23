@@ -10,6 +10,7 @@ type InputProps = {
   required?: boolean;
   secureTextEntry?: boolean;
   isPassword?: boolean;
+  inputStyle?: string;
 };
 
 const Input = ({
@@ -19,21 +20,24 @@ const Input = ({
   required,
   secureTextEntry = false,
   isPassword = false,
+  inputStyle,
 }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <View className={`${className}`}>
-      <Text className="text-sm text-secondary font-roboto-regular">
-        {title}
-        {required && <Text className="text-red-600 text-lg">*</Text>}
-      </Text>
+      {title && (
+        <Text className="text-sm text-secondary font-roboto-regular">
+          {title}
+          {required && <Text className="text-red-600 text-lg">*</Text>}
+        </Text>
+      )}
 
       <LinearGradient
         colors={["#272B34", "#191A1A"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        className="border border-primary/20 rounded-xl px-4 py-1 mt-1.5"
+        className={`border border-primary/20 rounded-xl px-4 py-1 ${title && "mt-1.5"} ${inputStyle}`}
         style={{ borderRadius: 12 }}
       >
         <View className="flex-row items-center justify-between">
