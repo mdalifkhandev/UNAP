@@ -22,7 +22,7 @@ const Login = () => {
         {/* back button */}
         <BackButton />
 
-        {/* welcomr text */}
+        {/* welcome text */}
         <View>
           <Text className="text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center">
             Welcome Back!
@@ -62,7 +62,9 @@ const Login = () => {
                 Remember me
               </Text>
             </View>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push("/(auth)/forget-password")}
+            >
               <Text className="text-[#C8CACC] font-roboto-regular text-sm">
                 Forgot Password?
               </Text>

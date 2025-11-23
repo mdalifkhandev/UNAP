@@ -11,7 +11,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Signup = () => {
-  const [rememberMe, setRememberMe] = useState(false);
+  const [isTerm, setIsTerm] = useState(false);
   return (
     <GradientBackground>
       <SafeAreaView
@@ -33,12 +33,17 @@ const Signup = () => {
 
         {/* signup inpute */}
         <GradientCard>
-          <Inpute title="Phone" placeholder="+880 123 123 123" />
+          <Inpute title="Name" placeholder="Rokey Mahmud" />
           <Inpute
             title="Email"
             placeholder="example@example.com"
             className="mt-4"
             required={true}
+          />
+          <Inpute
+            title="Phone"
+            placeholder="+880 123 123 123"
+            className="mt-4"
           />
           <Inpute
             title="Password"
@@ -47,30 +52,35 @@ const Signup = () => {
             required={true}
             isPassword={true}
           />
-          <View className="mt-4 flex-row justify-between items-center">
-            <View className="flex-row gap-2 items-center">
-              <TouchableOpacity
-                onPress={() => setRememberMe(!rememberMe)}
-                className="h-5 w-5 bg-secondary rounded-md flex-row justify-center items-center"
-              >
-                {rememberMe && (
-                  <Feather name="check" size={16} color="#000000" />
-                )}
-              </TouchableOpacity>
-              <Text className="text-secondary text-sm font-roboto-medium mt-1.5">
-                Remember me
-              </Text>
-            </View>
-            <TouchableOpacity>
-              <Text className="text-[#C8CACC] font-roboto-regular text-sm">
-                Forgot Password?
-              </Text>
+
+          <View className="flex-row gap-2 items-center mt-4">
+            <TouchableOpacity
+              onPress={() => setIsTerm(!isTerm)}
+              className="h-5 w-5 bg-secondary rounded-md flex-row justify-center items-center"
+            >
+              {isTerm && <Feather name="check" size={16} color="#000000" />}
             </TouchableOpacity>
+            <Text className="text-secondary text-sm font-roboto-regular mt-1.5 pr-5">
+              You agree to the{" "}
+              <Text
+                className="font-roboto-semibold "
+                style={{ textDecorationLine: "underline" }}
+              >
+                Terms of service
+              </Text>{" "}
+              &{" "}
+              <Text
+                className="font-roboto-semibold underline"
+                style={{ textDecorationLine: "underline" }}
+              >
+                Privacy policy
+              </Text>
+            </Text>
           </View>
 
-          {/* login button */}
+          {/* signup button */}
           <ShadowButton
-            text="Login"
+            text="Register"
             textColor="#2B2B2B"
             backGroundColor="#E8EBEE"
             onPress={() => {}}
@@ -79,7 +89,7 @@ const Signup = () => {
 
           <View className="mt-4 flex-row justify-center items-center">
             <Text className="text-secondary_second font-roboto-regular text-sm">
-              Don't have an account?{" "}
+              Already have an account ?{" "}
             </Text>
             <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
               <Text className="font-roboto-bold text-secondary_second text-sm">
