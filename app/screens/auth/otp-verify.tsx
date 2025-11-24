@@ -1,6 +1,5 @@
 import BackButton from "@/components/button/BackButton";
 import ShadowButton from "@/components/button/ShadowButton";
-import GradientCard from "@/components/card/GradientCard";
 import GradientBackground from "@/components/main/GradientBackground";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
@@ -50,18 +49,19 @@ const OTPVerification = () => {
         </View>
 
         {/* emain input */}
-        <GradientCard>
-          <View className="flex-row justify-between  px-2">
+        <View className=" p-6 bg-[#FFFFFF0D] rounded-3xl mt-6">
+          <View className="flex-row justify-between px-2">
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
                 //@ts-ignore
                 ref={(ref) => (inputRefs.current[index] = ref)}
-                className={`w-10 h-10 border rounded-[10px] text-center text-sm place-items-center ${
+                className={`w-10 h-10 border rounded-[10px] text-sm pb-2 ${
                   digit
                     ? "border-gray-300 bg-white"
                     : "border-[#EEEEEE] bg-white"
                 }`}
+                style={{ textAlign: "center" }}
                 value={digit}
                 onChangeText={(value) => handleOtpChange(value, index)}
                 onKeyPress={({ nativeEvent }) =>
@@ -93,7 +93,7 @@ const OTPVerification = () => {
               Back to Login
             </Text>
           </TouchableOpacity>
-        </GradientCard>
+        </View>
       </SafeAreaView>
     </GradientBackground>
   );

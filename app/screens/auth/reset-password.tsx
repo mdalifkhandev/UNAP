@@ -1,6 +1,5 @@
 import BackButton from "@/components/button/BackButton";
 import ShadowButton from "@/components/button/ShadowButton";
-import GradientCard from "@/components/card/GradientCard";
 import Input from "@/components/inpute/Inpute";
 import GradientBackground from "@/components/main/GradientBackground";
 import { router } from "expo-router";
@@ -29,7 +28,7 @@ const ResetPassword = () => {
         </View>
 
         {/* emain input */}
-        <GradientCard>
+        <View className=" p-6 bg-[#FFFFFF0D] rounded-3xl mt-6">
           <Input
             title="New Password"
             placeholder="Enter new password"
@@ -51,7 +50,7 @@ const ResetPassword = () => {
             onPress={() => router.push("/(auth)/login")}
             className="mt-4"
           />
-        </GradientCard>
+        </View>
       </SafeAreaView>
     </GradientBackground>
   );

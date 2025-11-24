@@ -1,6 +1,5 @@
 import BackButton from "@/components/button/BackButton";
 import ShadowButton from "@/components/button/ShadowButton";
-import GradientCard from "@/components/card/GradientCard";
 import Inpute from "@/components/inpute/Inpute";
 import GradientBackground from "@/components/main/GradientBackground";
 import Feather from "@expo/vector-icons/Feather";
@@ -32,7 +31,7 @@ const Signup = () => {
         </View>
 
         {/* signup inpute */}
-        <GradientCard>
+        <View className=" p-6 bg-[#FFFFFF0D] rounded-3xl mt-6">
           <Inpute title="Name" placeholder="Rokey Mahmud" />
           <Inpute
             title="Email"
@@ -98,7 +97,7 @@ const Signup = () => {
               </Text>
             </TouchableOpacity>
           </View>
-        </GradientCard>
+        </View>
 
         <View className="mt-6">
           <Text className="text-secondary_second text-center font-roboto-regular">

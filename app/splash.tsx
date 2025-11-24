@@ -2,6 +2,7 @@ import GradientBackground from "@/components/main/GradientBackground";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useEffect } from "react";
+import { View } from "react-native";
 
 const SplashScreen = () => {
   // replesh to welcome screen after 2 seconds
@@ -15,11 +16,13 @@ const SplashScreen = () => {
 
   return (
     <GradientBackground className="justify-center items-center">
-      <Image
-        source={require("@/assets/images/logo.png")}
-        style={{ width: 350, height: 150 }}
-        contentFit="contain"
-      />
+      <View className="flex-1 justify-center items-center">
+        <Image
+          source={require("@/assets/images/logo.png")}
+          style={{ width: 350, height: 150 }}
+          contentFit="contain"
+        />
+      </View>
     </GradientBackground>
   );
 };

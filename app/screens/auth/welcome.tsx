@@ -8,16 +8,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const WelcomeScreen = () => {
   return (
-    <GradientBackground className="justify-center items-center">
-      <SafeAreaView edges={["top", "bottom", "left", "right"]}>
+    <GradientBackground>
+      <SafeAreaView
+        edges={["top", "bottom", "left", "right"]}
+        className="p-6 flex-1 justify-center"
+      >
         <Image
           source={require("@/assets/images/logo.png")}
-          style={{ width: 350, height: 150 }}
+          style={{ width: "100%", height: 130 }}
           contentFit="contain"
         />
 
         {/* welcome message */}
-        <View className="mt-8 my-10 px-5 items-center">
+        <View className="mt-8 my-10 items-center">
           <Text className="text-[#E6E6E6] font-roboto-semibold text-center text-2xl">
             Welcome to
           </Text>
@@ -30,7 +33,7 @@ const WelcomeScreen = () => {
         </View>
 
         {/* buttons */}
-        <View className="m-6">
+        <View className="my-6">
           <ShadowButton
             text="Get Started"
             textColor="#2B2B2B"
