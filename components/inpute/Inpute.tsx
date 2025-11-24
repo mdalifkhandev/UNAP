@@ -9,7 +9,7 @@ type InputProps = {
   required?: boolean;
   secureTextEntry?: boolean;
   isPassword?: boolean;
-  inputStyle?: string;
+  inputeStyle?: string;
 };
 
 const Input = ({
@@ -19,7 +19,7 @@ const Input = ({
   required,
   secureTextEntry = false,
   isPassword = false,
-  inputStyle,
+  inputeStyle,
 }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -34,7 +34,9 @@ const Input = ({
         </Text>
       )}
 
-      <View className="flex-row items-center justify-between bg-[#FFFFFF0D] rounded-xl">
+      <View
+        className={`flex-row items-center justify-between bg-[#FFFFFF0D] rounded-xl ${inputeStyle}`}
+      >
         <TextInput
           className="text-primary font-roboto-regular p-4 rounded-xl"
           placeholder={placeholder}

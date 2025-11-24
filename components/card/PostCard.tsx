@@ -1,0 +1,74 @@
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import Fontisto from "@expo/vector-icons/Fontisto";
+import { Image } from "expo-image";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+
+const PostCard = ({ className }: { className?: string }) => {
+  return (
+    <View className={`bg-[#FFFFFF0D] rounded-3xl ${className} `}>
+      {/* post header */}
+      <View className="p-4 flex-row justify-between items-center">
+        <TouchableOpacity className="flex-row gap-3">
+          <Image
+            source={require("@/assets/images/profile.png")}
+            style={{ width: 40, height: 40 }}
+            contentFit="contain"
+          />
+          <View>
+            <Text className="font-roboto-semibold text-sm text-primary">
+              Maya Lin
+            </Text>
+            <Text className="font-roboto-regular text-sm text-secondary">
+              Painter
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity className="py-2 px-4 ">
+          <Text className="font-roboto-semibold text-primary">Follow</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* post image  */}
+      <Image
+        source={require("@/assets/images/post.png")}
+        style={{
+          width: "100%",
+          height: 345,
+        }}
+        contentFit="cover"
+      />
+
+      {/* like comment sheire */}
+      <View className="p-6 flex-row justify-between items-center">
+        <View className="flex-row gap-4">
+          <TouchableOpacity>
+            <Feather name="heart" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Fontisto name="comment" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <AntDesign name="share-alt" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity>
+          <Feather name="bookmark" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+      {/* post description */}
+      <View className="px-6 ">
+        <Text className="font-roboto-regular text-primary">
+          New abstract series exploring the {"\n"} intersection of light and
+          shadow. What do you see? #AbstractArt #Minimalism #BlackAndWhite
+        </Text>
+        <Text className="font-roboto-semibold text-sm text-primary mt-2.5 mb-6">
+          2h ago
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+export default PostCard;

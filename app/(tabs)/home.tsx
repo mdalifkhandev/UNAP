@@ -1,4 +1,5 @@
-import GradientCard from "@/components/card/GradientCard";
+import OfficePostCard from "@/components/card/OfficePostCard";
+import PostCard from "@/components/card/PostCard";
 import Input from "@/components/inpute/Inpute";
 import GradientBackground from "@/components/main/GradientBackground";
 import Feather from "@expo/vector-icons/Feather";
@@ -47,7 +48,7 @@ const Home = () => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
-          <ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false}>
             {/* home header */}
             <View className="flex-row justify-between items-center mx-4 mt-3">
               <TouchableOpacity>
@@ -78,9 +79,9 @@ const Home = () => {
               </View>
             </View>
 
-            {/* post card */}
-            <GradientCard className="flex-row gap-5 ">
-              <TouchableOpacity>
+            {/* post create card */}
+            <View className=" p-6 bg-[#FFFFFF0D] rounded-3xl mt-6 flex-row gap-5">
+              <TouchableOpacity className="mt-2">
                 <Image
                   source={require("@/assets/images/profile.png")}
                   style={{
@@ -91,10 +92,7 @@ const Home = () => {
                 />
               </TouchableOpacity>
               <View className=" flex-1">
-                <Input
-                  placeholder="What's on your mind?"
-                  inputStyle="h-[72px]"
-                />
+                <Input placeholder="What's on your mind?" inputeStyle="pb-10" />
                 <View className="flex-row justify-between mt-5">
                   <View className="flex-row gap-6">
                     <TouchableOpacity
@@ -114,19 +112,14 @@ const Home = () => {
                   </TouchableOpacity>
                 </View>
               </View>
-            </GradientCard>
+            </View>
 
-            {selectedImage && (
-              <Image
-                source={{ uri: selectedImage }}
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 8,
-                  marginTop: 10,
-                }}
-              />
-            )}
+            {/* post card */}
+            <PostCard className="mt-6" />
+            <OfficePostCard className="mt-6" />
+
+            {/* ..........end......... */}
+            {/* ..........end......... */}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
