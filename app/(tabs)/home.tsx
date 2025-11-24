@@ -1,5 +1,6 @@
 import OfficePostCard from "@/components/card/OfficePostCard";
 import PostCard from "@/components/card/PostCard";
+import SuggestedArtistsCard from "@/components/card/SuggestedArtistsCard";
 import Input from "@/components/inpute/Inpute";
 import GradientBackground from "@/components/main/GradientBackground";
 import Feather from "@expo/vector-icons/Feather";
@@ -18,6 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
+  const video = require("@/assets/images/postvideo.png");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const handleImagePicker = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -41,14 +43,17 @@ const Home = () => {
   return (
     <GradientBackground>
       <SafeAreaView
-        className="flex-1 mx-6 mt-2.5"
+        className="flex-1 mx-6 mt-2.5 mb-17"
         edges={["top", "left", "right"]}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 72 }}
+          >
             {/* home header */}
             <View className="flex-row justify-between items-center mx-4 mt-3">
               <TouchableOpacity>
@@ -115,8 +120,10 @@ const Home = () => {
             </View>
 
             {/* post card */}
-            <PostCard className="mt-6" />
-            <OfficePostCard className="mt-6" />
+            <PostCard className="mt-4" />
+            <OfficePostCard className="mt-4" />
+            <SuggestedArtistsCard className="mt-4" />
+            <PostCard img={video} className="mt-4" />
 
             {/* ..........end......... */}
             {/* ..........end......... */}
