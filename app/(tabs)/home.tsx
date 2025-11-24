@@ -4,7 +4,8 @@ import GradientBackground from "@/components/main/GradientBackground";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image } from "expo-image";
-import React from "react";
+import * as ImagePicker from "expo-image-picker";
+import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -16,6 +17,26 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const handleImagePicker = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== "granted") {
+      alert("Sorry, we need camera roll permissions to make this work!");
+      return;
+    }
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
+
   return (
     <GradientBackground>
       <SafeAreaView
@@ -76,7 +97,10 @@ const Home = () => {
                 />
                 <View className="flex-row justify-between mt-5">
                   <View className="flex-row gap-6">
-                    <TouchableOpacity className="flex-row items-center gap-2">
+                    <TouchableOpacity
+                      onPress={handleImagePicker}
+                      className="flex-row items-center gap-2"
+                    >
                       <Feather name="image" size={18} color="white" />
                       <Text className="text-white">Photo</Text>
                     </TouchableOpacity>
@@ -91,6 +115,18 @@ const Home = () => {
                 </View>
               </View>
             </GradientCard>
+
+            {selectedImage && (
+              <Image
+                source={{ uri: selectedImage }}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 8,
+                  marginTop: 10,
+                }}
+              />
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
