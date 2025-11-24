@@ -4,9 +4,10 @@ import SuggestedArtistsCard from "@/components/card/SuggestedArtistsCard";
 import Input from "@/components/inpute/Inpute";
 import GradientBackground from "@/components/main/GradientBackground";
 import Feather from "@expo/vector-icons/Feather";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -64,9 +65,11 @@ const Home = () => {
                 />
               </TouchableOpacity>
               <View className="flex-row gap-3 items-center">
-                <TouchableOpacity>
-                  <MaterialIcons
-                    name="notifications-none"
+                <TouchableOpacity
+                  onPress={() => router.push("/screens/home/notification")}
+                >
+                  <Ionicons
+                    name="notifications-outline"
                     size={24}
                     color="white"
                   />
