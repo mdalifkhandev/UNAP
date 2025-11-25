@@ -1,15 +1,13 @@
 import BackButton from "@/components/button/BackButton";
-import MessageReceiverCard from "@/components/card/MessageReceiverCard";
-import MessageSendCard from "@/components/card/MessageSendCard";
 import GradientBackground from "@/components/main/GradientBackground";
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
+  FlatList,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -17,8 +15,114 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const messages = [
+  {
+    id: "1",
+    type: "receive",
+    text: "Hi! How are you doing today? Did you get a chance to check the new design I sent you yesterday?",
+    time: "09:10 AM",
+  },
+  {
+    id: "2",
+    type: "send",
+    text: "Hey! I'm good, thanks for asking. Yes, I looked at the design. It looks really clean and modern!",
+    time: "09:12 AM",
+  },
+  {
+    id: "3",
+    type: "receive",
+    text: "Glad to hear that! I was thinking we could also try a few alternative color palettes to see which one fits better for the mobile app layout.",
+    time: "09:15 AM",
+  },
+  {
+    id: "4",
+    type: "send",
+    text: "Absolutely, I agree. Maybe we can schedule a quick call this afternoon to finalize the color choices?",
+    time: "09:17 AM",
+  },
+  {
+    id: "5",
+    type: "receive",
+    text: "Sounds perfect! I will prepare the alternative palettes and send them to you before the call. Looking forward to it.",
+    time: "09:20 AM",
+  },
+  {
+    id: "6",
+    type: "send",
+    text: "Great! Thanks. Also, I started working on the backend integration for the new feature, so we can review both frontend and backend together.",
+    time: "09:25 AM",
+  },
+  {
+    id: "7",
+    type: "receive",
+    text: "That's amazing! I was worried about the timeline, but if we can review both together, it will save a lot of time.",
+    time: "09:30 AM",
+  },
+  {
+    id: "8",
+    type: "send",
+    text: "Exactly. After the call, I will update the documentation and share it with the team. This way, everyone stays in sync.",
+    time: "09:35 AM",
+  },
+];
+
 const ChatScreen = () => {
-  const scrollRef = useRef(null);
+  const flatRef = useRef(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      //@ts-ignore
+      flatRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, []);
+
+  //@ts-ignore
+  const renderMessage = ({ item }) => {
+    const isSender = item.type === "send";
+
+    if (isSender) {
+      // Sender Bubble
+      return (
+        <View className="flex-row justify-end mb-4 px-4 mt-8">
+          <View className="bg-[#FFFFFF0D] border border-[#EEEEEE] rounded-[10px] w-[75%] py-2.5 px-3">
+            <Text className="font-roboto-semibold text-primary">
+              {item.text}
+            </Text>
+            <Text className="text-sm font-roboto-regular text-primary mt-3">
+              {item.time}
+            </Text>
+          </View>
+        </View>
+      );
+    } else {
+      // Receiver Bubble with Profile
+      return (
+        <View className="flex-row gap-3 items-end mt-7 px-4">
+          <TouchableOpacity className="mt-2 relative">
+            <Image
+              source={require("@/assets/images/profile.png")}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 100,
+              }}
+              contentFit="contain"
+            />
+            <View className="h-3 w-3 rounded-full bg-[#00B56C] absolute right-0 bottom-0" />
+          </TouchableOpacity>
+
+          <View className="bg-primary border border-[#EEEEEE] rounded-[10px] w-[75%] py-2.5 px-3">
+            <Text className="font-roboto-semibold text-[#434343]">
+              {item.text}
+            </Text>
+            <Text className="text-sm font-roboto-regular text-[#434343] mt-3">
+              {item.time}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+  };
 
   return (
     <GradientBackground>
@@ -57,29 +161,21 @@ const ChatScreen = () => {
             </TouchableOpacity>
           </View>
 
-          <ScrollView
-            ref={scrollRef}
-            className="flex-1"
+          {/* ======================messages start====================== */}
+          <FlatList
+            ref={flatRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMessage}
+            contentContainerStyle={{ paddingBottom: 40 }}
             onContentSizeChange={() =>
               //@ts-ignore
-              scrollRef.current?.scrollToEnd({ animated: true })
+              flatRef.current?.scrollToEnd({ animated: true })
             }
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 50 }}
-          >
-            {/* chat */}
-            <View className="flex-1 mx-6 ">
-              {/* receiverd message */}
-              <MessageReceiverCard />
-              <MessageSendCard />
-              <MessageReceiverCard />
-              <MessageSendCard />
-              <MessageReceiverCard />
-              <MessageSendCard />
-              <MessageReceiverCard />
-              <MessageSendCard />
-            </View>
-          </ScrollView>
+          />
+
+          {/* ======================messages end====================== */}
 
           {/* message input and send button */}
 
