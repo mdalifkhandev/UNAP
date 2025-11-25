@@ -52,10 +52,10 @@ const Login = () => {
               <View className="flex-row gap-2 items-center">
                 <TouchableOpacity
                   onPress={() => setRememberMe(!rememberMe)}
-                  className="h-5 w-5 bg-secondary rounded-md flex-row justify-center items-center"
+                  className={`h-5 w-5  rounded-md flex-row justify-center items-center ${rememberMe ? "bg-blue-600" : "bg-secondary"}`}
                 >
                   {rememberMe && (
-                    <Feather name="check" size={16} color="#000000" />
+                    <Feather name="check" size={16} color="#ffffff" />
                   )}
                 </TouchableOpacity>
                 <Text className="text-secondary text-sm font-roboto-medium mt-1.5">

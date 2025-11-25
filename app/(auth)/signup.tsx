@@ -55,9 +55,9 @@ const Signup = () => {
           <View className="flex-row gap-2 items-center mt-4">
             <TouchableOpacity
               onPress={() => setIsTerm(!isTerm)}
-              className="h-5 w-5 bg-secondary rounded-md flex-row justify-center items-center"
+              className={`h-5 w-5 rounded-md flex-row justify-center items-center ${isTerm ? "bg-blue-600" : "bg-secondary"} `}
             >
-              {isTerm && <Feather name="check" size={16} color="#000000" />}
+              {isTerm && <Feather name="check" size={16} color="#ffffff" />}
             </TouchableOpacity>
             <Text className="text-secondary text-sm font-roboto-regular mt-1.5 pr-5">
               You agree to the{" "}
