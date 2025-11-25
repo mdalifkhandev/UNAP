@@ -8,7 +8,7 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
       name: "Ava Martinez",
       profession: "Digital Artist",
       image: {
-        uri: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e",
+        uri: "https://demo-source.imgix.net/head_shot.jpg",
       },
     },
     {
@@ -51,7 +51,7 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
                 height: 50,
                 borderRadius: 100,
               }}
-              contentFit="contain"
+              contentFit="cover"
             />
             <Text className="font-roboto-semibold text-sm text-primary mt-1">
               Sophia Chen
