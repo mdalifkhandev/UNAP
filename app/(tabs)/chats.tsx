@@ -142,7 +142,10 @@ const ChatsList = () => {
             <View className="mx-6 mt-6">
               {chatData.map((chat, index) => (
                 <View key={index}>
-                  <TouchableOpacity className="flex-row justify-between">
+                  <TouchableOpacity
+                    onPress={() => router.push("/screens/chat/chat-screen")}
+                    className="flex-row justify-between"
+                  >
                     <View className="flex-row gap-4 items-center">
                       {chat.read === false && (
                         <View className=" bg-[#007AFF] h-2 w-2 rounded-full "></View>
