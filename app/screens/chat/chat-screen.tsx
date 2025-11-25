@@ -1,9 +1,10 @@
 import BackButton from "@/components/button/BackButton";
 import GradientBackground from "@/components/main/GradientBackground";
+import ChatSettings from "@/components/modal/ChatSettings";
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -68,6 +69,8 @@ const messages = [
 
 const ChatScreen = () => {
   const flatRef = useRef(null);
+
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -156,7 +159,7 @@ const ChatScreen = () => {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowMenu(true)}>
               <Entypo name="dots-three-horizontal" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -207,6 +210,7 @@ const ChatScreen = () => {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+        <ChatSettings showMenu={showMenu} setShowMenu={setShowMenu} />
       </SafeAreaView>
     </GradientBackground>
   );
