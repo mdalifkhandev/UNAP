@@ -70,9 +70,12 @@ const Profiles = () => {
           </View>
           {/* border */}
           <View className="border-b border-[#292929] w-full mt-2"></View>
-          <ScrollView className="mx-6" showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={{ paddingBottom: 40 }}
+            showsVerticalScrollIndicator={false}
+          >
             {/* profile picture  */}
-            <View className="flex-row gap-4 mt-4 items-center">
+            <View className="flex-row gap-4 mt-4 items-center mx-6">
               <TouchableOpacity className="mt-2">
                 <Image
                   source={{
@@ -97,7 +100,7 @@ const Profiles = () => {
             </View>
 
             {/* details */}
-            <View className="mt-3">
+            <View className="mt-3 mx-6">
               <Text className="font-roboto-medium text-primary">
                 Making music that moves people ✨
               </Text>
@@ -110,10 +113,10 @@ const Profiles = () => {
             </View>
 
             {/* border */}
-            <View className="border-b border-[#292929] w-full my-3"></View>
+            <View className="border-b border-[#292929] w-full my-3 mx-6"></View>
 
             {/* post flower flowing */}
-            <View className="flex-row justify-between items-center mt-3 py-3">
+            <View className="flex-row justify-between items-center mt-3 py-3 mx-6">
               <View>
                 <Text className="text-primary text-center font-roboto-semibold text-2xl">
                   127
@@ -141,9 +144,9 @@ const Profiles = () => {
             </View>
 
             {/* border */}
-            <View className="border-b border-[#292929] w-full my-3"></View>
+            <View className="border-b border-[#292929] w-full my-3 mx-6"></View>
 
-            <View className="flex-row justify-center items-center gap-5">
+            <View className="flex-row justify-center items-center gap-5 mx-6">
               <ShadowButton
                 text="Edit Profile"
                 textColor="#2B2B2B"
@@ -160,10 +163,10 @@ const Profiles = () => {
               />
             </View>
             {/* border */}
-            <View className="border-b border-[#292929] w-full mt-24"></View>
+            <View className="border-b border-[#292929] w-full mt-24 mx-6"></View>
 
             {/* my profile post section */}
-            <View className="flex-row justify-between items-center gap-6 mt-3">
+            <View className="flex-row justify-between items-center gap-6 mt-3 mx-6">
               <TouchableOpacity className=" px-5 py-4 rounded-lg flex-row gap-2 items-center">
                 <Foundation name="photo" size={24} color="white" />
                 <Text className="text-primary font-roboto-regular mt-1">
@@ -185,14 +188,14 @@ const Profiles = () => {
             </View>
 
             {/* post data */}
-            <View className="flex-row justify-between items-center mt-6 flex-wrap">
+            <View className="flex-row justify-between items-center mt-6 flex-wrap ">
               {profileImages.map((ites, index) => (
                 <View key={index}>
                   <Image
                     source={{ uri: ites.image }}
                     style={{
-                      width: 125,
-                      height: 130,
+                      width: 140,
+                      height: 140,
                     }}
                     contentFit="contain"
                   />

@@ -111,6 +111,32 @@ const Settings = () => {
                 color="white"
               />
             </TouchableOpacity>
+
+            {/* Faq */}
+            <TouchableOpacity
+              onPress={() => router.push("/screens/profile/settings/faq")}
+              className="flex-row justify-between items-center mt-4"
+            >
+              <View className="flex-row gap-2">
+                {/* <View> */}
+                <Feather
+                  name="help-circle"
+                  size={24}
+                  color="white"
+                  className="mt-3"
+                />
+                {/* </View> */}
+                <Text className="mx-3 mt-3 text-primary font-roboto-regular text-lg">
+                  Faq
+                </Text>
+              </View>
+              <Entypo
+                name="chevron-small-right"
+                className="mt-3.5"
+                size={26}
+                color="white"
+              />
+            </TouchableOpacity>
           </View>
           {/* Settings */}
           <View className="bg-[#FFFFFF0D] p-3 rounded-xl mt-4">
@@ -147,32 +173,32 @@ const Settings = () => {
             </TouchableOpacity>
 
             {/* Terms & Condition */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={() =>
                 router.push("/screens/profile/settings/help-support")
               }
               className="flex-row justify-between items-center mt-4"
-            >
-              <View className="flex-row gap-2">
-                {/* <View> */}
-                <Feather
+            > */}
+            {/* <View className="flex-row gap-2"> */}
+            {/* <View> */}
+            {/* <Feather
                   name="help-circle"
                   size={24}
                   color="white"
                   className="mt-3"
-                />
-                {/* </View> */}
-                <Text className="mx-3 mt-3 text-primary font-roboto-regular text-lg">
+                /> */}
+            {/* </View> */}
+            {/* <Text className="mx-3 mt-3 text-primary font-roboto-regular text-lg">
                   Help & Support
-                </Text>
-              </View>
-              <Entypo
+                </Text> */}
+            {/* </View> */}
+            {/* <Entypo
                 name="chevron-small-right"
                 className="mt-3.5"
                 size={26}
                 color="white"
-              />
-            </TouchableOpacity>
+              /> */}
+            {/* </TouchableOpacity> */}
             {/* Log Out */}
             <TouchableOpacity className="flex-row justify-between items-center mt-4">
               <View className="flex-row gap-2">
@@ -201,11 +227,11 @@ const Settings = () => {
                 <Ionicons
                   name="trash-outline"
                   size={24}
-                  color="white"
+                  color="red"
                   className="mt-3"
                 />
                 {/* </View> */}
-                <Text className="mx-3 mt-3 text-primary font-roboto-regular text-lg">
+                <Text className="mx-3 mt-3 text-[#FF0000] font-roboto-regular text-lg">
                   Delete Account
                 </Text>
               </View>
