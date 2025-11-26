@@ -1,4 +1,3 @@
-import BackButton from "@/components/button/BackButton";
 import ShadowButton from "@/components/button/ShadowButton";
 import Input from "@/components/inpute/Inpute";
 import GradientBackground from "@/components/main/GradientBackground";
@@ -18,11 +17,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const EditProfile = () => {
+const CompleteProfile = () => {
   const [roleOpen, setRoleOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState("Singer");
 
   const roles = ["Singer", "Dancer", "Actor", "Model", "Photographer"];
+
   return (
     <GradientBackground>
       <SafeAreaView className="flex-1  " edges={["top", "left", "right"]}>
@@ -30,21 +30,21 @@ const EditProfile = () => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
-          {/* headers */}
-          <View className="mt-3 flex-row items-center mx-6 justify-between ">
-            <BackButton />
-            <Text className="font-roboto-bold text-primary text-2xl text-center flex-1">
-              Edit profile
-            </Text>
-          </View>
-          {/* border */}
-          <View className="border-b border-[#292929] w-full mt-2"></View>
-
           {/* photo */}
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 40 }}
           >
+            {/* headers */}
+            <View className="mx-6 mt-10">
+              <Text className="font-roboto-bold text-primary text-2xl text-center flex-1">
+                Complete Your Profile
+              </Text>
+              <Text className="font-roboto-regular text-secondary  text-center flex-1">
+                Let other artists know more about you
+              </Text>
+            </View>
+
             <View className="items-center mt-6">
               <View className="relative">
                 {/* Profile Image */}
@@ -57,14 +57,6 @@ const EditProfile = () => {
                     contentFit="cover"
                   />
                 </TouchableOpacity>
-
-                {/* Camera Icon - Center Bottom */}
-                <View className="absolute top-9 left-9 bg-white h-10 w-10 rounded-full items-center justify-center">
-                  <Feather name="camera" size={22} color="black" />
-                  <View className="absolute -right-1 -top-1 bg-white h-4 w-4 rounded-full items-center justify-center">
-                    <Feather name="plus" size={10} color="black" />
-                  </View>
-                </View>
               </View>
             </View>
             <Text className="text-primary text-xl font-roboto-semibold text-center mt-3">
@@ -87,7 +79,7 @@ const EditProfile = () => {
               <View className="w-full">
                 <TouchableOpacity
                   onPress={() => setRoleOpen(!roleOpen)}
-                  className="w-full bg-[#121212] border border-gray-700 rounded-xl p-4 flex-row justify-between items-center"
+                  className="w-full bg-primary/5 border border-gray-700 rounded-xl p-4 flex-row justify-between items-center"
                 >
                   <Text className="text-gray-200 text-base">
                     {selectedRole}
@@ -125,13 +117,13 @@ const EditProfile = () => {
                 placeholderTextColor="#ffffff98"
                 multiline
                 numberOfLines={4}
-                className="bg-[#121212] border border-[#FFFFFF30]  rounded-xl p-4 text-primary"
+                className="bg-primary/5 border border-[#FFFFFF30]  rounded-xl p-4 text-primary"
                 style={{ textAlignVertical: "top" }}
               />
 
               {/* Instagram Title */}
               <Text className="text-primary mt-3 ">Instagram</Text>
-              <View className=" rounded-xl px-4 py-3 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
+              <View className=" rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
                 <AntDesign name="instagram" size={20} color="#fff" />
                 <TextInput
                   placeholder="@username"
@@ -142,7 +134,7 @@ const EditProfile = () => {
 
               {/* Youtub Title */}
               <Text className="text-primary mt-3 ">YouTube</Text>
-              <View className=" rounded-xl px-4 py-3 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
+              <View className=" rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
                 <AntDesign name="youtube" size={20} color="white" />
                 <TextInput
                   placeholder="Channel URL"
@@ -153,7 +145,7 @@ const EditProfile = () => {
 
               {/* Spotify Title */}
               <Text className="text-primary mt-3 ">Spotify</Text>
-              <View className=" rounded-xl px-4 py-3 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
+              <View className=" rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
                 <Feather name="music" size={20} color="white" />
                 <TextInput
                   placeholder="Artist URL"
@@ -164,10 +156,10 @@ const EditProfile = () => {
             </View>
 
             <ShadowButton
-              text="Save"
+              text="Complete Setup"
               textColor="#2B2B2B"
               backGroundColor="#E8EBEE"
-              onPress={() => router.push("/")}
+              onPress={() => router.push("/(tabs)/home")}
               className="mt-8 mx-6 "
             />
           </ScrollView>
@@ -177,4 +169,4 @@ const EditProfile = () => {
   );
 };
 
-export default EditProfile;
+export default CompleteProfile;

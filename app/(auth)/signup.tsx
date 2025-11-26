@@ -92,7 +92,7 @@ const Signup = () => {
               text="Register"
               textColor="#2B2B2B"
               backGroundColor="#E8EBEE"
-              onPress={() => {}}
+              onPress={() => router.push("/screens/profile/complete-profile")}
               className="mt-4"
             />
 
