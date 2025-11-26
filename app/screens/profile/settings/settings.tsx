@@ -119,7 +119,12 @@ const Settings = () => {
             </Text>
 
             {/* Notification */}
-            <TouchableOpacity className="flex-row justify-between items-center mt-6">
+            <TouchableOpacity
+              onPress={() =>
+                router.push("/screens/profile/settings/notification-settings")
+              }
+              className="flex-row justify-between items-center mt-6"
+            >
               <View className="flex-row gap-2">
                 {/* <View> */}
                 <Ionicons
