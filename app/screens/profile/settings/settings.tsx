@@ -58,7 +58,12 @@ const Settings = () => {
             </Text>
 
             {/* Privacy Policy */}
-            <TouchableOpacity className="flex-row justify-between items-center mt-6">
+            <TouchableOpacity
+              onPress={() =>
+                router.push("/screens/profile/settings/privacy-policy")
+              }
+              className="flex-row justify-between items-center mt-6"
+            >
               <View className="flex-row gap-2">
                 {/* <View> */}
                 <Ionicons
@@ -81,7 +86,12 @@ const Settings = () => {
             </TouchableOpacity>
 
             {/* Terms & Condition */}
-            <TouchableOpacity className="flex-row justify-between items-center mt-4">
+            <TouchableOpacity
+              onPress={() =>
+                router.push("/screens/profile/settings/terms-condition")
+              }
+              className="flex-row justify-between items-center mt-4"
+            >
               <View className="flex-row gap-2">
                 {/* <View> */}
                 <Image
