@@ -1,17 +1,19 @@
 import BackButton from "@/components/button/BackButton";
 import GradientBackground from "@/components/main/GradientBackground";
 import Entypo from "@expo/vector-icons/Entypo";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const NotificationSettings = () => {
+const HelpSupport = () => {
   const [isEmailOn, setIsEmailOn] = useState(false);
   const [isSMSOn, setIsSMSOn] = useState(true);
   return (
@@ -32,7 +34,10 @@ const NotificationSettings = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 72, marginHorizontal: 24 }}
           >
-            <View className="flex-row  justify-between py-3 px-5 border border-[#FFFFFF0D] rounded-2xl mt-6 items-center bg-[#FFFFFF0D]">
+            <TouchableOpacity
+              onPress={() => router.push("/screens/profile/settings/faq")}
+              className="flex-row  justify-between py-3 px-5 border border-[#FFFFFF0D] rounded-2xl mt-6 items-center bg-[#FFFFFF0D]"
+            >
               <Text className="text-primary font-roboto-semibold">Faq</Text>
               <Entypo
                 name="chevron-small-right"
@@ -40,7 +45,7 @@ const NotificationSettings = () => {
                 size={26}
                 color="white"
               />
-            </View>
+            </TouchableOpacity>
             <View className="flex-row  justify-between py-3 px-5 border border-[#FFFFFF0D] rounded-2xl mt-3 items-center bg-[#FFFFFF0D]">
               <Text className="text-primary font-roboto-semibold">
                 Contract Us
@@ -59,4 +64,4 @@ const NotificationSettings = () => {
   );
 };
 
-export default NotificationSettings;
+export default HelpSupport;
