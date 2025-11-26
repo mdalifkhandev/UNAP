@@ -38,7 +38,7 @@ const Input = ({
         className={`flex-row items-center justify-between bg-[#FFFFFF0D] rounded-xl ${inputeStyle}`}
       >
         <TextInput
-          className="text-primary font-roboto-regular p-4 rounded-xl"
+          className="text-primary font-roboto-regular p-4 rounded-xl flex-1"
           placeholder={placeholder}
           placeholderTextColor="#9CA3AF"
           secureTextEntry={isPassword ? !showPassword : secureTextEntry}

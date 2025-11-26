@@ -148,7 +148,7 @@ const Profiles = () => {
                 text="Edit Profile"
                 textColor="#2B2B2B"
                 backGroundColor="#E8EBEE"
-                onPress={() => router.push("/(tabs)/home")}
+                onPress={() => router.push("/screens/profile/edit-profile")}
                 className="mt-4"
               />
               <ShadowButton
