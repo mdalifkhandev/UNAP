@@ -154,7 +154,7 @@ const Profiles = () => {
               <ShadowButton
                 text="Share Profile"
                 textColor="#E6E6E6"
-                backGroundColor=""
+                backGroundColor="#000000"
                 onPress={() => router.push("/(tabs)/home")}
                 className="mt-4 border border-[#E6E6E6]"
               />
@@ -173,13 +173,13 @@ const Profiles = () => {
               <TouchableOpacity className=" px-5 py-4 rounded-lg flex-row gap-2 items-center">
                 <Feather name="video" size={24} color="white" />
                 <Text className="text-primary font-roboto-regular mt-1">
-                  Photo
+                  Video
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity className=" px-5 py-4 rounded-lg flex-row gap-2 items-center">
                 <Feather name="music" size={24} color="white" />
                 <Text className="text-primary font-roboto-regular mt-1">
-                  Photo
+                  Music
                 </Text>
               </TouchableOpacity>
             </View>
@@ -191,7 +191,7 @@ const Profiles = () => {
                   <Image
                     source={{ uri: ites.image }}
                     style={{
-                      width: 128,
+                      width: 125,
                       height: 130,
                     }}
                     contentFit="contain"

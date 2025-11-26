@@ -3,6 +3,7 @@ import Feather from "@expo/vector-icons/Feather";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -11,7 +12,10 @@ const OfficePostCard = ({ className }: { className?: string }) => {
     <View className={`bg-[#FFFFFF0D] rounded-3xl ${className} `}>
       {/* post header */}
       <View className="p-4 flex-row justify-between items-center">
-        <TouchableOpacity className="flex-row gap-3">
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/profile")}
+          className="flex-row gap-3"
+        >
           <Image
             source={require("@/assets/images/profile.png")}
             style={{ width: 40, height: 40 }}

@@ -48,7 +48,9 @@ const CompleteProfile = () => {
             <View className="items-center mt-6">
               <View className="relative">
                 {/* Profile Image */}
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => router.push("/(tabs)/profile")}
+                >
                   <Image
                     source={{
                       uri: "https://randomuser.me/api/portraits/men/44.jpg",

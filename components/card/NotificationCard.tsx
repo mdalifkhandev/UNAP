@@ -1,5 +1,6 @@
 import Entypo from "@expo/vector-icons/Entypo";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -22,7 +23,7 @@ const NotificationCard = ({
     <View
       className={`bg-[#FFFFFF0D] py-5 px-4 rounded-xl flex-row justify-between gap-5 ${className} `}
     >
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push("/(tabs)/profile")}>
         <Image
           source={img}
           style={{

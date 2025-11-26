@@ -4,6 +4,7 @@ import ChatSettings from "@/components/modal/ChatSettings";
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   FlatList,
@@ -101,7 +102,10 @@ const ChatScreen = () => {
       // Receiver Bubble with Profile
       return (
         <View className="flex-row gap-3 items-end mt-7 px-4">
-          <TouchableOpacity className="mt-2 relative">
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/profile")}
+            className="mt-2 relative"
+          >
             <Image
               source={require("@/assets/images/profile.png")}
               style={{
@@ -138,7 +142,10 @@ const ChatScreen = () => {
           <View className="flex-row justify-between items-center mx-6 mt-5 mb-2">
             <View className="flex-row items-center gap-5 ">
               <BackButton />
-              <TouchableOpacity className="mt-2 relative">
+              <TouchableOpacity
+                onPress={() => router.push("/(tabs)/profile")}
+                className="mt-2 relative"
+              >
                 <Image
                   source={require("@/assets/images/profile.png")}
                   style={{

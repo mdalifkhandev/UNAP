@@ -1,5 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -9,7 +10,10 @@ const PostCard = ({ className, img }: { className?: string; img?: any }) => {
     <View className={`bg-[#FFFFFF0D] rounded-3xl ${className} `}>
       {/* post header */}
       <View className="p-4 flex-row justify-between items-center">
-        <TouchableOpacity className="flex-row gap-3">
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/profile")}
+          className="flex-row gap-3"
+        >
           <Image
             source={require("@/assets/images/profile.png")}
             style={{ width: 40, height: 40 }}

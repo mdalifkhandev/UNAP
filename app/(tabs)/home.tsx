@@ -74,7 +74,9 @@ const Home = () => {
                     color="white"
                   />
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => router.push("/(tabs)/profile")}
+                >
                   <Image
                     source={require("@/assets/images/profile.png")}
                     style={{
@@ -89,7 +91,10 @@ const Home = () => {
 
             {/* post create card */}
             <View className=" p-6 bg-[#FFFFFF0D] rounded-3xl mt-6 flex-row gap-5">
-              <TouchableOpacity className="mt-2">
+              <TouchableOpacity
+                onPress={() => router.push("/(tabs)/profile")}
+                className="mt-2"
+              >
                 <Image
                   source={require("@/assets/images/profile.png")}
                   style={{

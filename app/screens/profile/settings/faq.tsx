@@ -1,26 +1,17 @@
 import BackButton from "@/components/button/BackButton";
 import GradientBackground from "@/components/main/GradientBackground";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   KeyboardAvoidingView,
-  LayoutAnimation,
   Platform,
   ScrollView,
   Text,
   TouchableOpacity,
-  UIManager,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// Enable LayoutAnimation for Android
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 interface FAQItemProps {
   question: string;
@@ -35,34 +26,59 @@ const FAQItem: React.FC<FAQItemProps> = ({
   isOpen,
   onToggle,
 }) => {
-  const handleToggle = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    onToggle();
-  };
+  const animatedHeight = useRef(new Animated.Value(isOpen ? 1 : 0)).current;
+  const animatedRotation = useRef(new Animated.Value(isOpen ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(animatedHeight, {
+        toValue: isOpen ? 1 : 0,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(animatedRotation, {
+        toValue: isOpen ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [isOpen]);
+
+  const maxHeight = animatedHeight.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 200],
+  });
+
+  const rotation = animatedRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
 
   return (
     <View className="bg-[#FFFFFF0D] rounded-2xl mb-3 overflow-hidden border border-[#FFFFFF0D]">
       <TouchableOpacity
-        onPress={handleToggle}
+        onPress={onToggle}
         activeOpacity={0.7}
         className="px-5 py-4 flex-row items-start justify-between"
       >
         <Text className="text-primary text-lg font-roboto-regular pr-4 flex-1">
           {question}
         </Text>
-        <Ionicons
-          name={isOpen ? "chevron-up" : "chevron-down"}
-          size={20}
-          color="#9CA3AF"
-          style={{ marginTop: 2 }}
-        />
+        <Animated.View style={{ transform: [{ rotate: rotation }] }}>
+          <Ionicons
+            name="chevron-down"
+            size={20}
+            color="#9CA3AF"
+            style={{ marginTop: 2 }}
+          />
+        </Animated.View>
       </TouchableOpacity>
 
-      {isOpen && (
+      <Animated.View style={{ maxHeight, overflow: "hidden" }}>
         <View className="px-5 pb-4">
           <Text className="text-secondary leading-relaxed">{answer}</Text>
         </View>
-      )}
+      </Animated.View>
     </View>
   );
 };

@@ -1,4 +1,5 @@
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -43,7 +44,11 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
       </Text>
       <View className="flex-row justify-between mt-6">
         {suggestedPrifile.map((item, index) => (
-          <TouchableOpacity key={index} className="items-center">
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/profile")}
+            key={index}
+            className="items-center"
+          >
             <Image
               source={{ uri: item.image.uri }}
               style={{

@@ -150,7 +150,10 @@ const ChatsList = () => {
                       {chat.read === false && (
                         <View className=" bg-[#007AFF] h-2 w-2 rounded-full "></View>
                       )}
-                      <TouchableOpacity className="mt-2">
+                      <TouchableOpacity
+                        onPress={() => router.push("/(tabs)/profile")}
+                        className="mt-2"
+                      >
                         <Image
                           source={
                             chat.image
