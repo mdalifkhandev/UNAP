@@ -31,32 +31,6 @@ const notification = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 72, marginHorizontal: 24 }}
           >
-            {/* <View className="bg-[#FFFFFF0D] py-5 px-4 rounded-xl mt-5 flex-row justify-between gap-5">
-              <TouchableOpacity>
-                <Image
-                  source={require("@/assets/images/profile.png")}
-                  style={{
-                    width: 40,
-                    height: 40,
-                  }}
-                  contentFit="contain"
-                />
-              </TouchableOpacity>
-              <View className="flex-1 ">
-                <Text className="font-roboto-semibold text-primary text-2xl">
-                  Sarah Martinez
-                </Text>
-                <Text className="font-roboto-regular text-primary mt-2">
-                  liked your post
-                </Text>
-                <Text className="font-roboto-regular text-primary mt-3">
-                  2 munite ago
-                </Text>
-              </View>
-              <TouchableOpacity>
-                <Entypo name="dots-three-vertical" size={24} color="white" />
-              </TouchableOpacity>
-            </View> */}
             <NotificationCard
               name=" Sarah Martinez"
               reson=" Liked Your Post"

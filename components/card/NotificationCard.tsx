@@ -34,11 +34,16 @@ const NotificationCard = ({
         />
       </TouchableOpacity>
       <View className="flex-1 ">
-        <Text className="font-roboto-semibold text-primary text-2xl">
+        <Text className="font-roboto-semibold text-primary text-lg">
           {name}
         </Text>
-        <Text className="font-roboto-regular text-primary mt-2">{reson}</Text>
-        <Text className="font-roboto-regular text-primary mt-3">{time}</Text>
+        <Text className="font-roboto-regular text-sm text-primary mt-1">
+          {reson}
+        </Text>
+        <Text className="font-roboto-regular text-sm text-primary mt-1">
+          {" "}
+          {time}
+        </Text>
       </View>
       <TouchableOpacity>
         <Entypo name="dots-three-vertical" size={24} color="white" />

@@ -189,7 +189,7 @@ const ChatScreen = () => {
 
           {/* message input and send button */}
 
-          <View className="flex-row items-center pb-8 mx-6 gap-3">
+          <View className="flex-row items-center py-4 mx-6 gap-3">
             {/* Plus Button */}
             <TouchableOpacity className="bg-[#ffffff0d] h-12 w-12 rounded-full items-center justify-center border border-[#ffffff1a]">
               <Feather name="plus" size={25} color="white" />

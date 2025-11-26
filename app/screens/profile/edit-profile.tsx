@@ -162,14 +162,15 @@ const EditProfile = () => {
                 />
               </View>
             </View>
-
-            <ShadowButton
-              text="Save"
-              textColor="#2B2B2B"
-              backGroundColor="#E8EBEE"
-              onPress={() => router.push("/")}
-              className="mt-8 mx-6 "
-            />
+            <View className="pb-5">
+              <ShadowButton
+                text="Save"
+                textColor="#2B2B2B"
+                backGroundColor="#E8EBEE"
+                onPress={() => router.push("/")}
+                className="mt-8 mx-6 "
+              />
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

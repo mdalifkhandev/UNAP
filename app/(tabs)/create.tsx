@@ -35,8 +35,8 @@ const CreatePost = () => {
             <Text className="font-roboto-bold text-primary text-2xl">
               Create Post
             </Text>
-            <TouchableOpacity className="px-3 py-1 rounded-full bg-primary">
-              <Text className="font-roboto-regular "> Post</Text>
+            <TouchableOpacity className="px-4 py-2 rounded-full bg-primary">
+              <Text className="font-roboto-semibold  "> Post</Text>
             </TouchableOpacity>
           </View>
 

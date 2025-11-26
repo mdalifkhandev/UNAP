@@ -157,13 +157,15 @@ const CompleteProfile = () => {
               </View>
             </View>
 
-            <ShadowButton
-              text="Complete Setup"
-              textColor="#2B2B2B"
-              backGroundColor="#E8EBEE"
-              onPress={() => router.push("/(tabs)/home")}
-              className="mt-8 mx-6 "
-            />
+            <View className="pb-8">
+              <ShadowButton
+                text="Complete Setup"
+                textColor="#2B2B2B"
+                backGroundColor="#E8EBEE"
+                onPress={() => router.push("/(tabs)/home")}
+                className="mt-8 mx-6 "
+              />
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

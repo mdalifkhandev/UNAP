@@ -19,6 +19,9 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
         tabBarStyle: {
           backgroundColor: "#000000",
+          paddingBottom: 30,
+          height: 90,
+          paddingTop: 4,
         },
       }}
     >
