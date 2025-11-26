@@ -147,7 +147,12 @@ const Settings = () => {
             </TouchableOpacity>
 
             {/* Terms & Condition */}
-            <TouchableOpacity className="flex-row justify-between items-center mt-4">
+            <TouchableOpacity
+              onPress={() =>
+                router.push("/screens/profile/settings/help-support")
+              }
+              className="flex-row justify-between items-center mt-4"
+            >
               <View className="flex-row gap-2">
                 {/* <View> */}
                 <Feather
@@ -158,7 +163,7 @@ const Settings = () => {
                 />
                 {/* </View> */}
                 <Text className="mx-3 mt-3 text-primary font-roboto-regular text-lg">
-                  Terms & Condition
+                  Help & Support
                 </Text>
               </View>
               <Entypo
