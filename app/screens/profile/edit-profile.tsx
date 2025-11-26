@@ -87,7 +87,7 @@ const EditProfile = () => {
               <View className="w-full">
                 <TouchableOpacity
                   onPress={() => setRoleOpen(!roleOpen)}
-                  className="w-full bg-[#121212] border border-gray-700 rounded-xl p-4 flex-row justify-between items-center"
+                  className="w-full bg-primary/5 border border-gray-700 rounded-xl p-4 flex-row justify-between items-center"
                 >
                   <Text className="text-gray-200 text-base">
                     {selectedRole}
@@ -125,13 +125,13 @@ const EditProfile = () => {
                 placeholderTextColor="#ffffff98"
                 multiline
                 numberOfLines={4}
-                className="bg-[#121212] border border-[#FFFFFF30]  rounded-xl p-4 text-primary"
+                className="bg-primary/5 border border-[#FFFFFF30]  rounded-xl p-4 text-primary"
                 style={{ textAlignVertical: "top" }}
               />
 
               {/* Instagram Title */}
               <Text className="text-primary mt-3 ">Instagram</Text>
-              <View className=" rounded-xl px-4 py-3 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
+              <View className=" rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
                 <AntDesign name="instagram" size={20} color="#fff" />
                 <TextInput
                   placeholder="@username"
@@ -142,7 +142,7 @@ const EditProfile = () => {
 
               {/* Youtub Title */}
               <Text className="text-primary mt-3 ">YouTube</Text>
-              <View className=" rounded-xl px-4 py-3 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
+              <View className=" rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
                 <AntDesign name="youtube" size={20} color="white" />
                 <TextInput
                   placeholder="Channel URL"
@@ -153,7 +153,7 @@ const EditProfile = () => {
 
               {/* Spotify Title */}
               <Text className="text-primary mt-3 ">Spotify</Text>
-              <View className=" rounded-xl px-4 py-3 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
+              <View className=" rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2">
                 <Feather name="music" size={20} color="white" />
                 <TextInput
                   placeholder="Artist URL"

@@ -63,7 +63,7 @@ const Profiles = () => {
               Profile
             </Text>
             <TouchableOpacity
-              onPress={() => router.push("/screens/home/notification")}
+              onPress={() => router.push("/screens/profile/settings/settings")}
             >
               <Ionicons name="settings-outline" size={24} color="white" />
             </TouchableOpacity>
