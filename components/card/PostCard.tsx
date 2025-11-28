@@ -6,8 +6,9 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 const PostCard = ({ className, img }: { className?: string; img?: any }) => {
   const image = require("@/assets/images/post.png");
+
   return (
-    <View className={`bg-[#FFFFFF0D] rounded-3xl ${className} `}>
+    <View className={`bg-[#FFFFFF0D] rounded-3xl ${className}`}>
       {/* post header */}
       <View className="p-4 flex-row justify-between items-center">
         <TouchableOpacity
@@ -15,9 +16,9 @@ const PostCard = ({ className, img }: { className?: string; img?: any }) => {
           className="flex-row gap-3"
         >
           <Image
-            source={require("@/assets/images/profile.png")}
-            style={{ width: 40, height: 40 }}
-            contentFit="contain"
+            source="https://thelightcommittee.com/wp-content/uploads/elementor/thumbs/studio-business-headshot-of-a-black-man-in-Los-Angeles-r42uipeyz48g590yz1bhrtos4flfu3q2tuzohhy7f4.jpg"
+            style={{ width: 40, height: 40, borderRadius: 100 }}
+            contentFit="cover"
           />
           <View>
             <Text className="font-roboto-semibold text-sm text-primary">
@@ -44,7 +45,7 @@ const PostCard = ({ className, img }: { className?: string; img?: any }) => {
       />
 
       {/* like comment sheire */}
-      <View className="p-6 flex-row justify-between items-center">
+      <View className="p-3 flex-row justify-between items-center">
         <View className="flex-row gap-4">
           <TouchableOpacity>
             <Ionicons name="heart-outline" size={26} color="white" />
@@ -56,18 +57,20 @@ const PostCard = ({ className, img }: { className?: string; img?: any }) => {
             <Ionicons name="share-social-outline" size={24} color="white" />
           </TouchableOpacity>
         </View>
+
         <TouchableOpacity>
           {/* <Feather name="bookmark" size={24} color="white" /> */}
           <Ionicons name="bookmark-outline" size={24} color="white" />
         </TouchableOpacity>
       </View>
+
       {/* post description */}
-      <View className="px-6 ">
+      <View className="px-3 pb-3">
         <Text className="font-roboto-regular text-primary">
           New abstract series exploring the {"\n"} intersection of light and
           shadow. What do you see? #AbstractArt #Minimalism #BlackAndWhite
         </Text>
-        <Text className="font-roboto-semibold text-sm text-primary mt-2.5 mb-6">
+        <Text className="font-roboto-semibold text-sm text-secondary mt-2.5">
           2h ago
         </Text>
       </View>

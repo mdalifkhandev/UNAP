@@ -17,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const chatData = [
   {
-    name: "Arif Hasan",
+    name: "Arif Hasan dwadadaw",
     message: "Hey! Are you coming today?",
     time: "09:12 AM",
     read: false,
@@ -30,9 +30,9 @@ const chatData = [
     read: false,
   },
   {
-    name: "Mehedi Hossain",
+    name: "Mehedi Hossain fesfsefefsefse",
     image: "https://randomuser.me/api/portraits/men/32.jpg",
-    message: "Got it bro! Thanks!",
+    message: "Got it bro! Thanks! erfgegfegegretgregergerer",
     time: "08:12 AM",
     read: false,
   },
@@ -51,7 +51,7 @@ const chatData = [
   {
     name: "Maliha Chowdhury",
     image: "https://randomuser.me/api/portraits/women/21.jpg",
-    message: "I reached home safely!",
+    message: "I reached home safely! ererfawefdwefwerfwerfwerfwerfwef",
     time: "Monday",
   },
   {
@@ -146,9 +146,9 @@ const ChatsList = () => {
                     onPress={() => router.push("/screens/chat/chat-screen")}
                     className="flex-row justify-between"
                   >
-                    <View className="flex-row gap-4 items-center">
+                    <View className="w-[70%] flex-row gap-2 items-center">
                       {chat.read === false && (
-                        <View className=" bg-[#007AFF] h-2 w-2 rounded-full "></View>
+                        <View className=" bg-[#007AFF] h-2 w-2 rounded-full" />
                       )}
                       <TouchableOpacity
                         onPress={() => router.push("/(tabs)/profile")}
@@ -165,26 +165,37 @@ const ChatsList = () => {
                             height: 46,
                             borderRadius: 100,
                           }}
-                          contentFit="contain"
+                          contentFit="cover"
                         />
                       </TouchableOpacity>
-                      <View className=" w-[65%]">
-                        <Text className="text-primary font-roboto-semibold text-xl">
+                      <View className="w-5/6">
+                        <Text
+                          className="text-primary font-roboto-semibold text-xl"
+                          numberOfLines={1}
+                        >
                           {chat.name}
                         </Text>
                         <Text
-                          className="text-secondary font-roboto-regular mt-1 "
+                          className="text-secondary font-roboto-regular mt-1"
                           numberOfLines={1}
                         >
                           {chat.message}
                         </Text>
                       </View>
                     </View>
-                    <Text className="text-secondary ">{chat.time}</Text>
+
+                    <View className="flex-1 items-end">
+                      <Text
+                        className="text-secondary text-center"
+                        numberOfLines={1}
+                      >
+                        {chat.time}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
 
                   {/* border */}
-                  <View className="border-b border-[#292929] w-full my-3"></View>
+                  <View className="border-b border-[#E0E0E0] w-full my-3"></View>
                 </View>
               ))}
             </View>

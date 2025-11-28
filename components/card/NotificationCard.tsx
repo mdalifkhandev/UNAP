@@ -1,4 +1,4 @@
-import Entypo from "@expo/vector-icons/Entypo";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React from "react";
@@ -46,7 +46,7 @@ const NotificationCard = ({
         </Text>
       </View>
       <TouchableOpacity>
-        <Entypo name="dots-three-vertical" size={24} color="white" />
+        <MaterialCommunityIcons name="dots-vertical" size={24} color="white" />
       </TouchableOpacity>
     </View>
   );

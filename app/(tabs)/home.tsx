@@ -90,7 +90,7 @@ const Home = () => {
             </View>
 
             {/* post create card */}
-            <View className=" p-6 bg-[#FFFFFF0D] rounded-3xl mt-6 flex-row gap-5">
+            <View className="p-6 bg-[#FFFFFF0D] rounded-3xl mt-6 flex-row gap-5">
               <TouchableOpacity
                 onPress={() => router.push("/(tabs)/profile")}
                 className="mt-2"

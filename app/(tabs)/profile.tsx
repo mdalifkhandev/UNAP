@@ -188,16 +188,16 @@ const Profiles = () => {
             </View>
 
             {/* post data */}
-            <View className="flex-row justify-between items-center mt-6 flex-wrap ">
-              {profileImages.map((ites, index) => (
-                <View key={index}>
+            <View className="flex-row justify-between mt-6 flex-wrap">
+              {profileImages.map((item, index) => (
+                <View key={index} className="w-[33%]">
                   <Image
-                    source={{ uri: ites.image }}
+                    source={{ uri: item.image }}
                     style={{
-                      width: 140,
-                      height: 140,
+                      width: "100%",
+                      height: 130,
                     }}
-                    contentFit="contain"
+                    contentFit="cover"
                   />
                 </View>
               ))}

@@ -2,7 +2,6 @@ import GradientBackground from "@/components/main/GradientBackground";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Foundation from "@expo/vector-icons/Foundation";
-import Octicons from "@expo/vector-icons/Octicons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -86,13 +85,9 @@ const CreatePost = () => {
               </View>
               <TouchableOpacity
                 onPress={() => setIsFacebook(!isFacebook)}
-                className="h-8 w-8 rounded-full border border-white flex-row justify-center items-center"
+                className="w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center"
               >
-                <Octicons
-                  name="dot-fill"
-                  size={26}
-                  color={isFacebook ? "#0C8CE9" : "#FFFFFF"}
-                />
+                <View className="w-3.5 h-3.5 bg-blue-500 rounded-full" />
               </TouchableOpacity>
             </View>
 
@@ -106,15 +101,12 @@ const CreatePost = () => {
                 />
                 <Text className="text-primary">Share with Instagram</Text>
               </View>
+
               <TouchableOpacity
                 onPress={() => setIsInstagram(!isInstagram)}
-                className="h-8 w-8 rounded-full border border-white flex-row justify-center items-center"
+                className="w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center"
               >
-                <Octicons
-                  name="dot-fill"
-                  size={26}
-                  color={isInstagram ? "#0C8CE9" : "#FFFFFF"}
-                />
+                <View className="w-3.5 h-3.5 bg-blue-500 rounded-full" />
               </TouchableOpacity>
             </View>
           </ScrollView>

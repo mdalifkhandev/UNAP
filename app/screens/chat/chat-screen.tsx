@@ -177,7 +177,7 @@ const ChatScreen = () => {
             data={messages}
             keyExtractor={(item) => item.id}
             renderItem={renderMessage}
-            contentContainerStyle={{ paddingBottom: 40 }}
+            contentContainerStyle={{ paddingBottom: 0 }}
             onContentSizeChange={() =>
               //@ts-ignore
               flatRef.current?.scrollToEnd({ animated: true })
