@@ -87,7 +87,12 @@ const CreatePost = () => {
                 onPress={() => setIsFacebook(!isFacebook)}
                 className="w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center"
               >
-                <View className="w-3.5 h-3.5 bg-blue-500 rounded-full" />
+                {isFacebook && (
+                  <View className="w-3.5 h-3.5 bg-blue-500 rounded-full" />
+                )}
+                {!isFacebook && (
+                  <View className="w-3.5 h-3.5 bg-white rounded-full" />
+                )}
               </TouchableOpacity>
             </View>
 
@@ -106,7 +111,12 @@ const CreatePost = () => {
                 onPress={() => setIsInstagram(!isInstagram)}
                 className="w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center"
               >
-                <View className="w-3.5 h-3.5 bg-blue-500 rounded-full" />
+                {isInstagram && (
+                  <View className="w-3.5 h-3.5 bg-blue-500 rounded-full" />
+                )}
+                {!isInstagram && (
+                  <View className="w-3.5 h-3.5 bg-white rounded-full" />
+                )}
               </TouchableOpacity>
             </View>
           </ScrollView>
