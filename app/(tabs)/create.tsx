@@ -66,13 +66,13 @@ const CreatePost = () => {
               <View className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg">
                 <Feather name="video" size={40} color="#E60076" />
                 <Text className="text-primary font-roboto-regular mt-1">
-                  Photo
+                  Video
                 </Text>
               </View>
               <View className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg">
                 <Feather name="music" size={40} color="#F54900" />
                 <Text className="text-primary font-roboto-regular mt-1">
-                  Photo
+                  Music
                 </Text>
               </View>
             </View>

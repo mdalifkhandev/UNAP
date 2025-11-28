@@ -1,10 +1,9 @@
-import { MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-type NotificationCardProps = {
+type NotificationUpFollowCardProps = {
   img: any;
   name: string;
   reson: string;
@@ -13,14 +12,14 @@ type NotificationCardProps = {
   type?: "like" | "follow" | "10000";
 };
 
-const NotificationCard = ({
+const NotificationUpFollowCard = ({
   img,
   name,
   reson,
   time,
   className,
   type,
-}: NotificationCardProps) => {
+}: NotificationUpFollowCardProps) => {
   return (
     <View
       className={`bg-[#FFFFFF0D] py-5 px-4 rounded-xl flex-row justify-between gap-5 ${className} `}
@@ -29,28 +28,9 @@ const NotificationCard = ({
         onPress={() => router.push("/(tabs)/profile")}
         className="relative"
       >
-        <Image
-          source={img}
-          style={{
-            width: 40,
-            height: 40,
-          }}
-          contentFit="contain"
-        />
-        {type === "like" && (
-          <View className="absolute right-0 bottom-5">
-            <MaterialCommunityIcons
-              name="cards-heart"
-              size={24}
-              color="#F6339A"
-            />
-          </View>
-        )}
-        {type === "follow" && (
-          <View className="absolute -right-2 bottom-3 bg-white rounded-full p-1">
-            <Octicons name="person-add" size={19} color="#2B7FFF" />
-          </View>
-        )}
+        <View className="bg-[#FCE7F3] p-2 rounded-full">
+          <Feather name="music" size={24} color="#F54900" />
+        </View>
       </TouchableOpacity>
       <View className="flex-1 ">
         <Text className="font-roboto-semibold text-primary text-lg capitalize">
@@ -70,4 +50,4 @@ const NotificationCard = ({
   );
 };
 
-export default NotificationCard;
+export default NotificationUpFollowCard;

@@ -1,5 +1,6 @@
 import BackButton from "@/components/button/BackButton";
 import NotificationCard from "@/components/card/NotificationCard";
+import NotificationUpFollowCard from "@/components/card/NotificationUpFollowCard";
 import GradientBackground from "@/components/main/GradientBackground";
 import React from "react";
 import {
@@ -32,46 +33,52 @@ const notification = () => {
             contentContainerStyle={{ paddingBottom: 72, marginHorizontal: 24 }}
           >
             <NotificationCard
-              name=" Sarah Martinez"
-              reson=" Liked Your Post"
+              name="Sarah Martinez"
+              reson="Liked Your Post"
               time="2 munite ago"
               img={img1}
               className="mt-5"
+              type="like"
             />
             <NotificationCard
-              name=" Sarah Martinez"
-              reson=" Liked Your Post"
+              name="Sarah Martinez"
+              reson="started following you"
               time="2 munite ago"
               img={img1}
               className="mt-3"
+              type="follow"
             />
-            <NotificationCard
-              name=" Sarah Martinez"
-              reson=" Liked Your Post"
+            <NotificationUpFollowCard
+              name="Luna Voice"
+              reson="You've reached 10,000 followers! 🎉"
               time="2 munite ago"
               img={img1}
               className="mt-3"
+              type="like"
             />
             <NotificationCard
-              name=" Sarah Martinez"
-              reson=" Liked Your Post"
+              name="Sarah Martinez"
+              reson="Liked Your Post"
               time="2 munite ago"
               img={img1}
               className="mt-5"
+              type="like"
             />
             <NotificationCard
-              name=" Sarah Martinez"
-              reson=" Liked Your Post"
+              name="Sarah Martinez"
+              reson="Liked Your Post"
               time="2 munite ago"
               img={img1}
               className="mt-3"
+              type="like"
             />
             <NotificationCard
-              name=" Sarah Martinez"
-              reson=" Liked Your Post"
+              name="Sarah Martinez"
+              reson="Liked Your Post"
               time="2 munite ago"
               img={img1}
               className="mt-3"
+              type="like"
             />
           </ScrollView>
         </KeyboardAvoidingView>
