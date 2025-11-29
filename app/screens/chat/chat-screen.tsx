@@ -88,7 +88,7 @@ const ChatScreen = () => {
       // Sender Bubble
       return (
         <View className="flex-row justify-end mb-4 px-4 mt-8">
-          <View className="bg-[#FFFFFF0D] border border-[#EEEEEE] rounded-[10px] w-[75%] py-2.5 px-3">
+          <View className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-[10px] w-[75%] py-2.5 px-3">
             <Text className="font-roboto-semibold text-primary">
               {item.text}
             </Text>

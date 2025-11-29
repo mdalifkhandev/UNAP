@@ -3,8 +3,13 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Foundation from "@expo/vector-icons/Foundation";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
+import { Video } from "expo-av";
+import * as DocumentPicker from "expo-document-picker";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import * as Sharing from "expo-sharing";
+import React, { useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -18,6 +23,88 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const CreatePost = () => {
   const [isFacebook, setIsFacebook] = useState(false);
   const [isInstagram, setIsInstagram] = useState(false);
+
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [video, setVideo] = useState<string | null>(null);
+  const [audio, setAudio] = useState<string | null>(null);
+
+  const videoRef = useRef<Video>(null);
+
+  // Photo pick
+  const pickPhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled) setPhoto(result.assets[0].uri);
+  };
+
+  // Video pick
+  const pickVideo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setVideo(result.assets[0].uri);
+      setPhoto(null);
+      setAudio(null);
+    }
+  };
+
+  // Audio pick
+  const pickAudio = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "audio/*",
+        copyToCacheDirectory: true, // Important for file access
+      });
+
+      console.log("Audio pick result:", result); // Debug log
+
+      if (result.assets && result.assets.length > 0) {
+        const audioUri = result.assets[0].uri;
+        setAudio(audioUri);
+        setPhoto(null);
+        setVideo(null);
+        console.log("Audio URI:", audioUri);
+      } else {
+        console.log("Audio picking canceled");
+      }
+    } catch (error) {
+      console.error("Error picking audio:", error);
+    }
+  };
+
+  // share on facebook
+  const shareToFacebook = async (fileUri) => {
+    if (!(await Sharing.isAvailableAsync())) {
+      alert("Sharing not available!");
+      return;
+    }
+
+    await Sharing.shareAsync(fileUri, {
+      dialogTitle: "Share on Facebook",
+      UTI: "public.jpeg",
+      mimeType: "*/*",
+    });
+  };
+
+  // share instagram
+  const shareToInstagram = async (fileUri) => {
+    if (!(await Sharing.isAvailableAsync())) {
+      alert("Sharing not available!");
+      return;
+    }
+
+    await Sharing.shareAsync(fileUri, {
+      dialogTitle: "Share on Instagram",
+      UTI: "public.jpeg",
+      mimeType: "*/*",
+    });
+  };
 
   return (
     <GradientBackground>
@@ -48,33 +135,79 @@ const CreatePost = () => {
             contentContainerStyle={{ paddingBottom: 72, marginHorizontal: 24 }}
           >
             {/* uplode icon */}
-            <View className="items-center mt-11">
+            {/* <View className="items-center mt-11">
               <Feather name="upload" size={80} color="#6B7280" />
               <Text className="text-primary  mt-6 font-roboto-regular text-xl">
                 Choose content type
               </Text>
+            </View> */}
+
+            <View className="items-center mt-11">
+              {photo ? (
+                <Image
+                  source={{ uri: photo }}
+                  style={{
+                    width: 300,
+                    height: 300,
+                    borderRadius: 12,
+                  }}
+                  contentFit="cover"
+                />
+              ) : video ? (
+                <Video
+                  ref={videoRef}
+                  source={{ uri: video }}
+                  style={{ width: 300, height: 300, borderRadius: 12 }}
+                  useNativeControls
+                  resizeMode="cover"
+                  isLooping
+                />
+              ) : audio ? (
+                <View className="p-6 bg-[#292929] rounded-lg">
+                  <Feather name="music" size={64} color="#F54900" />
+                  <Text className="text-white mt-2 text-center">
+                    Audio Selected
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <Feather name="upload" size={80} color="#6B7280" />
+                  <Text className="text-primary mt-6 font-roboto-regular text-xl">
+                    Choose content type
+                  </Text>
+                </>
+              )}
             </View>
 
             {/* uplode type icon  */}
             <View className="flex-row justify-center items-center gap-6 mt-11">
-              <View className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg">
+              <TouchableOpacity
+                onPress={pickPhoto}
+                className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg"
+              >
                 <Foundation name="photo" size={40} color="#9810FA" />
                 <Text className="text-primary font-roboto-regular mt-1">
                   Photo
                 </Text>
-              </View>
-              <View className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg">
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={pickVideo}
+                className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg"
+              >
                 <Feather name="video" size={40} color="#E60076" />
                 <Text className="text-primary font-roboto-regular mt-1">
                   Video
                 </Text>
-              </View>
-              <View className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg">
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={pickAudio}
+                className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg"
+              >
                 <Feather name="music" size={40} color="#F54900" />
                 <Text className="text-primary font-roboto-regular mt-1">
                   Music
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
 
             {/* share with */}
@@ -84,7 +217,7 @@ const CreatePost = () => {
                 <Text className="text-primary">Share with Facebook</Text>
               </View>
               <TouchableOpacity
-                onPress={() => setIsFacebook(!isFacebook)}
+                onPress={() => shareToFacebook(photo || video)}
                 className="w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center"
               >
                 {isFacebook && (
@@ -108,7 +241,7 @@ const CreatePost = () => {
               </View>
 
               <TouchableOpacity
-                onPress={() => setIsInstagram(!isInstagram)}
+                onPress={() => shareToInstagram(photo || video)}
                 className="w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center"
               >
                 {isInstagram && (
