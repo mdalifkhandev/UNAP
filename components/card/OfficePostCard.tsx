@@ -37,8 +37,8 @@ const OfficePostCard = ({ className }: { className?: string }) => {
             </Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity className="py-2 px-4 ">
-          <Text className="font-roboto-semibold text-primary">Follow</Text>
+        <TouchableOpacity className="py-2 px-6 rounded-full items-center justify-center">
+          <Text className="font-roboto-semibold text-primary">Follow </Text>
         </TouchableOpacity>
       </View>
 

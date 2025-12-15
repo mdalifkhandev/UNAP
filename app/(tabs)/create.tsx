@@ -3,12 +3,12 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Foundation from "@expo/vector-icons/Foundation";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
+import { Video } from "expo-av";
 import * as DocumentPicker from "expo-document-picker";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
-import { VideoView } from "expo-video";
 import React, { useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -28,7 +28,7 @@ const CreatePost = () => {
   const [video, setVideo] = useState<string | null>(null);
   const [audio, setAudio] = useState<string | null>(null);
 
-  const videoRef = useRef<VideoView>(null);
+  const videoRef = useRef<Video>(null);
 
   // Photo pick
   const pickPhoto = async () => {
@@ -156,7 +156,7 @@ const CreatePost = () => {
                   contentFit="cover"
                 />
               ) : video ? (
-                <VideoView
+                <Video
                   ref={videoRef}
                   style={{ width: 300, height: 300, borderRadius: 12 }}
                   //@ts-ignore
