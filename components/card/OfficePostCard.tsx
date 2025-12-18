@@ -1,6 +1,4 @@
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Feather from "@expo/vector-icons/Feather";
-import Fontisto from "@expo/vector-icons/Fontisto";
+import { Ionicons } from "@expo/vector-icons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -66,22 +64,25 @@ const OfficePostCard = ({ className }: { className?: string }) => {
       />
 
       {/* like comment sheire */}
-      <View className="p-6 flex-row justify-between items-center">
+      <View className="p-3 flex-row justify-between items-center">
         <View className="flex-row gap-4">
           <TouchableOpacity>
-            <Feather name="heart" size={24} color="white" />
+            <Ionicons name="heart-outline" size={26} color="white" />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Fontisto name="comment" size={24} color="white" />
+            <Ionicons name="chatbubble-outline" size={24} color="white" />
           </TouchableOpacity>
           <TouchableOpacity>
-            <AntDesign name="share-alt" size={24} color="white" />
+            <Ionicons name="share-social-outline" size={24} color="white" />
           </TouchableOpacity>
         </View>
+
         <TouchableOpacity>
-          <Feather name="bookmark" size={24} color="white" />
+          {/* <Feather name="bookmark" size={24} color="white" /> */}
+          <Ionicons name="bookmark-outline" size={24} color="white" />
         </TouchableOpacity>
       </View>
+
       {/* post description */}
       <View className="px-6 ">
         <Text className="font-roboto-regular text-primary">

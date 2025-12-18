@@ -7,7 +7,7 @@ import { Video } from "expo-av";
 import * as DocumentPicker from "expo-document-picker";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import React, { useRef, useState } from "react";
 import {
@@ -23,12 +23,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const CreatePost = () => {
   const [isFacebook, setIsFacebook] = useState(false);
   const [isInstagram, setIsInstagram] = useState(false);
+  // const [sharedToInstagram, setSharedToInstagram] = useState(false);
 
   const [photo, setPhoto] = useState<string | null>(null);
   const [video, setVideo] = useState<string | null>(null);
   const [audio, setAudio] = useState<string | null>(null);
 
   const videoRef = useRef<Video>(null);
+  const router = useRouter();
+  const navigation = useNavigation();
 
   // Photo pick
   const pickPhoto = async () => {
@@ -95,17 +98,70 @@ const CreatePost = () => {
 
   // share instagram
   //@ts-ignore
-  const shareToInstagram = async (fileUri) => {
-    if (!(await Sharing.isAvailableAsync())) {
-      alert("Sharing not available!");
-      return;
-    }
+  // const shareToInstagram = async (fileUri) => {
+  //   if (!(await Sharing.isAvailableAsync())) {
+  //     alert("Sharing not available!");
+  //     return;
+  //   }
 
-    await Sharing.shareAsync(fileUri, {
-      dialogTitle: "Share on Instagram",
-      UTI: "public.jpeg",
-      mimeType: "*/*",
-    });
+  //   await Sharing.shareAsync(fileUri, {
+  //     dialogTitle: "Share on Instagram",
+  //     UTI: "public.jpeg",
+  //     mimeType: "*/*",
+  //   });
+  // };
+
+  // @ts-ignore
+  // const shareToInstagram = async (fileUri) => {
+  //   try {
+  //     // setSharedToInstagram(true);
+  //     // 1. Check sharing availability
+  //     const isSharingAvailable = await Sharing.isAvailableAsync();
+  //     if (!isSharingAvailable) {
+  //       alert("Sharing feature is not available on this device");
+  //       return;
+  //     }
+
+  //     // 2. Share directly
+  //     await Sharing.shareAsync(fileUri, {
+  //       dialogTitle: "Share to Instagram Feed",
+  //       mimeType: Platform.OS === "ios" ? "public.image" : "image/*",
+  //     });
+
+  //     // 3. Auto-return to UNAP posting screen
+  //     setTimeout(() => {
+  //       const newState = AppState.currentState;
+  //       // যদি app active থাকে (user ফিরে এসেছে)
+  //       if (newState === "active") {
+  //         router.replace("/(tabs)/create");
+  //       }
+  //     }, 3000);
+  //   } catch (error) {
+  //     console.error("Instagram sharing failed:", error);
+  //     alert("Could not open Instagram. Make sure it's installed.");
+  //   }
+  // };
+
+  const shareToInstagram = async (fileUri) => {
+    try {
+      const isSharingAvailable = await Sharing.isAvailableAsync();
+      if (!isSharingAvailable) {
+        alert("Sharing feature is not available on this device");
+        return;
+      }
+
+      await Sharing.shareAsync(fileUri, {
+        dialogTitle: "Share to Instagram Feed",
+        mimeType: Platform.OS === "ios" ? "public.image" : "image/*",
+      });
+
+      setTimeout(() => {
+        router.replace("/(tabs)/create");
+      }, 3000); // 3 seconds
+    } catch (error) {
+      console.error("Instagram sharing failed:", error);
+      alert("Could not open Instagram. Make sure it's installed.");
+    }
   };
 
   return (
@@ -260,6 +316,20 @@ const CreatePost = () => {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      \
+      {/* {sharedToInstagram && (
+        <TouchableOpacity
+          onPress={() => {
+            router.replace("/(tabs)/create");
+            setSharedToInstagram(false);
+          }}
+          className="absolute bottom-6 right-6 bg-[#F54900] px-6 py-3 rounded-full"
+        >
+          <Text className="text-white font-roboto-semibold">
+            Return to UNAP
+          </Text>
+        </TouchableOpacity>
+      )} */}
     </GradientBackground>
   );
 };
