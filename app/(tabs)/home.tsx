@@ -115,10 +115,10 @@ const Home = () => {
                       <Feather name="image" size={18} color="white" />
                       <Text className="text-white">Photo</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity className="flex-row items-center gap-2">
+                    {/* <TouchableOpacity className="flex-row items-center gap-2">
                       <Feather name="link" size={18} color="white" />
                       <Text className="text-white">Link</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                   </View>
                   <TouchableOpacity className="px-4 py-2 bg-primary rounded-xl">
                     <Text className="">Post</Text>

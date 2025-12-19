@@ -10,9 +10,12 @@ type InputProps = {
   secureTextEntry?: boolean;
   isPassword?: boolean;
   inputeStyle?: string;
+  value?: string;
+  onChangeText?: (text: string) => void;
+  type?: any;
 };
 
-const Input = ({
+const Inpute = ({
   placeholder,
   title,
   className,
@@ -20,28 +23,32 @@ const Input = ({
   secureTextEntry = false,
   isPassword = false,
   inputeStyle,
+  value,
+  onChangeText,
+  type,
 }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <View className={`${className}`}>
+    <View className={className}>
       {title && (
-        <Text
-          className={`text-sm text-secondary font-roboto-regular ${title && "mb-1.5"}`}
-        >
+        <Text className="text-sm text-secondary mb-1.5">
           {title}
-          {required && <Text className="text-red-600 text-lg">*</Text>}
+          {required && <Text className="text-red-600">*</Text>}
         </Text>
       )}
 
       <View
-        className={`flex-row items-center justify-between bg-[#FFFFFF0D] rounded-xl ${inputeStyle}`}
+        className={`flex-row items-center bg-[#FFFFFF0D] rounded-xl ${inputeStyle}`}
       >
         <TextInput
-          className="text-primary font-roboto-regular p-4 rounded-xl flex-1"
+          keyboardType={type}
+          className="flex-1 p-4 text-primary"
           placeholder={placeholder}
           placeholderTextColor="#9CA3AF"
           secureTextEntry={isPassword ? !showPassword : secureTextEntry}
+          value={value}
+          onChangeText={onChangeText}
         />
 
         {isPassword && (
@@ -49,11 +56,11 @@ const Input = ({
             onPress={() => setShowPassword(!showPassword)}
             className="p-2"
           >
-            {showPassword ? (
-              <Entypo name="eye-with-line" size={20} color="#9CA3AF" />
-            ) : (
-              <Entypo name="eye" size={20} color="#9CA3AF" />
-            )}
+            <Entypo
+              name={showPassword ? "eye-with-line" : "eye"}
+              size={20}
+              color="#9CA3AF"
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -61,4 +68,4 @@ const Input = ({
   );
 };
 
-export default Input;
+export default Inpute;
