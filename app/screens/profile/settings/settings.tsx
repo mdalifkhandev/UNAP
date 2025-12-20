@@ -1,5 +1,6 @@
 import BackButton from "@/components/button/BackButton";
 import GradientBackground from "@/components/main/GradientBackground";
+import useAuthStore from "@/store/auth.store";
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -10,6 +11,13 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Settings = () => {
+  const { clearAuth } = useAuthStore();
+  const hendleLogout = () => {
+    console.log("lllll");
+    clearAuth();
+    router.push("/(auth)/login");
+  };
+
   return (
     <GradientBackground>
       <SafeAreaView className="flex-1 mt-2.5" edges={["top", "left", "right"]}>
@@ -200,7 +208,10 @@ const Settings = () => {
               /> */}
             {/* </TouchableOpacity> */}
             {/* Log Out */}
-            <TouchableOpacity className="flex-row justify-between items-center mt-4">
+            <TouchableOpacity
+              onPress={hendleLogout}
+              className="flex-row justify-between items-center mt-4"
+            >
               <View className="flex-row gap-2">
                 {/* <View> */}
                 <Image
