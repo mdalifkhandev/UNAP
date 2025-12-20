@@ -16,8 +16,10 @@ type TUser = {
 type AuthStore = {
   email: string | null;
   user: TUser | null;
+  resetToken: string | null;
   setEmail: (email: string) => void;
   setUser: (user: TUser) => void;
+  setResetToken: (token: string) => void;
   clearAuth: () => void;
 };
 
@@ -41,8 +43,10 @@ const useAuthStore = create<AuthStore>()(
     (set) => ({
       email: null,
       user: null,
+      resetToken: null,
       setEmail: (email: string) => set({ email }),
       setUser: (user: TUser) => set({ user }),
+      setResetToken: (token: string) => set({ resetToken: token }),
       clearAuth: () => set({ email: null, user: null }),
     }),
     {

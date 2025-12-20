@@ -2,12 +2,38 @@ import BackButton from "@/components/button/BackButton";
 import ShadowButton from "@/components/button/ShadowButton";
 import Inpute from "@/components/inpute/Inpute";
 import GradientBackground from "@/components/main/GradientBackground";
+import { useUserForgatePasswordSendMail } from "@/hooks/app/auth";
+import useAuthStore from "@/store/auth.store";
 import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ForgetPassword = () => {
+  const [email, setEmail] = React.useState("");
+  const { mutate } = useUserForgatePasswordSendMail();
+  const { setEmail: setEmailInLocal } = useAuthStore();
+
+  const hendleForgatePasswordSendMail = () => {
+    if (!email.trim()) {
+      return alert("Please enter your email");
+    }
+    mutate(
+      { email },
+      {
+        onSuccess: (data) => {
+          console.log(data);
+          setEmailInLocal(email);
+          router.push("/screens/auth/otp-verify");
+        },
+        onError: (error) => {
+          console.log(error);
+          alert("Something went wrong");
+        },
+      }
+    );
+  };
+
   return (
     <GradientBackground>
       <SafeAreaView
@@ -34,6 +60,9 @@ const ForgetPassword = () => {
             title="Email"
             placeholder="example@example.com"
             className="mt-4"
+            value={email}
+            onChangeText={(text) => setEmail(text)}
+            type="email-address"
           />
 
           {/* Back to Login button */}
@@ -41,7 +70,7 @@ const ForgetPassword = () => {
             text="Send Reset Code"
             textColor="#2B2B2B"
             backGroundColor="#E8EBEE"
-            onPress={() => router.push("/screens/auth/otp-verify")}
+            onPress={hendleForgatePasswordSendMail}
             className="mt-4"
           />
 

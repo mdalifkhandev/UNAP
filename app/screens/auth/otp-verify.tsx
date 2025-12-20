@@ -1,14 +1,18 @@
 import BackButton from "@/components/button/BackButton";
 import ShadowButton from "@/components/button/ShadowButton";
 import GradientBackground from "@/components/main/GradientBackground";
+import { useUserForgatePasswordVerifyOtp } from "@/hooks/app/auth";
+import useAuthStore from "@/store/auth.store";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const OTPVerification = () => {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", ""]);
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  const { email, setResetToken, resetToken } = useAuthStore((state) => state);
+  const { mutate } = useUserForgatePasswordVerifyOtp();
 
   const handleOtpChange = (value: string, index: number) => {
     const newOtp = [...otp];
@@ -16,7 +20,7 @@ const OTPVerification = () => {
     setOtp(newOtp);
 
     // Auto focus next input
-    if (value && index < 5) {
+    if (value && index < 4) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -26,6 +30,26 @@ const OTPVerification = () => {
     if (key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
+  };
+
+  const handleForgatePasswordVerifyOtp = () => {
+    const otpString = otp.join("");
+    const otpNumber = Number(otpString);
+    const data = {
+      email,
+      otp: otpNumber,
+    };
+    mutate(data, {
+      onSuccess: (res) => {
+        console.log(res);
+        //@ts-ignore
+        setResetToken(res.resetToken);
+      },
+      onError: (err) => {
+        console.log(err);
+      },
+    });
+    console.log("ddd", resetToken);
   };
 
   return (
@@ -79,7 +103,7 @@ const OTPVerification = () => {
             text="Verify OTP"
             textColor="#2B2B2B"
             backGroundColor="#E8EBEE"
-            onPress={() => router.push("/screens/auth/reset-password")}
+            onPress={handleForgatePasswordVerifyOtp}
             className="mt-4"
           />
 

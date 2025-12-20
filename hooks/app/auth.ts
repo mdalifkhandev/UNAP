@@ -27,3 +27,21 @@ export const useUserLogin = () => {
     },
   });
 };
+
+export const useUserForgatePasswordSendMail = () => {
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const res = await api.post("/api/auth/forgot-password", data);
+      return res;
+    },
+  });
+};
+
+export const useUserForgatePasswordVerifyOtp = () => {
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const res = await api.post("/api/auth/verify-reset-otp", data);
+      return res;
+    },
+  });
+};
