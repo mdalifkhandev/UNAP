@@ -44,12 +44,13 @@ const OTPVerification = () => {
         console.log(res);
         //@ts-ignore
         setResetToken(res.resetToken);
+        router.push("/screens/auth/reset-password");
       },
       onError: (err) => {
         console.log(err);
+        alert("Error");
       },
     });
-    console.log("ddd", resetToken);
   };
 
   return (

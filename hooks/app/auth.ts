@@ -45,3 +45,18 @@ export const useUserForgatePasswordVerifyOtp = () => {
     },
   });
 };
+
+export const useUserForgatePasswordResetPassword = () => {
+  return useMutation({
+    mutationFn: async ({ data, token }: any) => {
+      console.log(data, token);
+
+      const res = await api.post("/api/auth/reset-password", data, {
+        headers: {
+          "x-reset-token": token,
+        },
+      });
+      return res;
+    },
+  });
+};

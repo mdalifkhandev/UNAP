@@ -2,12 +2,49 @@ import BackButton from "@/components/button/BackButton";
 import ShadowButton from "@/components/button/ShadowButton";
 import Input from "@/components/inpute/Inpute";
 import GradientBackground from "@/components/main/GradientBackground";
+import { useUserForgatePasswordResetPassword } from "@/hooks/app/auth";
+import useAuthStore from "@/store/auth.store";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ResetPassword = () => {
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const { mutate } = useUserForgatePasswordResetPassword();
+  const { resetToken } = useAuthStore();
+
+  const handleForgatePasswordResetPassword = () => {
+    if (!newPassword.trim() || !confirmPassword.trim()) {
+      return alert("Please enter your password");
+    }
+    if (newPassword !== confirmPassword) {
+      return alert("Password does not match");
+    }
+
+    const data = {
+      newPassword,
+      confirmPassword,
+    };
+
+    mutate(
+      { data, token: resetToken },
+      {
+        onSuccess: (data) => {
+          console.log(data, "data");
+          router.push("/(auth)/login");
+        },
+        onError: (error) => {
+          console.log(error, "error");
+          alert("Error");
+        },
+      }
+    );
+
+    // router.push("/(auth)/login")
+  };
   return (
     <GradientBackground>
       <SafeAreaView
@@ -34,12 +71,16 @@ const ResetPassword = () => {
             placeholder="Enter new password"
             className="mt-4"
             isPassword={true}
+            value={newPassword}
+            onChangeText={(text: string) => setNewPassword(text)}
           />
           <Input
             title="Confirm Password"
             placeholder="Confirm new password"
             className="mt-4"
             isPassword={true}
+            value={confirmPassword}
+            onChangeText={(text: string) => setConfirmPassword(text)}
           />
 
           {/* Back to Login button */}
@@ -47,7 +88,7 @@ const ResetPassword = () => {
             text="Update Password"
             textColor="#2B2B2B"
             backGroundColor="#E8EBEE"
-            onPress={() => router.push("/(auth)/login")}
+            onPress={handleForgatePasswordResetPassword}
             className="mt-4"
           />
         </View>
