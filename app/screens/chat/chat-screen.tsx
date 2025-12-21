@@ -4,7 +4,7 @@ import ChatSettings from "@/components/modal/ChatSettings";
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   FlatList,
@@ -17,75 +17,95 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const messages = [
-  {
-    id: "1",
-    type: "receive",
-    text: "Hi! How are you doing today? Did you get a chance to check the new design I sent you yesterday?",
-    time: "09:10 AM",
-  },
-  {
-    id: "2",
-    type: "send",
-    text: "Hey! I'm good, thanks for asking. Yes, I looked at the design. It looks really clean and modern!",
-    time: "09:12 AM",
-  },
-  {
-    id: "3",
-    type: "receive",
-    text: "Glad to hear that! I was thinking we could also try a few alternative color palettes to see which one fits better for the mobile app layout.",
-    time: "09:15 AM",
-  },
-  {
-    id: "4",
-    type: "send",
-    text: "Absolutely, I agree. Maybe we can schedule a quick call this afternoon to finalize the color choices?",
-    time: "09:17 AM",
-  },
-  {
-    id: "5",
-    type: "receive",
-    text: "Sounds perfect! I will prepare the alternative palettes and send them to you before the call. Looking forward to it.",
-    time: "09:20 AM",
-  },
-  {
-    id: "6",
-    type: "send",
-    text: "Great! Thanks. Also, I started working on the backend integration for the new feature, so we can review both frontend and backend together.",
-    time: "09:25 AM",
-  },
-  {
-    id: "7",
-    type: "receive",
-    text: "That's amazing! I was worried about the timeline, but if we can review both together, it will save a lot of time.",
-    time: "09:30 AM",
-  },
-  {
-    id: "8",
-    type: "send",
-    text: "Exactly. After the call, I will update the documentation and share it with the team. This way, everyone stays in sync.",
-    time: "09:35 AM",
-  },
-];
+/**
+ * ✅ Logged-in user id
+ * (Later this will come from auth)
+ */
+const CURRENT_USER_ID = "me";
+
+/**
+ * ✅ Dummy messages with senderId
+ */
+const dummyMessages = {
+  "Arif Hasan dwadadaw": [
+    {
+      id: "1",
+      senderId: "Arif Hasan dwadadaw",
+      text: "Hey! Are you coming today?",
+      time: "09:10 AM",
+    },
+    {
+      id: "2",
+      senderId: "me",
+      text: "Yes! I'll be there in 30 minutes.",
+      time: "09:12 AM",
+    },
+    {
+      id: "3",
+      senderId: "Arif Hasan dwadadaw",
+      text: "Great! Don't forget to bring the documents.",
+      time: "09:15 AM",
+    },
+  ],
+  "Nusrat Jahan": [
+    {
+      id: "1",
+      senderId: "Nusrat Jahan",
+      text: "I have sent the documents.",
+      time: "08:50 AM",
+    },
+    {
+      id: "2",
+      senderId: "me",
+      text: "Thanks! I'll check them now.",
+      time: "08:55 AM",
+    },
+    {
+      id: "3",
+      senderId: "Nusrat Jahan",
+      text: "Let me know if you need any changes.",
+      time: "09:00 AM",
+    },
+  ],
+  default: [
+    {
+      id: "1",
+      senderId: "other",
+      text: "Hi! How are you doing today?",
+      time: "09:10 AM",
+    },
+    {
+      id: "2",
+      senderId: "me",
+      text: "Hey! I'm good, thanks for asking.",
+      time: "09:12 AM",
+    },
+  ],
+};
 
 const ChatScreen = () => {
-  const flatRef = useRef(null);
-
+  const flatRef = useRef<FlatList>(null);
+  const params = useLocalSearchParams();
   const [showMenu, setShowMenu] = useState(false);
+
+  const userName = (params.userName as string) || "Unknown User";
+  const userImage = params.userImage as string | undefined;
+
+  const messages =
+    dummyMessages[userName as keyof typeof dummyMessages] ||
+    dummyMessages.default;
 
   useEffect(() => {
     setTimeout(() => {
-      //@ts-ignore
       flatRef.current?.scrollToEnd({ animated: true });
     }, 100);
   }, []);
 
-  //@ts-ignore
-  const renderMessage = ({ item }) => {
-    const isSender = item.type === "send";
+  const renderMessage = ({ item }: any) => {
+    const isCurrentUser = item.senderId === CURRENT_USER_ID;
 
-    if (isSender) {
-      // Sender Bubble
+    /** ================= RIGHT SIDE (ME) ================= */
+    if (isCurrentUser) {
       return (
         <View className="flex-row justify-end mb-4 px-4 mt-8">
           <View className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-[10px] w-[75%] py-2.5 px-3">
@@ -98,70 +118,66 @@ const ChatScreen = () => {
           </View>
         </View>
       );
-    } else {
-      // Receiver Bubble with Profile
-      return (
-        <View className="flex-row gap-3 items-end mt-7 px-4">
-          <TouchableOpacity
-            onPress={() => router.push("/(tabs)/profile")}
-            className="mt-2 relative"
-          >
-            <Image
-              source={require("@/assets/images/profile.png")}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 100,
-              }}
-              contentFit="contain"
-            />
-            <View className="h-3 w-3 rounded-full bg-[#00B56C] absolute right-0 bottom-0" />
-          </TouchableOpacity>
-
-          <View className="bg-primary border border-[#EEEEEE] rounded-[10px] w-[75%] py-2.5 px-3">
-            <Text className="font-roboto-semibold text-[#434343]">
-              {item.text}
-            </Text>
-            <Text className="text-sm font-roboto-regular text-[#434343] mt-3">
-              {item.time}
-            </Text>
-          </View>
-        </View>
-      );
     }
+
+    /** ================= LEFT SIDE (OTHER USER) ================= */
+    return (
+      <View className="flex-row gap-3 items-end mt-7 px-4">
+        <TouchableOpacity
+          className="mt-2 relative"
+        >
+          <Image
+            source={
+              userImage
+                ? { uri: userImage }
+                : require("@/assets/images/profile.png")
+            }
+            style={{ width: 40, height: 40, borderRadius: 100 }}
+            contentFit="contain"
+          />
+          <View className="h-3 w-3 rounded-full bg-[#00B56C] absolute right-0 bottom-0" />
+        </TouchableOpacity>
+
+        <View className="bg-primary border border-[#EEEEEE] rounded-[10px] w-[75%] py-2.5 px-3">
+          <Text className="font-roboto-semibold text-[#434343]">
+            {item.text}
+          </Text>
+          <Text className="text-sm font-roboto-regular text-[#434343] mt-3">
+            {item.time}
+          </Text>
+        </View>
+      </View>
+    );
   };
 
   return (
     <GradientBackground>
-      <SafeAreaView className="flex-1  " edges={["top", "left", "right"]}>
+      <SafeAreaView className="flex-1" edges={["top", "left", "right"]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
-          {/* headers */}
+          {/* Header */}
           <View className="flex-row justify-between items-center mx-6 mt-5 mb-2">
-            <View className="flex-row items-center gap-5 ">
+            <View className="flex-row items-center gap-5">
               <BackButton />
-              <TouchableOpacity
-                onPress={() => router.push("/(tabs)/profile")}
-                className="mt-2 relative"
-              >
+              <TouchableOpacity className="mt-2 relative">
                 <Image
-                  source={require("@/assets/images/profile.png")}
-                  style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: 100,
-                  }}
+                  source={
+                    userImage
+                      ? { uri: userImage }
+                      : require("@/assets/images/profile.png")
+                  }
+                  style={{ width: 46, height: 46, borderRadius: 100 }}
                   contentFit="contain"
                 />
                 <View className="h-3 w-3 rounded-full bg-[#00B56C] absolute right-0 bottom-0" />
               </TouchableOpacity>
               <View>
                 <Text className="text-primary font-roboto-semibold text-xl">
-                  Farhan Khan
+                  {userName}
                 </Text>
-                <Text className="text-secondary font-roboto-regular mt-1 ">
+                <Text className="text-secondary font-roboto-regular mt-1">
                   Online
                 </Text>
               </View>
@@ -171,52 +187,39 @@ const ChatScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* ======================messages start====================== */}
+          {/* Messages */}
           <FlatList
             ref={flatRef}
             data={messages}
             keyExtractor={(item) => item.id}
             renderItem={renderMessage}
-            contentContainerStyle={{ paddingBottom: 0 }}
             onContentSizeChange={() =>
-              //@ts-ignore
               flatRef.current?.scrollToEnd({ animated: true })
             }
             showsVerticalScrollIndicator={false}
           />
 
-          {/* ======================messages end====================== */}
-
-          {/* message input and send button */}
-
-          <View className="flex-row items-center py-4 mx-6 gap-3">
-            {/* Plus Button */}
+          {/* Input */}
+          <View className="flex-row items-center py-8 mx-6 gap-3">
             <TouchableOpacity className="bg-[#ffffff0d] h-12 w-12 rounded-full items-center justify-center border border-[#ffffff1a]">
               <Feather name="plus" size={25} color="white" />
             </TouchableOpacity>
 
-            {/* Text Input Box */}
-            <View className="flex-1 bg-[#292929] rounded-3xl flex-row items-center px-4 h-12">
-              {/* Text Input */}
+            <View className="flex-1 rounded-3xl flex-row items-center px-4 h-12">
               <TextInput
-                placeholder="Message..."
+                placeholder="Type a message..."
                 placeholderTextColor="#9ca3af"
                 multiline
-                className="flex-1 text-white text-[15px]"
+                className="flex-1 text-white text-[15px] border border-[#5E5E5E] rounded-[10px] px-3"
               />
-
-              {/* Emoji */}
-              <TouchableOpacity className="ml-2">
-                <Feather name="smile" size={22} color="#d1d5db" />
-              </TouchableOpacity>
             </View>
 
-            {/* Send Button */}
             <TouchableOpacity className="bg-[#ffffff0d] h-12 w-12 rounded-full items-center justify-center border border-[#ffffff1a]">
               <Feather name="send" size={24} color="white" />
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+
         <ChatSettings showMenu={showMenu} setShowMenu={setShowMenu} />
       </SafeAreaView>
     </GradientBackground>

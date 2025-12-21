@@ -3,11 +3,11 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Foundation from "@expo/vector-icons/Foundation";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import * as DocumentPicker from "expo-document-picker";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import React, { useRef, useState } from "react";
 import {
@@ -23,7 +23,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const CreatePost = () => {
   const [isFacebook, setIsFacebook] = useState(false);
   const [isInstagram, setIsInstagram] = useState(false);
-  // const [sharedToInstagram, setSharedToInstagram] = useState(false);
 
   const [photo, setPhoto] = useState<string | null>(null);
   const [video, setVideo] = useState<string | null>(null);
@@ -31,7 +30,6 @@ const CreatePost = () => {
 
   const videoRef = useRef<Video>(null);
   const router = useRouter();
-  const navigation = useNavigation();
 
   // Photo pick
   const pickPhoto = async () => {
@@ -39,7 +37,6 @@ const CreatePost = () => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-
     if (!result.canceled) setPhoto(result.assets[0].uri);
   };
 
@@ -49,7 +46,6 @@ const CreatePost = () => {
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       quality: 1,
     });
-
     if (!result.canceled) {
       setVideo(result.assets[0].uri);
       setPhoto(null);
@@ -62,33 +58,26 @@ const CreatePost = () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "audio/*",
-        copyToCacheDirectory: true, // Important for file access
+        copyToCacheDirectory: true,
       });
-
-      console.log("Audio pick result:", result); // Debug log
-
       if (result.assets && result.assets.length > 0) {
         const audioUri = result.assets[0].uri;
         setAudio(audioUri);
         setPhoto(null);
         setVideo(null);
-        console.log("Audio URI:", audioUri);
-      } else {
-        console.log("Audio picking canceled");
       }
     } catch (error) {
       console.error("Error picking audio:", error);
     }
   };
 
-  // share on facebook
-  //@ts-ignore
-  const shareToFacebook = async (fileUri) => {
+  // Sharing functions (optional, just for social preview)
+  const shareToFacebook = async (fileUri: string | null) => {
+    if (!fileUri) return;
     if (!(await Sharing.isAvailableAsync())) {
       alert("Sharing not available!");
       return;
     }
-
     await Sharing.shareAsync(fileUri, {
       dialogTitle: "Share on Facebook",
       UTI: "public.jpeg",
@@ -96,77 +85,63 @@ const CreatePost = () => {
     });
   };
 
-  // share instagram
-  //@ts-ignore
-  // const shareToInstagram = async (fileUri) => {
-  //   if (!(await Sharing.isAvailableAsync())) {
-  //     alert("Sharing not available!");
-  //     return;
-  //   }
-
-  //   await Sharing.shareAsync(fileUri, {
-  //     dialogTitle: "Share on Instagram",
-  //     UTI: "public.jpeg",
-  //     mimeType: "*/*",
-  //   });
-  // };
-
-  // @ts-ignore
-  // const shareToInstagram = async (fileUri) => {
-  //   try {
-  //     // setSharedToInstagram(true);
-  //     // 1. Check sharing availability
-  //     const isSharingAvailable = await Sharing.isAvailableAsync();
-  //     if (!isSharingAvailable) {
-  //       alert("Sharing feature is not available on this device");
-  //       return;
-  //     }
-
-  //     // 2. Share directly
-  //     await Sharing.shareAsync(fileUri, {
-  //       dialogTitle: "Share to Instagram Feed",
-  //       mimeType: Platform.OS === "ios" ? "public.image" : "image/*",
-  //     });
-
-  //     // 3. Auto-return to UNAP posting screen
-  //     setTimeout(() => {
-  //       const newState = AppState.currentState;
-  //       // যদি app active থাকে (user ফিরে এসেছে)
-  //       if (newState === "active") {
-  //         router.replace("/(tabs)/create");
-  //       }
-  //     }, 3000);
-  //   } catch (error) {
-  //     console.error("Instagram sharing failed:", error);
-  //     alert("Could not open Instagram. Make sure it's installed.");
-  //   }
-  // };
-
-  const shareToInstagram = async (fileUri) => {
-    try {
-      const isSharingAvailable = await Sharing.isAvailableAsync();
-      if (!isSharingAvailable) {
-        alert("Sharing feature is not available on this device");
-        return;
-      }
-
-      await Sharing.shareAsync(fileUri, {
-        dialogTitle: "Share to Instagram Feed",
-        mimeType: Platform.OS === "ios" ? "public.image" : "image/*",
-      });
-
-      setTimeout(() => {
-        router.replace("/(tabs)/create");
-      }, 3000); // 3 seconds
-    } catch (error) {
-      console.error("Instagram sharing failed:", error);
-      alert("Could not open Instagram. Make sure it's installed.");
+  const shareToInstagram = async (fileUri: string | null) => {
+    if (!fileUri) return;
+    const isSharingAvailable = await Sharing.isAvailableAsync();
+    if (!isSharingAvailable) {
+      alert("Sharing feature is not available on this device");
+      return;
     }
+    await Sharing.shareAsync(fileUri, {
+      dialogTitle: "Share to Instagram Feed",
+      mimeType: Platform.OS === "ios" ? "public.image" : "image/*",
+    });
+  };
+
+  /** ======================= NEW: Prepare all post data ======================= */
+  const handleCreatePost = async () => {
+    const payload = {
+      media: {
+        photo: photo || null,
+        video: video || null,
+        audio: audio || null,
+      },
+      shareOptions: {
+        facebook: isFacebook,
+        instagram: isInstagram,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log("Post payload ready for API:", payload);
+
+    /**
+     * TODO: Replace console.log with your API call
+     * Example:
+     * await fetch("https://your-api-endpoint.com/posts", {
+     *   method: "POST",
+     *   headers: { "Content-Type": "application/json" },
+     *   body: JSON.stringify(payload),
+     * });
+     */
+
+    // Optional: trigger social share
+    if (isFacebook && photo) await shareToFacebook(photo);
+    if (isInstagram && photo) await shareToInstagram(photo);
+
+    // Reset state after post
+    setPhoto(null);
+    setVideo(null);
+    setAudio(null);
+    setIsFacebook(false);
+    setIsInstagram(false);
+
+    router.back();
   };
 
   return (
     <GradientBackground>
-      <SafeAreaView className="flex-1  " edges={["top", "left", "right"]}>
+      <SafeAreaView className="flex-1" edges={["top", "left", "right"]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
@@ -179,8 +154,11 @@ const CreatePost = () => {
             <Text className="font-roboto-bold text-primary text-2xl">
               Create Post
             </Text>
-            <TouchableOpacity className="px-4 py-2 rounded-full bg-primary">
-              <Text className="font-roboto-semibold  "> Post</Text>
+            <TouchableOpacity
+              onPress={handleCreatePost}
+              className="px-4 py-2 rounded-full bg-primary"
+            >
+              <Text className="font-roboto-semibold">Post</Text>
             </TouchableOpacity>
           </View>
 
@@ -192,23 +170,12 @@ const CreatePost = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 72, marginHorizontal: 24 }}
           >
-            {/* uplode icon */}
-            {/* <View className="items-center mt-11">
-              <Feather name="upload" size={80} color="#6B7280" />
-              <Text className="text-primary  mt-6 font-roboto-regular text-xl">
-                Choose content type
-              </Text>
-            </View> */}
-
+            {/* Media Preview */}
             <View className="items-center mt-11">
               {photo ? (
                 <Image
                   source={{ uri: photo }}
-                  style={{
-                    width: 300,
-                    height: 300,
-                    borderRadius: 12,
-                  }}
+                  style={{ width: 300, height: 300, borderRadius: 12 }}
                   contentFit="cover"
                 />
               ) : video ? (
@@ -218,7 +185,7 @@ const CreatePost = () => {
                   //@ts-ignore
                   src={video}
                   useNativeControls
-                  resizeMode="cover"
+                  resizeMode={ResizeMode.COVER}
                   isMuted={false}
                   shouldPlay
                   isLooping
@@ -226,9 +193,7 @@ const CreatePost = () => {
               ) : audio ? (
                 <View className="p-6 bg-[#292929] rounded-lg">
                   <Feather name="music" size={64} color="#F54900" />
-                  <Text className="text-white mt-2 text-center">
-                    Audio Selected
-                  </Text>
+                  <Text className="text-white mt-2 text-center">Audio Selected</Text>
                 </View>
               ) : (
                 <>
@@ -240,75 +205,61 @@ const CreatePost = () => {
               )}
             </View>
 
-            {/* uplode type icon  */}
+            {/* Upload type selection */}
             <View className="flex-row justify-center items-center gap-6 mt-11">
               <TouchableOpacity
                 onPress={pickPhoto}
                 className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg"
               >
                 <Foundation name="photo" size={40} color="#9810FA" />
-                <Text className="text-primary font-roboto-regular mt-1">
-                  Photo
-                </Text>
+                <Text className="text-primary font-roboto-regular mt-1">Photo</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={pickVideo}
                 className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg"
               >
                 <Feather name="video" size={40} color="#E60076" />
-                <Text className="text-primary font-roboto-regular mt-1">
-                  Video
-                </Text>
+                <Text className="text-primary font-roboto-regular mt-1">Video</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={pickAudio}
                 className="bg-[#FFFFFF0D] px-5 py-4 rounded-lg"
               >
                 <Feather name="music" size={40} color="#F54900" />
-                <Text className="text-primary font-roboto-regular mt-1">
-                  Music
-                </Text>
+                <Text className="text-primary font-roboto-regular mt-1">Music</Text>
               </TouchableOpacity>
             </View>
 
-            {/* share with */}
+            {/* Share Options */}
             <View className="p-4 bg-[#FFFFFF0D] rounded-lg mt-7 flex-row justify-between items-center">
               <View className="flex-row gap-3 items-center">
                 <Feather name="facebook" size={24} color="white" />
                 <Text className="text-primary">Share with Facebook</Text>
               </View>
               <TouchableOpacity
-                onPress={() => shareToFacebook(photo || video)}
+                onPress={() => setIsFacebook(!isFacebook)}
                 className="w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center"
               >
-                {isFacebook && (
+                {isFacebook ? (
                   <View className="w-3.5 h-3.5 bg-blue-500 rounded-full" />
-                )}
-                {!isFacebook && (
+                ) : (
                   <View className="w-3.5 h-3.5 bg-white rounded-full" />
                 )}
               </TouchableOpacity>
             </View>
 
-            {/* share with */}
             <View className="p-4 bg-[#FFFFFF0D] rounded-lg mt-7 flex-row justify-between items-center">
               <View className="flex-row gap-3 items-center">
-                <SimpleLineIcons
-                  name="social-instagram"
-                  size={24}
-                  color="white"
-                />
+                <SimpleLineIcons name="social-instagram" size={24} color="white" />
                 <Text className="text-primary">Share with Instagram</Text>
               </View>
-
               <TouchableOpacity
-                onPress={() => shareToInstagram(photo || video)}
+                onPress={() => setIsInstagram(!isInstagram)}
                 className="w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center"
               >
-                {isInstagram && (
+                {isInstagram ? (
                   <View className="w-3.5 h-3.5 bg-blue-500 rounded-full" />
-                )}
-                {!isInstagram && (
+                ) : (
                   <View className="w-3.5 h-3.5 bg-white rounded-full" />
                 )}
               </TouchableOpacity>
@@ -316,20 +267,6 @@ const CreatePost = () => {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-      \
-      {/* {sharedToInstagram && (
-        <TouchableOpacity
-          onPress={() => {
-            router.replace("/(tabs)/create");
-            setSharedToInstagram(false);
-          }}
-          className="absolute bottom-6 right-6 bg-[#F54900] px-6 py-3 rounded-full"
-        >
-          <Text className="text-white font-roboto-semibold">
-            Return to UNAP
-          </Text>
-        </TouchableOpacity>
-      )} */}
     </GradientBackground>
   );
 };

@@ -30,7 +30,7 @@ const chatData = [
     read: false,
   },
   {
-    name: "Mehedi Hossain fesfsefefsefse",
+    name: "Mehedi Hossain",
     image: "https://randomuser.me/api/portraits/men/32.jpg",
     message: "Got it bro! Thanks! erfgegfegegretgregergerer",
     time: "08:12 AM",
@@ -158,8 +158,15 @@ const ChatsList = () => {
               {filteredChats.map((chat, index) => (
                 <View key={index}>
                   <TouchableOpacity
-                    onPress={() => router.push("/screens/chat/chat-screen")}
-                    className="flex-row justify-between"
+                    onPress={() => router.push({
+                      pathname: "/screens/chat/chat-screen",
+                      params: {
+                        userId: chat.name,
+                        userName: chat.name,
+                        userImage: chat.image || null
+                      }
+                    })}
+                    className="flex-row justify-between  my-3"
                   >
                     <View className="w-[70%] flex-row gap-2 items-center">
                       {chat.read === false && (
@@ -194,7 +201,7 @@ const ChatsList = () => {
                           className="text-secondary font-roboto-regular mt-1"
                           numberOfLines={1}
                         >
-                          {chat.message}
+                          {/* {chat.message} */}
                         </Text>
                       </View>
                     </View>
@@ -210,7 +217,7 @@ const ChatsList = () => {
                   </TouchableOpacity>
 
                   {/* border */}
-                  <View className="border-b border-[#E0E0E0] w-full my-3"></View>
+                  <View className="border-b border-[#E0E0E0] w-full"></View>
                 </View>
               ))}
             </View>
