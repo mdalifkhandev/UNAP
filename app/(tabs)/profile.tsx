@@ -1,5 +1,6 @@
 import ShadowButton from "@/components/button/ShadowButton";
 import GradientBackground from "@/components/main/GradientBackground";
+import useAuthStore from '@/store/auth.store';
 import Feather from "@expo/vector-icons/Feather";
 import Foundation from "@expo/vector-icons/Foundation";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -17,6 +18,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Profiles = () => {
+
+  // this is for user data
+  const { user } = useAuthStore();
+  console.log(user);
   const profileImages = [
     {
       id: 1,
@@ -91,7 +96,7 @@ const Profiles = () => {
               </TouchableOpacity>
               <View>
                 <Text className="text-primary font-roboto-bold text-2xl">
-                  Rokey Mahmud
+                  {user?.name}
                 </Text>
                 <Text className="text-primary font-roboto-regular text-lg">
                   Singer • Producer • {"\n"}Creator 🎵
@@ -188,9 +193,9 @@ const Profiles = () => {
             </View>
 
             {/* post data */}
-            <View className="flex-row justify-between mt-6 flex-wrap">
-              {profileImages.map((item, index) => (
-                <View key={index} className="w-[33%]">
+            <View className="flex-row flex-wrap bg-white">
+              {profileImages.length > 0 ? profileImages.map((item, index) => (
+                <View key={index} className="w-1/3 p-[2px]">
                   <Image
                     source={{ uri: item.image }}
                     style={{
@@ -200,8 +205,13 @@ const Profiles = () => {
                     contentFit="cover"
                   />
                 </View>
-              ))}
+              )) : (
+                <Text className="text-primary font-roboto-regular mt-1">
+                  No Post Found
+                </Text>
+              )}
             </View>
+
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

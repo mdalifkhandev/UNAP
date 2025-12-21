@@ -2,7 +2,7 @@ import GradientBackground from "@/components/main/GradientBackground";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -30,6 +30,21 @@ const users = [
 ];
 
 const SearchScreen = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return users;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return users.filter(
+      (user) =>
+        user.name.toLowerCase().includes(query) ||
+        user.username.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
+
   return (
     <GradientBackground>
       <SafeAreaView className="flex-1 mt-2.5" edges={["top", "left", "right"]}>
@@ -45,13 +60,15 @@ const SearchScreen = () => {
                 placeholder="Search users"
                 placeholderTextColor="#94A3B8"
                 className="text-white ml-3 flex-1"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
               />
             </View>
           </View>
 
           {/* User List */}
           <FlatList
-            data={users}
+            data={filteredUsers}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
