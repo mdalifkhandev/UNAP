@@ -99,7 +99,7 @@ const NotificationCard = ({
 
         {/* Dropdown Menu */}
         {showMenu && (
-          <View className="absolute right-0 top-12 bg-[#1c1c1d] rounded-lg shadow-lg z-10 min-w-[120px]">
+          <View className="absolute right-[35px] top-[20px] bg-[#1c1c1d] rounded-lg shadow-lg z-10 min-w-[200px]">
             <TouchableOpacity
               onPress={handleMarkAsRead}
               className="px-4 py-3 flex-row items-center border-b border-gray-600"
