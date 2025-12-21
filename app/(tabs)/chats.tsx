@@ -3,7 +3,7 @@ import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -105,6 +105,19 @@ const chatData = [
 ];
 
 const ChatsList = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter chats based on search query
+  const filteredChats = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return chatData;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return chatData.filter(chat =>
+      chat.name.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
   return (
     <GradientBackground>
       <SafeAreaView className="flex-1  " edges={["top", "left", "right"]}>
@@ -131,16 +144,18 @@ const ChatsList = () => {
 
             {/* Input */}
             <TextInput
-              placeholder="Search......."
+              placeholder="Search chats..."
               placeholderTextColor="#6B7280"
               returnKeyType="search"
               className="ml-2 flex-1 text-base text-black"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* chat list  */}
             <View className="mx-6 mt-6">
-              {chatData.map((chat, index) => (
+              {filteredChats.map((chat, index) => (
                 <View key={index}>
                   <TouchableOpacity
                     onPress={() => router.push("/screens/chat/chat-screen")}
