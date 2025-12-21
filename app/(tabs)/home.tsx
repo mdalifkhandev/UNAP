@@ -41,8 +41,67 @@ const Home = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [postText, setPostText] = useState("");
+  const [posting, setPosting] = useState(false);
 
-  // Dummy API function to fetch posts
+  // Dummy API function to create a new post
+  const createPost = async (postData: {
+    text: string;
+    image?: string;
+  }): Promise<PostData> => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Simulate API response
+    const newPost: PostData = {
+      id: Date.now(), // Use timestamp as temporary ID
+      author: {
+        name: "Current User",
+        profession: "Artist",
+        avatar: "https://picsum.photos/100/100?random=currentuser"
+      },
+      content: {
+        text: postData.text,
+        image: postData.image
+      },
+      timestamp: "Just now",
+      likes: 0,
+      comments: 0
+    };
+    console.log(newPost);
+    return newPost;
+  };
+
+  // Handle post submission
+  const handlePostSubmit = async () => {
+    if (!postText.trim() && !selectedImage) {
+      alert("Please add some content to your post");
+      return;
+    }
+
+    setPosting(true);
+
+    try {
+      const newPost = await createPost({
+        text: postText.trim(),
+        image: selectedImage || undefined
+      });
+
+      // Add new post to the beginning of the posts array
+      setPosts(prevPosts => [newPost, ...prevPosts]);
+
+      // Reset form
+      setPostText("");
+      setSelectedImage(null);
+
+      alert("Post created successfully!");
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert("Failed to create post. Please try again.");
+    } finally {
+      setPosting(false);
+    }
+  };
   const fetchPosts = async (): Promise<PostData[]> => {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -223,7 +282,13 @@ const Home = () => {
                 />
               </TouchableOpacity>
               <View className=" flex-1">
-                <Input placeholder="What's on your mind?" inputeStyle="pb-10" />
+                <Input
+                  placeholder="What's on your mind?"
+                  inputeStyle="pb-10"
+                  value={postText}
+                  onChangeText={setPostText}
+                  multiline
+                />
                 <View className="flex-row justify-between mt-5">
                   <View className="flex-row gap-6">
                     <TouchableOpacity
@@ -233,13 +298,15 @@ const Home = () => {
                       <Feather name="image" size={18} color="white" />
                       <Text className="text-white">Photo</Text>
                     </TouchableOpacity>
-                    {/* <TouchableOpacity className="flex-row items-center gap-2">
-                      <Feather name="link" size={18} color="white" />
-                      <Text className="text-white">Link</Text>
-                    </TouchableOpacity> */}
                   </View>
-                  <TouchableOpacity className="px-4 py-2 bg-primary rounded-xl">
-                    <Text className="">Post</Text>
+                  <TouchableOpacity
+                    className="px-4 py-2 bg-primary rounded-xl"
+                    onPress={handlePostSubmit}
+                    disabled={posting}
+                  >
+                    <Text className="">
+                      {posting ? "Posting..." : "Post"}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>

@@ -13,6 +13,7 @@ type InputProps = {
   value?: string;
   onChangeText?: (text: string) => void;
   type?: any;
+  multiline?: boolean;
 };
 
 const Inpute = ({
@@ -26,6 +27,7 @@ const Inpute = ({
   value,
   onChangeText,
   type,
+  multiline = false,
 }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -49,6 +51,7 @@ const Inpute = ({
           secureTextEntry={isPassword ? !showPassword : secureTextEntry}
           value={value}
           onChangeText={onChangeText}
+          multiline={multiline}
         />
 
         {isPassword && (
