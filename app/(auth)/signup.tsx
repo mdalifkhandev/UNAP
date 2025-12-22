@@ -71,6 +71,9 @@ const Signup = () => {
       },
     });
   };
+  // const hendleRegister = () => {
+  //   router.push("/screens/auth/signup-otp-verify");
+  // }
 
   return (
     <GradientBackground>
@@ -144,9 +147,8 @@ const Signup = () => {
               <View className="flex-row gap-2 items-center mt-4">
                 <TouchableOpacity
                   onPress={() => setIsTerm(!isTerm)}
-                  className={`h-5 w-5 rounded-md items-center justify-center ${
-                    isTerm ? "bg-blue-600" : "bg-secondary"
-                  }`}
+                  className={`h-5 w-5 rounded-md items-center justify-center ${isTerm ? "bg-blue-600" : "bg-secondary"
+                    }`}
                 >
                   {isTerm && <Feather name="check" size={16} color="#ffffff" />}
                 </TouchableOpacity>

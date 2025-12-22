@@ -1,0 +1,1019 @@
+{
+	"info": {
+		"_postman_id": "9d3e94dd-20de-4f3e-9daf-b107792c7f92",
+		"name": "mister-logo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50989346",
+		"_collection_link": "https://spark1-6139.postman.co/workspace/mister-logo~4b0005c7-f6fc-4c4b-9661-0e735510bd36/collection/34099988-9d3e94dd-20de-4f3e-9daf-b107792c7f92?action=share&source=collection_link&creator=50989346"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "Forget-password",
+					"item": [
+						{
+							"name": "Forgot Password",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"email\":\"afaysal220@gmail.com\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auth/forgot-password",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"forgot-password"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "New Request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{ \r\n    \"email\":\"faysal12340987@gmail.com\" \r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/api/auth/forgot-password",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"auth",
+												"forgot-password"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "72"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"48-oMyFDWMD7KXfkk9F+Xxffdyes4k\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 17 Dec 2025 23:23:45 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"message\": \"If an account exists for this email, an OTP has been sent.\"\n}"
+								}
+							]
+						},
+						{
+							"name": "Verify Rest OTP",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/auth/verify-reset-otp",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"verify-reset-otp"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "New Request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{ \r\n    \"email\":\"faysal12340987@gmail.com\" ,\r\n    \"otp\" : \"09236\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/api/auth/verify-reset-otp",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"auth",
+												"verify-reset-otp"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "284"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"11c-8KaKOu/sbwbcn6JKat0n0tE7Ucw\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 17 Dec 2025 23:24:03 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"message\": \"OTP verified. You may now reset your password.\",\n    \"resetToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTQzMzY3Mjg0NjMxODQwY2ExNWRlZjYiLCJwdXJwb3NlIjoicGFzc3dvcmQtcmVzZXQiLCJpYXQiOjE3NjYwMTM4NDMsImV4cCI6MTc2NjAxNDc0M30.jYdlgaundZxA6cAxCSypeHK1eIEs62z0xddTgsaEzN8\"\n}"
+								}
+							]
+						},
+						{
+							"name": "Reset Password",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-reset-token",
+										"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTQzMzY3Mjg0NjMxODQwY2ExNWRlZjYiLCJwdXJwb3NlIjoicGFzc3dvcmQtcmVzZXQiLCJpYXQiOjE3NjYwMTM4NDMsImV4cCI6MTc2NjAxNDc0M30.jYdlgaundZxA6cAxCSypeHK1eIEs62z0xddTgsaEzN8",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"newPassword\": \"12345678\",\r\n    \"confirmPassword\": \"12345678\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auth/reset-password",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"reset-password"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "New Request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "x-reset-token",
+												"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTQzMzY3Mjg0NjMxODQwY2ExNWRlZjYiLCJwdXJwb3NlIjoicGFzc3dvcmQtcmVzZXQiLCJpYXQiOjE3NjYwMTM4NDMsImV4cCI6MTc2NjAxNDc0M30.jYdlgaundZxA6cAxCSypeHK1eIEs62z0xddTgsaEzN8",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{ \r\n    \"newPassword\":\"12345678\",\r\n    \"confirmPassword\":\"12345678\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/api/auth/reset-password",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"auth",
+												"reset-password"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "516"
+										},
+										{
+											"key": "ETag",
+											"value": "W/\"204-9V9sb1OxHQjT+ZJW+/iebqR7GJI\""
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 17 Dec 2025 23:24:13 GMT"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=5"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"message\": \"Password reset successful.\",\n    \"user\": {\n        \"name\": \"Asir Faysal\",\n        \"email\": \"faysal12340987@gmail.com\",\n        \"phoneNumber\": \"+1234567840\",\n        \"createdAt\": \"2025-12-17T23:02:10.195Z\",\n        \"updatedAt\": \"2025-12-17T23:24:12.794Z\",\n        \"__v\": 0,\n        \"id\": \"6943367284631840ca15def6\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTQzMzY3Mjg0NjMxODQwY2ExNWRlZjYiLCJpYXQiOjE3NjYwMTM4NTMsImV4cCI6MTc2NjAxNzQ1M30.-OMB94cPNf1YmftzwmXHGGhS3MEdlvTTlUPUq293Lo0\",\n    \"refreshToken\": \"d8814b0b5d6a3fd3bef97378822f15e66866e923f9727502f178a42b6cf916c4\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "SignUp",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Asir Faysal\",\r\n  \"email\": \"afaysal220@gmail.com\",\r\n  \"phoneNumber\": \"+1234567890\",\r\n  \"password\": \"password\",\r\n  \"confirmPassword\": \"password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "New Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Asir Faysal\",\r\n  \"email\": \"faysal12340987@gmail.com\",\r\n  \"phoneNumber\": \"+1234567840\",\r\n  \"password\": \"password\",\r\n  \"confirmPassword\": \"password\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auth/register",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"register"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "72"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"48-vqkujE4wvfiSrMoP5+dSFj7x9Qw\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 17 Dec 2025 23:01:36 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"OTP sent to email. Please verify to complete registration.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Registration OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\r\n  \"email\": \"afaysal220@gmail.com\",\r\n  \"otp\" : \"603644\"\r\n  \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/verify-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"verify-otp"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "New Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\r\n  \"email\": \"faysal12340987@gmail.com\",\r\n  \"otp\" : \"74122\"\r\n  \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auth/verify-otp",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"verify-otp"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "610"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"262-ex5hOJym229G/kdePo71vTawoSA\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 17 Dec 2025 23:02:10 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Registration completed successfully.\",\n    \"user\": {\n        \"name\": \"Asir Faysal\",\n        \"email\": \"faysal12340987@gmail.com\",\n        \"phoneNumber\": \"+1234567840\",\n        \"createdAt\": \"2025-12-17T23:02:10.195Z\",\n        \"updatedAt\": \"2025-12-17T23:02:10.195Z\",\n        \"__v\": 0,\n        \"id\": \"6943367284631840ca15def6\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTQzMzY3Mjg0NjMxODQwY2ExNWRlZjYiLCJlbWFpbCI6ImZheXNhbDEyMzQwOTg3QGdtYWlsLmNvbSIsInBob25lTnVtYmVyIjoiKzEyMzQ1Njc4NDAiLCJpYXQiOjE3NjYwMTI1MzAsImV4cCI6MTc2NjAxNjEzMH0.5YoVH9UHrDAY85AIpBmlMTsZ1rr5kaCnMLIyZxSnw44\",\n    \"refreshToken\": \"563998c71bf68ba7e356e6e67260993e0dd7c05a93d5cc791cd970077127e466\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \r\n  \"email\": \"afaysal220@gmail.com\",\r\n  \"phoneNumber\": \"+1234567890\",\r\n  \"password\": \"password\"\r\n  \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "New Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \r\n  \"email\": \"faysal12340987@gmail.com\",\r\n  \"phoneNumber\": \"+123456789\",\r\n  \"password\": \"12345678\"\r\n  \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auth/login",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "591"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"24f-N4DebnZnP5wHQ+3su9p9somX418\""
+								},
+								{
+									"key": "Date",
+									"value": "Wed, 17 Dec 2025 23:24:26 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Login successful.\",\n    \"user\": {\n        \"name\": \"Asir Faysal\",\n        \"email\": \"faysal12340987@gmail.com\",\n        \"phoneNumber\": \"+1234567840\",\n        \"createdAt\": \"2025-12-17T23:02:10.195Z\",\n        \"updatedAt\": \"2025-12-17T23:24:12.794Z\",\n        \"__v\": 0,\n        \"id\": \"6943367284631840ca15def6\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTQzMzY3Mjg0NjMxODQwY2ExNWRlZjYiLCJlbWFpbCI6ImZheXNhbDEyMzQwOTg3QGdtYWlsLmNvbSIsInBob25lTnVtYmVyIjoiKzEyMzQ1Njc4NDAiLCJpYXQiOjE3NjYwMTM4NjYsImV4cCI6MTc2NjAxNzQ2Nn0.CNop6wMLjtJlAHYzPN_gc6ST8P0nvW8lE8uRdjyaEnA\",\n    \"refreshToken\": \"0573a429b10dcf4f1cb1ad6e2438141ff9f9a7a2f06a1bad3e318f1672dc72f3\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Home",
+			"item": [
+				{
+					"name": "Profile",
+					"item": [
+						{
+							"name": "Complete Profile",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "profileImage",
+											"type": "file",
+											"src": "/C:/Users/afays/OneDrive/Desktop/premium_photo-1664474619075-644dd191935f.jpg"
+										},
+										{
+											"key": "username",
+											"value": "user1",
+											"type": "text"
+										},
+										{
+											"key": "role",
+											"value": "singer",
+											"type": "text"
+										},
+										{
+											"key": "bio",
+											"value": "I am a singer",
+											"type": "text"
+										},
+										{
+											"key": "displayName",
+											"value": "user one",
+											"type": "text"
+										},
+										{
+											"key": "instagramUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										},
+										{
+											"key": "tiktokUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										},
+										{
+											"key": "youtubeUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										},
+										{
+											"key": "facebookUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										},
+										{
+											"key": "spotifyArtistUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/profile/complete",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"profile",
+										"complete"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "New Request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "profileImage",
+													"type": "file",
+													"src": "/C:/Users/afays/OneDrive/Desktop/premium_photo-1664474619075-644dd191935f.jpg"
+												},
+												{
+													"key": "username",
+													"value": "user1",
+													"type": "text"
+												},
+												{
+													"key": "role",
+													"value": "singer",
+													"type": "text"
+												},
+												{
+													"key": "bio",
+													"value": "I am a singer",
+													"type": "text"
+												},
+												{
+													"key": "displayName",
+													"value": "user one",
+													"type": "text"
+												},
+												{
+													"key": "instagramUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												},
+												{
+													"key": "tiktokUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												},
+												{
+													"key": "youtubeUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												},
+												{
+													"key": "facebookUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												},
+												{
+													"key": "spotifyArtistUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/profile/complete",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"profile",
+												"complete"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Content-Length",
+											"value": "674"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Date",
+											"value": "Fri, 19 Dec 2025 21:48:25 GMT"
+										},
+										{
+											"key": "Etag",
+											"value": "W/\"2a2-wmMwDAm8fcb2kJ4LxGDfCkVumdY\""
+										},
+										{
+											"key": "Ngrok-Agent-Ips",
+											"value": "103.159.73.129"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"message\": \"Profile completed successfully.\",\n    \"profile\": {\n        \"userId\": \"6943361384631840ca15dee7\",\n        \"username\": \"user1\",\n        \"displayName\": \"user one\",\n        \"role\": \"singer\",\n        \"bio\": \"I am a singer\",\n        \"profileImageUrl\": \"https://res.cloudinary.com/ddty8zoxr/image/upload/v1766180906/unap/profile/profile_6943361384631840ca15dee7.jpg\",\n        \"instagramUrl\": \"https://www.instagram.com/?hl=en\",\n        \"tiktokUrl\": \"https://www.instagram.com/?hl=en\",\n        \"youtubeUrl\": \"https://www.instagram.com/?hl=en\",\n        \"facebookUrl\": \"https://www.instagram.com/?hl=en\",\n        \"spotifyArtistUrl\": \"https://www.instagram.com/?hl=en\",\n        \"_id\": \"6945c82916c976892d9fea6d\",\n        \"createdAt\": \"2025-12-19T21:48:25.852Z\",\n        \"updatedAt\": \"2025-12-19T21:48:25.852Z\",\n        \"__v\": 0\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Update Profile",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "profileImage",
+											"type": "file",
+											"src": "/C:/Users/afays/OneDrive/Desktop/premium_photo-1666672388644-2d99f3feb9f1.jpg"
+										},
+										{
+											"key": "username",
+											"value": "user1 updated",
+											"type": "text"
+										},
+										{
+											"key": "role",
+											"value": "singer new",
+											"type": "text"
+										},
+										{
+											"key": "bio",
+											"value": "I am a new singer",
+											"type": "text"
+										},
+										{
+											"key": "displayName",
+											"value": "user one up",
+											"type": "text"
+										},
+										{
+											"key": "instagramUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										},
+										{
+											"key": "tiktokUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										},
+										{
+											"key": "youtubeUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										},
+										{
+											"key": "facebookUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										},
+										{
+											"key": "spotifyArtistUrl",
+											"value": "https://www.instagram.com/?hl=en",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/profile/me",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"profile",
+										"me"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "New Request",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "profileImage",
+													"type": "file",
+													"src": "/C:/Users/afays/OneDrive/Desktop/premium_photo-1666672388644-2d99f3feb9f1.jpg"
+												},
+												{
+													"key": "username",
+													"value": "user1 updated",
+													"type": "text"
+												},
+												{
+													"key": "role",
+													"value": "singer new",
+													"type": "text"
+												},
+												{
+													"key": "bio",
+													"value": "I am a new singer",
+													"type": "text"
+												},
+												{
+													"key": "displayName",
+													"value": "user one updated",
+													"type": "text"
+												},
+												{
+													"key": "instagramUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												},
+												{
+													"key": "tiktokUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												},
+												{
+													"key": "youtubeUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												},
+												{
+													"key": "facebookUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												},
+												{
+													"key": "spotifyArtistUrl",
+													"value": "https://www.instagram.com/?hl=en",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/profile/me",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"profile",
+												"me"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Content-Length",
+											"value": "696"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Date",
+											"value": "Fri, 19 Dec 2025 21:53:16 GMT"
+										},
+										{
+											"key": "Etag",
+											"value": "W/\"2b8-sFNzJSl457pmwWsPQ6/d5GIYHsY\""
+										},
+										{
+											"key": "Ngrok-Agent-Ips",
+											"value": "103.159.73.129"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "Express"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"message\": \"Profile updated successfully.\",\n    \"profile\": {\n        \"_id\": \"6945c82916c976892d9fea6d\",\n        \"userId\": \"6943361384631840ca15dee7\",\n        \"username\": \"user1 updated\",\n        \"displayName\": \"user one updated\",\n        \"role\": \"singer new\",\n        \"bio\": \"I am a new singer\",\n        \"profileImageUrl\": \"https://res.cloudinary.com/ddty8zoxr/image/upload/v1766181141/unap/profile/profile_6943361384631840ca15dee7.jpg\",\n        \"instagramUrl\": \"https://www.instagram.com/?hl=en\",\n        \"tiktokUrl\": \"https://www.instagram.com/?hl=en\",\n        \"youtubeUrl\": \"https://www.instagram.com/?hl=en\",\n        \"facebookUrl\": \"https://www.instagram.com/?hl=en\",\n        \"spotifyArtistUrl\": \"https://www.instagram.com/?hl=en\",\n        \"createdAt\": \"2025-12-19T21:48:25.852Z\",\n        \"updatedAt\": \"2025-12-19T21:53:16.596Z\",\n        \"__v\": 0\n    }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Create Post",
+					"item": [
+						{
+							"name": "Create Post",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "media",
+											"type": "file",
+											"src": "/C:/Users/afays/OneDrive/Desktop/premium_photo-1664474619075-644dd191935f.jpg"
+										},
+										{
+											"key": "description",
+											"value": "youtube hsorts",
+											"type": "text"
+										},
+										{
+											"key": "shareToFacebook",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "shareToInstagram",
+											"value": "true",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/posts",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"posts"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}

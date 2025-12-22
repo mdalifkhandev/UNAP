@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create, StateCreator } from "zustand";
+import { persist, PersistOptions } from "zustand/middleware";
 
 // User type
 type TUser = {
@@ -38,8 +38,15 @@ const customStorage = {
 };
 
 // Zustand store with persist
+type AuthPersist = (
+  config: StateCreator<AuthStore>,
+  options: PersistOptions<AuthStore>
+) => StateCreator<AuthStore>;
+
 const useAuthStore = create<AuthStore>()(
-  persist(
+  (
+    persist as AuthPersist
+  )(
     (set) => ({
       email: null,
       user: null,
@@ -47,7 +54,7 @@ const useAuthStore = create<AuthStore>()(
       setEmail: (email: string) => set({ email }),
       setUser: (user: TUser) => set({ user }),
       setResetToken: (token: string) => set({ resetToken: token }),
-      clearAuth: () => set({ email: null, user: null }),
+      clearAuth: () => set({ email: null, user: null, resetToken: null }),
     }),
     {
       name: "auth-storage",
@@ -55,5 +62,8 @@ const useAuthStore = create<AuthStore>()(
     }
   )
 );
+
+// Export the store and a getter function for non-React contexts
+export const getAuth = () => useAuthStore.getState();
 
 export default useAuthStore;

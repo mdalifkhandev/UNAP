@@ -57,7 +57,7 @@ const OTPVerification = () => {
           };
           setUser(user);
 
-          router.push("/(tabs)/home");
+          router.push("/screens/profile/complete-profile")
         },
         onError: (error) => {
           console.log(error);
@@ -66,6 +66,9 @@ const OTPVerification = () => {
     );
   };
 
+  // const hendleVerifyOTP = () => {
+  //   router.push("/screens/profile/complete-profile")
+  // }
   return (
     <GradientBackground>
       <SafeAreaView
@@ -93,11 +96,10 @@ const OTPVerification = () => {
                 key={index}
                 //@ts-ignore
                 ref={(ref) => (inputRefs.current[index] = ref)}
-                className={`w-10 h-10 border rounded-[10px] text-sm pb-2 ${
-                  digit
-                    ? "border-gray-300 bg-white"
-                    : "border-[#EEEEEE] bg-white"
-                }`}
+                className={`w-10 h-10 border rounded-[10px] text-sm pb-2 ${digit
+                  ? "border-gray-300 bg-white"
+                  : "border-[#EEEEEE] bg-white"
+                  }`}
                 style={{ textAlign: "center" }}
                 value={digit}
                 onChangeText={(value) => handleOtpChange(value, index)}
@@ -121,7 +123,7 @@ const OTPVerification = () => {
             className="mt-4"
           />
 
-          <TouchableOpacity onPress={() => {}}>
+          <TouchableOpacity onPress={() => { }}>
             <Text className="text-center text-primary font-roboto-regular text-sm mt-4">
               Resend OTP
             </Text>

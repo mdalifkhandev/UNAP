@@ -1,3 +1,4 @@
+import { getAuth } from "@/store/auth.store";
 import axios from "axios";
 
 const api = axios.create({
@@ -9,8 +10,14 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-    // later: get token from zustand / asyncStorage
-    // config.headers.Authorization = `Bearer ${token}`;
+    // Get the current token from the auth store
+    const token = getAuth().user?.token;
+
+    // If token exists, add it to the headers
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -20,6 +27,13 @@ api.interceptors.response.use(
   (response) => response.data,
   (error) => {
     console.log("API Error:", error?.response?.data || error.message);
+
+    // Handle token expiration or invalid token errors
+    if (error.response?.status === 401) {
+      // You can add logic to refresh token here if needed
+      console.log("Authentication error - please log in again");
+    }
+
     return Promise.reject(error);
   }
 );

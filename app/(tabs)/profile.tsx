@@ -39,7 +39,6 @@ const Profiles = () => {
 
   // Filter posts based on selected type
   const filteredPosts = posts.filter((post) => post.type === selectedType);
-
   return (
     <GradientBackground>
       <SafeAreaView className="flex-1" edges={["top", "left", "right"]}>

@@ -57,6 +57,30 @@ const Settings = () => {
                 color="white"
               />
             </TouchableOpacity>
+
+            {/* Complete Profile */}
+            <TouchableOpacity
+              onPress={() => router.push("/screens/profile/complete-profile")}
+              className="flex-row justify-between items-center mt-6"
+            >
+              <View className="flex-row gap-2">
+                <Ionicons
+                  name="person-add-outline"
+                  size={24}
+                  className="mt-3"
+                  color="white"
+                />
+                <Text className="mx-3 mt-3 text-primary font-roboto-regular text-lg">
+                  Complete Profile
+                </Text>
+              </View>
+              <Entypo
+                name="chevron-small-right"
+                className="mt-3.5"
+                size={26}
+                color="white"
+              />
+            </TouchableOpacity>
           </View>
 
           {/* Policy Center */}
@@ -181,32 +205,6 @@ const Settings = () => {
             </TouchableOpacity>
 
             {/* Terms & Condition */}
-            {/* <TouchableOpacity
-              onPress={() =>
-                router.push("/screens/profile/settings/help-support")
-              }
-              className="flex-row justify-between items-center mt-4"
-            > */}
-            {/* <View className="flex-row gap-2"> */}
-            {/* <View> */}
-            {/* <Feather
-                  name="help-circle"
-                  size={24}
-                  color="white"
-                  className="mt-3"
-                /> */}
-            {/* </View> */}
-            {/* <Text className="mx-3 mt-3 text-primary font-roboto-regular text-lg">
-                  Help & Support
-                </Text> */}
-            {/* </View> */}
-            {/* <Entypo
-                name="chevron-small-right"
-                className="mt-3.5"
-                size={26}
-                color="white"
-              /> */}
-            {/* </TouchableOpacity> */}
             {/* Log Out */}
             <TouchableOpacity
               onPress={hendleLogout}
