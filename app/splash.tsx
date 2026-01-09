@@ -13,6 +13,7 @@ const SplashScreen = () => {
       if (user?.token) {
         router.replace('/(tabs)/home');
       } else {
+        // router.replace('/(tabs)/home');
         router.replace('/screens/auth/welcome');
       }
     }, 1000);

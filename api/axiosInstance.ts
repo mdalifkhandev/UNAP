@@ -2,7 +2,8 @@ import { getAuth } from '@/store/auth.store';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://ungustatory-erringly-ralph.ngrok-free.dev',
+  baseURL: 'http://10.10.11.18:4000',
+
   headers: {
     'Content-Type': 'application/json',
   },
