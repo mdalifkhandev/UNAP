@@ -4,6 +4,7 @@ import SuggestedArtistsCard from '@/components/card/SuggestedArtistsCard';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetAllPost } from '@/hooks/app/home';
+import useAuthStore from '@/store/auth.store';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -20,8 +21,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Import PostData type from PostCard
-// Import PostData type if needed, or define locally matching the API
 interface Author {
   email: string;
   id: string;
@@ -53,8 +52,8 @@ const Home = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [postText, setPostText] = useState('');
   const [result] = useGetAllPost();
+  const { user } = useAuthStore();
 
-  // @ts-ignore
   // @ts-ignore
   const posts: Post[] = result.data?.posts || [];
   // Use fetching or isLoading depending on the library (urql uses fetching)
@@ -176,7 +175,7 @@ const Home = () => {
               posts
                 .slice(0, 2)
                 .map(post => (
-                  <PostCard key={post._id} post={post} className='mt-4' />
+                  <PostCard key={post._id} post={post} className='mt-4' currentUserId={user?.id} />
                 ))}
             <OfficePostCard className='mt-4' />
             <SuggestedArtistsCard className='mt-4' />
@@ -184,7 +183,7 @@ const Home = () => {
             {/* All posts */}
             {!loading &&
               posts.map(post => (
-                <PostCard key={post._id} post={post} className='mt-4' />
+                <PostCard key={post._id} post={post} className='mt-4' currentUserId={user?.id} />
               ))}
 
             {/* Loading state */}
