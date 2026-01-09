@@ -4,20 +4,32 @@ import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-interface PostData {
-  id: number;
-  author: {
-    name: string;
-    profession: string;
-    avatar: string;
-  };
-  content: {
-    text: string;
-    image?: string;
-  };
-  timestamp: string;
-  likes: number;
-  comments: number;
+// Define the Post interface matching the one in home.tsx
+interface Author {
+  email: string;
+  id: string;
+  name: string;
+}
+
+interface Profile {
+  displayName: string;
+  profileImageUrl: string;
+  role: string;
+  username: string;
+}
+
+interface Post {
+  _id: string;
+  author: Author;
+  commentCount: number;
+  createdAt: string;
+  description: string;
+  likeCount: number;
+  mediaType: 'image' | 'video';
+  mediaUrl: string;
+  profile: Profile;
+  viewerHasLiked: boolean;
+  viewerIsFollowing: boolean;
 }
 
 const PostCard = ({
@@ -27,17 +39,19 @@ const PostCard = ({
 }: {
   className?: string;
   img?: any;
-  post?: PostData;
+  post?: Post;
 }) => {
   const defaultImage = require("@/assets/images/post.png");
 
   // Use post data if provided, otherwise use defaults
-  const authorName = post?.author.name || "Maya Lin";
-  const authorProfession = post?.author.profession || "Painter";
-  const authorAvatar = post?.author.avatar || "https://thelightcommittee.com/wp-content/uploads/elementor/thumbs/studio-business-headshot-of-a-black-man-in-Los-Angeles-r42uipeyz48g590yz1bhrtos4flfu3q2tuzohhy7f4.jpg";
-  const postText = post?.content.text || "New abstract series exploring the \n intersection of light and shadow. What do you see? #AbstractArt #Minimalism #BlackAndWhite";
-  const postImage = post?.content.image || img;
-  const timestamp = post?.timestamp || "2h ago";
+  const authorName = post?.profile.displayName || "Maya Lin";
+  const authorProfession = post?.profile.role || "Painter";
+  const authorAvatar = post?.profile.profileImageUrl || "https://thelightcommittee.com/wp-content/uploads/elementor/thumbs/studio-business-headshot-of-a-black-man-in-Los-Angeles-r42uipeyz48g590yz1bhrtos4flfu3q2tuzohhy7f4.jpg";
+  const postText = post?.description || "New abstract series exploring the \n intersection of light and shadow. What do you see? #AbstractArt #Minimalism #BlackAndWhite";
+  const postImage = post?.mediaUrl || img;
+  // Format timestamp if needed, or just use raw string for now
+  const timestamp = post?.createdAt ? new Date(post.createdAt).toLocaleDateString() : "2h ago";
+
 
   return (
     <View className={`bg-[#FFFFFF0D] rounded-3xl ${className}`}>
