@@ -1,15 +1,15 @@
-import BackButton from "@/components/button/BackButton";
-import ShadowButton from "@/components/button/ShadowButton";
-import GradientBackground from "@/components/main/GradientBackground";
-import { useUserRegisterOtp } from "@/hooks/app/auth";
-import useAuthStore from "@/store/auth.store";
-import { router } from "expo-router";
-import React, { useRef, useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import BackButton from '@/components/button/BackButton';
+import ShadowButton from '@/components/button/ShadowButton';
+import GradientBackground from '@/components/main/GradientBackground';
+import { useUserRegisterOtp } from '@/hooks/app/auth';
+import useAuthStore from '@/store/auth.store';
+import { router } from 'expo-router';
+import React, { useRef, useState } from 'react';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const OTPVerification = () => {
-  const [otp, setOtp] = useState(["", "", "", "", ""]);
+  const [otp, setOtp] = useState(['', '', '', '', '']);
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const { email, setUser } = useAuthStore();
   const { mutate } = useUserRegisterOtp();
@@ -27,20 +27,20 @@ const OTPVerification = () => {
 
   const handleKeyPress = (key: string, index: number) => {
     // Handle backspace
-    if (key === "Backspace" && !otp[index] && index > 0) {
+    if (key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
   const hendleVerifyOTP = () => {
     // router.push("/(tabs)/home");
-    const otpString = otp.join("");
+    const otpString = otp.join('');
 
     console.log(Number(otpString));
     console.log(email);
     mutate(
       { email, otp: Number(otpString) },
       {
-        onSuccess: (data) => {
+        onSuccess: data => {
           const user = {
             //@ts-ignore
             refreshToken: data?.refreshToken,
@@ -57,9 +57,9 @@ const OTPVerification = () => {
           };
           setUser(user);
 
-          router.push("/screens/profile/complete-profile")
+          router.push('/screens/profile/complete-profile');
         },
-        onError: (error) => {
+        onError: error => {
           console.log(error);
         },
       }
@@ -72,41 +72,42 @@ const OTPVerification = () => {
   return (
     <GradientBackground>
       <SafeAreaView
-        className="flex-1 mx-6 mt-2.5"
-        edges={["top", "bottom", "left", "right"]}
+        className='flex-1 mx-6 mt-2.5'
+        edges={['top', 'bottom', 'left', 'right']}
       >
         {/* back button */}
         <BackButton />
 
         {/* welcome text */}
         <View>
-          <Text className="text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center">
+          <Text className='text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center'>
             OTP Verification
           </Text>
-          <Text className="font-roboto-medium text-secondary text-sm text-center mt-1.5 ">
+          <Text className='font-roboto-medium text-secondary text-sm text-center mt-1.5 '>
             Enter the otp sent to your email address
           </Text>
         </View>
 
         {/* emain input */}
-        <View className=" p-6 bg-[#FFFFFF0D] rounded-3xl mt-6">
-          <View className="flex-row justify-between px-2">
+        <View className=' p-6 bg-[#FFFFFF0D] rounded-3xl mt-6'>
+          <View className='flex-row justify-between px-2'>
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
                 //@ts-ignore
-                ref={(ref) => (inputRefs.current[index] = ref)}
-                className={`w-10 h-10 border rounded-[10px] text-sm pb-2 ${digit
-                  ? "border-gray-300 bg-white"
-                  : "border-[#EEEEEE] bg-white"
-                  }`}
-                style={{ textAlign: "center" }}
+                ref={ref => (inputRefs.current[index] = ref)}
+                className={`w-10 h-10 border rounded-[10px] text-sm pb-2 ${
+                  digit
+                    ? 'border-gray-300 bg-white'
+                    : 'border-[#EEEEEE] bg-white'
+                }`}
+                style={{ textAlign: 'center' }}
                 value={digit}
-                onChangeText={(value) => handleOtpChange(value, index)}
+                onChangeText={value => handleOtpChange(value, index)}
                 onKeyPress={({ nativeEvent }) =>
                   handleKeyPress(nativeEvent.key, index)
                 }
-                keyboardType="numeric"
+                keyboardType='numeric'
                 maxLength={1}
                 selectTextOnFocus
               />
@@ -115,21 +116,21 @@ const OTPVerification = () => {
 
           {/* Back to Login button */}
           <ShadowButton
-            text="Verify OTP"
-            textColor="#2B2B2B"
-            backGroundColor="#E8EBEE"
+            text='Verify OTP'
+            textColor='#2B2B2B'
+            backGroundColor='#E8EBEE'
             onPress={hendleVerifyOTP}
             // onPress={() => router.push("/screens/auth/reset-password")}
-            className="mt-4"
+            className='mt-4'
           />
 
-          <TouchableOpacity onPress={() => { }}>
-            <Text className="text-center text-primary font-roboto-regular text-sm mt-4">
+          <TouchableOpacity onPress={() => {}}>
+            <Text className='text-center text-primary font-roboto-regular text-sm mt-4'>
               Resend OTP
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-            <Text className="text-center text-primary font-roboto-regular text-sm mt-4">
+          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+            <Text className='text-center text-primary font-roboto-regular text-sm mt-4'>
               Back to Login
             </Text>
           </TouchableOpacity>

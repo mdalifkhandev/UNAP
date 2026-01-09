@@ -1,34 +1,34 @@
-import BackButton from "@/components/button/BackButton";
-import ShadowButton from "@/components/button/ShadowButton";
-import Inpute from "@/components/inpute/Inpute";
-import GradientBackground from "@/components/main/GradientBackground";
-import { useUserForgatePasswordSendMail } from "@/hooks/app/auth";
-import useAuthStore from "@/store/auth.store";
-import { router } from "expo-router";
-import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import BackButton from '@/components/button/BackButton';
+import ShadowButton from '@/components/button/ShadowButton';
+import Inpute from '@/components/inpute/Inpute';
+import GradientBackground from '@/components/main/GradientBackground';
+import { useUserForgatePasswordSendMail } from '@/hooks/app/auth';
+import useAuthStore from '@/store/auth.store';
+import { router } from 'expo-router';
+import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ForgetPassword = () => {
-  const [email, setEmail] = React.useState("");
+  const [email, setEmail] = React.useState('');
   const { mutate } = useUserForgatePasswordSendMail();
   const { setEmail: setEmailInLocal } = useAuthStore();
 
   const hendleForgatePasswordSendMail = () => {
     if (!email.trim()) {
-      return alert("Please enter your email");
+      return alert('Please enter your email');
     }
     mutate(
       { email },
       {
-        onSuccess: (data) => {
+        onSuccess: data => {
           console.log(data);
           setEmailInLocal(email);
-          router.push("/screens/auth/otp-verify");
+          router.push('/screens/auth/otp-verify');
         },
-        onError: (error) => {
+        onError: error => {
           console.log(error);
-          alert("Something went wrong");
+          alert('Something went wrong');
         },
       }
     );
@@ -37,45 +37,45 @@ const ForgetPassword = () => {
   return (
     <GradientBackground>
       <SafeAreaView
-        className="flex-1 mx-6 mt-2.5"
-        edges={["top", "bottom", "left", "right"]}
+        className='flex-1 mx-6 mt-2.5'
+        edges={['top', 'bottom', 'left', 'right']}
       >
         {/* back button */}
         <BackButton />
 
         {/* welcome text */}
         <View>
-          <Text className="text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center">
+          <Text className='text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center'>
             Forget Password
           </Text>
-          <Text className="font-roboto-medium text-secondary text-sm text-center mt-1.5 ">
-            Enter your email address and we’ll send you a code to {"\n"} reset
+          <Text className='font-roboto-medium text-secondary text-sm text-center mt-1.5 '>
+            Enter your email address and we’ll send you a code to {'\n'} reset
             your password
           </Text>
         </View>
 
         {/* emain input */}
-        <View className=" p-6 bg-[#FFFFFF0D] rounded-3xl mt-6">
+        <View className=' p-6 bg-[#FFFFFF0D] rounded-3xl mt-6'>
           <Inpute
-            title="Email"
-            placeholder="example@example.com"
-            className="mt-4"
+            title='Email'
+            placeholder='example@example.com'
+            className='mt-4'
             value={email}
-            onChangeText={(text) => setEmail(text)}
-            type="email-address"
+            onChangeText={text => setEmail(text)}
+            type='email-address'
           />
 
           {/* Back to Login button */}
           <ShadowButton
-            text="Send Reset Code"
-            textColor="#2B2B2B"
-            backGroundColor="#E8EBEE"
+            text='Send Reset Code'
+            textColor='#2B2B2B'
+            backGroundColor='#E8EBEE'
             onPress={hendleForgatePasswordSendMail}
-            className="mt-4"
+            className='mt-4'
           />
 
-          <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-            <Text className="text-center text-primary font-roboto-regular text-sm mt-4">
+          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+            <Text className='text-center text-primary font-roboto-regular text-sm mt-4'>
               Back to Login
             </Text>
           </TouchableOpacity>

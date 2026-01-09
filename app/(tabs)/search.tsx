@@ -1,8 +1,8 @@
-import GradientBackground from "@/components/main/GradientBackground";
-import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
+import GradientBackground from '@/components/main/GradientBackground';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { router } from 'expo-router';
+import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -11,26 +11,26 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const users = [
   {
     id: 1,
-    name: "Mikey Mahmud",
-    username: "@mikey",
-    image: require("@/assets/images/profile.png"),
+    name: 'Mikey Mahmud',
+    username: '@mikey',
+    image: require('@/assets/images/profile.png'),
   },
   {
     id: 2,
-    name: "Sarah Mehra",
-    username: "@sarah",
-    image: require("@/assets/images/profile.png"),
+    name: 'Sarah Mehra',
+    username: '@sarah',
+    image: require('@/assets/images/profile.png'),
   },
 ];
 
 const SearchScreen = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -39,7 +39,7 @@ const SearchScreen = () => {
 
     const query = searchQuery.toLowerCase();
     return users.filter(
-      (user) =>
+      user =>
         user.name.toLowerCase().includes(query) ||
         user.username.toLowerCase().includes(query)
     );
@@ -47,19 +47,19 @@ const SearchScreen = () => {
 
   return (
     <GradientBackground>
-      <SafeAreaView className="flex-1 mt-2.5" edges={["top", "left", "right"]}>
+      <SafeAreaView className='flex-1 mt-2.5' edges={['top', 'left', 'right']}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
         >
           {/* Search bar */}
-          <View className="px-5 my-5">
-            <View className="flex-row items-center bg-[#1E293B] rounded-2xl px-4 py-3">
-              <Ionicons name="search" size={20} color="#94A3B8" />
+          <View className='px-5 my-5'>
+            <View className='flex-row items-center bg-[#1E293B] rounded-2xl px-4 py-3'>
+              <Ionicons name='search' size={20} color='#94A3B8' />
               <TextInput
-                placeholder="Search users"
-                placeholderTextColor="#94A3B8"
-                className="text-white ml-3 flex-1"
+                placeholder='Search users'
+                placeholderTextColor='#94A3B8'
+                className='text-white ml-3 flex-1'
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
@@ -69,20 +69,20 @@ const SearchScreen = () => {
           {/* User List */}
           <FlatList
             data={filteredUsers}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={item => item.id.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => router.push("/(tabs)/profile")}
-                className="flex-row items-center px-5 py-3"
+                onPress={() => router.push('/(tabs)/profile')}
+                className='flex-row items-center px-5 py-3'
               >
                 <Image
                   source={item.image}
                   style={{ width: 45, height: 45, borderRadius: 12 }}
                 />
 
-                <View className="ml-4">
-                  <Text className="text-white font-semibold">{item.name}</Text>
-                  <Text className="text-gray-400">{item.username}</Text>
+                <View className='ml-4'>
+                  <Text className='text-white font-semibold'>{item.name}</Text>
+                  <Text className='text-gray-400'>{item.username}</Text>
                 </View>
               </TouchableOpacity>
             )}

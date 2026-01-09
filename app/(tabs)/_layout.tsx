@@ -1,11 +1,11 @@
-import { Tabs } from "expo-router";
-import React from "react";
+import { Tabs } from 'expo-router';
+import React from 'react';
 
-import { HapticTab } from "@/components/haptic-tab";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import Feather from "@expo/vector-icons/Feather";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { View } from "react-native";
+import { HapticTab } from '@/components/haptic-tab';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import Feather from '@expo/vector-icons/Feather';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { View } from 'react-native';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -13,12 +13,12 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#FFFFFF",
+        tabBarActiveTintColor: '#FFFFFF',
         // tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: "#000000",
+          backgroundColor: '#000000',
           paddingBottom: 30,
           height: 90,
           paddingTop: 4,
@@ -26,54 +26,54 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="home"
+        name='home'
         options={{
-          title: "Home",
+          title: 'Home',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="home-outline" size={24} color={color} />
+            <Ionicons name='home-outline' size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="search"
+        name='search'
         options={{
-          title: "Search",
+          title: 'Search',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="search-outline" size={24} color={color} />
+            <Ionicons name='search-outline' size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="create"
+        name='create'
         options={{
-          title: "",
+          title: '',
           tabBarIconStyle: {
             width: 0,
             height: 60,
           },
           tabBarIcon: ({ color }) => (
-            <View className="h-14 w-14 bg-[#1E293B] rounded-full flex-row justify-center items-center">
-              <Feather name="plus-square" size={22} color={color} />
+            <View className='h-14 w-14 bg-[#1E293B] rounded-full flex-row justify-center items-center'>
+              <Feather name='plus-square' size={22} color={color} />
             </View>
           ),
         }}
       />
 
       <Tabs.Screen
-        name="chats"
+        name='chats'
         options={{
-          title: "Message",
+          title: 'Message',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="chatbox-outline" size={24} color={color} />
+            <Ionicons name='chatbox-outline' size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name='profile'
         options={{
-          title: "Profile",
+          title: 'Profile',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="person-outline" size={24} color={color} />
+            <Ionicons name='person-outline' size={24} color={color} />
           ),
         }}
       />

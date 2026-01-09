@@ -1,21 +1,21 @@
-import BackButton from "@/components/button/BackButton";
-import ShadowButton from "@/components/button/ShadowButton";
-import Inpute from "@/components/inpute/Inpute";
-import GradientBackground from "@/components/main/GradientBackground";
-import { useUserLogin } from "@/hooks/app/auth";
-import useAuthStore from "@/store/auth.store";
-import Feather from "@expo/vector-icons/Feather";
-import { Image } from "expo-image";
-import { router } from "expo-router";
-import React, { useState } from "react";
+import BackButton from '@/components/button/BackButton';
+import ShadowButton from '@/components/button/ShadowButton';
+import Inpute from '@/components/inpute/Inpute';
+import GradientBackground from '@/components/main/GradientBackground';
+import { useUserLogin } from '@/hooks/app/auth';
+import useAuthStore from '@/store/auth.store';
+import Feather from '@expo/vector-icons/Feather';
+import { Image } from 'expo-image';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
@@ -23,18 +23,18 @@ const Login = () => {
   const { setUser } = useAuthStore();
 
   // Login input states
-  const [phoneNumber, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [phoneNumber, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) {
-      alert("Please fill all fields");
+      alert('Please fill all fields');
       return;
     }
 
     if (!rememberMe) {
-      alert("Please agree to Remember Me");
+      alert('Please agree to Remember Me');
       return;
     }
     const user = {
@@ -43,7 +43,7 @@ const Login = () => {
       password,
     };
     mutate(user, {
-      onSuccess: (data) => {
+      onSuccess: data => {
         const user = {
           //@ts-ignore
           refreshToken: data?.refreshToken,
@@ -60,9 +60,9 @@ const Login = () => {
         };
         setUser(user);
         console.log(user);
-        router.push("/(tabs)/home");
+        router.push('/(tabs)/home');
       },
-      onError: (error) => {
+      onError: error => {
         console.log(error);
       },
     });
@@ -71,50 +71,50 @@ const Login = () => {
   return (
     <GradientBackground>
       <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className='flex-1'
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <SafeAreaView
-          className="flex-1 mx-6 mt-2.5"
-          edges={["top", "bottom", "left", "right"]}
+          className='flex-1 mx-6 mt-2.5'
+          edges={['top', 'bottom', 'left', 'right']}
         >
           <BackButton />
 
-          <View className="flex-1 justify-center">
+          <View className='flex-1 justify-center'>
             <View>
-              <Text className="text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center">
+              <Text className='text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center'>
                 Welcome Back!
               </Text>
-              <Text className="font-roboto-medium text-secondary text-sm text-center mt-1.5">
+              <Text className='font-roboto-medium text-secondary text-sm text-center mt-1.5'>
                 Login to your account
               </Text>
             </View>
 
-            <View className="bg-[#FFFFFF0D] border border-[#FFFFFF1A] p-6 rounded-3xl mt-6">
+            <View className='bg-[#FFFFFF0D] border border-[#FFFFFF1A] p-6 rounded-3xl mt-6'>
               <Inpute
-                title="Phone"
-                placeholder="+880 123 123 123"
-                className="mt-4"
+                title='Phone'
+                placeholder='+880 123 123 123'
+                className='mt-4'
                 // @ts-ignore
                 value={phoneNumber}
                 onChangeText={setPhone}
               />
 
               <Inpute
-                title="Email"
-                placeholder="example@example.com"
-                className="mt-4"
+                title='Email'
+                placeholder='example@example.com'
+                className='mt-4'
                 required={true}
                 // @ts-ignore
                 value={email}
                 onChangeText={setEmail}
-                type="email-address"
+                type='email-address'
               />
 
               <Inpute
-                title="Password"
-                placeholder="********"
-                className="mt-4"
+                title='Password'
+                placeholder='********'
+                className='mt-4'
                 required={true}
                 isPassword={true}
                 // @ts-ignore
@@ -122,75 +122,75 @@ const Login = () => {
                 onChangeText={setPassword}
               />
 
-              <View className="mt-4 flex-row justify-between items-center">
-                <View className="flex-row gap-2 items-center">
+              <View className='mt-4 flex-row justify-between items-center'>
+                <View className='flex-row gap-2 items-center'>
                   <TouchableOpacity
                     onPress={() => setRememberMe(!rememberMe)}
                     className={`h-5 w-5 rounded-md flex-row justify-center items-center ${
-                      rememberMe ? "bg-blue-600" : "bg-secondary"
+                      rememberMe ? 'bg-blue-600' : 'bg-secondary'
                     }`}
                   >
                     {rememberMe && (
-                      <Feather name="check" size={16} color="#ffffff" />
+                      <Feather name='check' size={16} color='#ffffff' />
                     )}
                   </TouchableOpacity>
-                  <Text className="text-secondary text-sm font-roboto-medium mt-1.5">
+                  <Text className='text-secondary text-sm font-roboto-medium mt-1.5'>
                     Remember me
                   </Text>
                 </View>
                 <TouchableOpacity
-                  onPress={() => router.push("/(auth)/forget-password")}
+                  onPress={() => router.push('/(auth)/forget-password')}
                 >
-                  <Text className="text-[#C8CACC] font-roboto-regular text-sm">
+                  <Text className='text-[#C8CACC] font-roboto-regular text-sm'>
                     Forgot Password?
                   </Text>
                 </TouchableOpacity>
               </View>
 
               <ShadowButton
-                text="Login"
-                textColor="#2B2B2B"
-                backGroundColor="#E8EBEE"
+                text='Login'
+                textColor='#2B2B2B'
+                backGroundColor='#E8EBEE'
                 onPress={handleLogin}
-                className="mt-4"
+                className='mt-4'
               />
 
-              <View className="mt-4 flex-row justify-center items-center">
-                <Text className="text-secondary_second font-roboto-regular text-sm">
-                  Don't have an account?{" "}
+              <View className='mt-4 flex-row justify-center items-center'>
+                <Text className='text-secondary_second font-roboto-regular text-sm'>
+                  Don't have an account?{' '}
                 </Text>
-                <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
-                  <Text className="font-roboto-bold text-secondary_second text-sm">
-                    {" "}
+                <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
+                  <Text className='font-roboto-bold text-secondary_second text-sm'>
+                    {' '}
                     Register
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            <View className="mt-6">
-              <Text className="text-secondary_second text-center font-roboto-regular">
+            <View className='mt-6'>
+              <Text className='text-secondary_second text-center font-roboto-regular'>
                 Or continue with
               </Text>
-              <View className="mt-6 flex-row justify-between items-center gap-6">
-                <TouchableOpacity className="border border-[#FFFFFF1A] rounded-xl flex-1 p-3 bg-transparent items-center">
+              <View className='mt-6 flex-row justify-between items-center gap-6'>
+                <TouchableOpacity className='border border-[#FFFFFF1A] rounded-xl flex-1 p-3 bg-transparent items-center'>
                   <Image
-                    source={require("@/assets/images/google.svg")}
-                    contentFit="contain"
+                    source={require('@/assets/images/google.svg')}
+                    contentFit='contain'
                     style={{ height: 24, width: 24 }}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity className="border border-[#FFFFFF1A] rounded-xl flex-1 p-3 bg-transparent items-center">
+                <TouchableOpacity className='border border-[#FFFFFF1A] rounded-xl flex-1 p-3 bg-transparent items-center'>
                   <Image
-                    source={require("@/assets/images/apple.svg")}
-                    contentFit="contain"
+                    source={require('@/assets/images/apple.svg')}
+                    contentFit='contain'
                     style={{ height: 24, width: 24 }}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity className="border border-[#FFFFFF1A] rounded-xl flex-1 p-3 bg-transparent items-center">
+                <TouchableOpacity className='border border-[#FFFFFF1A] rounded-xl flex-1 p-3 bg-transparent items-center'>
                   <Image
-                    source={require("@/assets/images/instagram.svg")}
-                    contentFit="contain"
+                    source={require('@/assets/images/instagram.svg')}
+                    contentFit='contain'
                     style={{ height: 24, width: 24 }}
                   />
                 </TouchableOpacity>
