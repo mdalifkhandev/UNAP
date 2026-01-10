@@ -1,14 +1,14 @@
-import api from '@/api/axiosInstance';
 import BackButton from '@/components/button/BackButton';
 import ShadowButton from '@/components/button/ShadowButton';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
+import { useGetMyProfile, useUpdateProfile } from '@/hooks/app/profile';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -35,8 +35,33 @@ const EditProfile = () => {
   const [spotify, setSpotify] = useState('');
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const { data: profileData } = useGetMyProfile();
+  // @ts-ignore
+  const profile = profileData?.profile;
+  const { mutate: updateProfile, isPending: loading } = useUpdateProfile();
+
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || '');
+      setDisplayName(profile.displayName || '');
+      setBio(profile.bio || '');
+      if (profile.role) {
+        const capitalizedRole =
+          profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
+        if (roles.includes(capitalizedRole)) {
+          setSelectedRole(capitalizedRole);
+        }
+      }
+      setInstagram(profile.instagramUrl || '');
+      setYoutube(profile.youtubeUrl || '');
+      setSpotify(profile.spotifyArtistUrl || '');
+      if (profile.profileImageUrl) {
+        setProfileImage(profile.profileImageUrl);
+      }
+    }
+  }, [profile]);
 
   // Helper function to format URLs properly
   const formatUrl = (url: string, platform?: string) => {
@@ -88,14 +113,14 @@ const EditProfile = () => {
   };
 
   const handleUpdateProfile = async () => {
-    setLoading(true);
     setErrorMsg(null);
 
     try {
       const formData = new FormData();
 
-      // profileImage (optional for update)
-      if (profileImage) {
+      // profileimage (optional for update)
+      // Only append if it's a new image (local URI)
+      if (profileImage && !profileImage.startsWith('http')) {
         const filename = profileImage.split('/').pop() || 'profile.jpg';
         const match = /\.(\w+)$/.exec(filename);
         const ext = match?.[1]?.toLowerCase() || 'jpg';
@@ -106,7 +131,7 @@ const EditProfile = () => {
               ? 'image/jpeg'
               : 'image/*';
 
-        formData.append('profileImage', {
+        formData.append('profileimage', {
           uri: profileImage,
           name: filename,
           type: mimeType,
@@ -114,39 +139,35 @@ const EditProfile = () => {
       }
 
       // other fields
-      if (username) formData.append('username', username);
-      if (selectedRole) formData.append('role', selectedRole.toLowerCase());
-      if (bio) formData.append('bio', bio);
-      if (displayName) formData.append('displayName', displayName);
+      formData.append('username', username);
+      formData.append('role', selectedRole.toLowerCase());
+      formData.append('bio', bio);
+      formData.append('displayName', displayName);
 
       // Format URLs properly
-      if (instagram)
-        formData.append('instagramUrl', formatUrl(instagram, 'instagram'));
-      if (youtube) formData.append('youtubeUrl', formatUrl(youtube, 'youtube'));
-      if (spotify)
-        formData.append('spotifyArtistUrl', formatUrl(spotify, 'spotify'));
+      formData.append('instagramUrl', formatUrl(instagram, 'instagram'));
+      formData.append('youtubeUrl', formatUrl(youtube, 'youtube'));
+      formData.append('spotifyArtistUrl', formatUrl(spotify, 'spotify'));
 
-      // optional socials
+      // optional socials (as per postman image)
       formData.append('tiktokUrl', '');
       formData.append('facebookUrl', '');
 
-      // PATCH request instead of POST
-      const { data } = await api.patch('/api/profile/me', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      updateProfile(formData, {
+        onSuccess: () => {
+          router.back();
+        },
+        onError: (error: any) => {
+          const errorResponse = error?.response?.data;
+          setErrorMsg(
+            errorResponse?.error ||
+              error?.message ||
+              'Something went wrong. Please try again.'
+          );
         },
       });
-      // success → go back
-      router.back();
     } catch (error: any) {
-      const errorResponse = error?.response?.data;
-      setErrorMsg(
-        errorResponse?.error ||
-          error?.message ||
-          'Something went wrong. Please try again.'
-      );
-    } finally {
-      setLoading(false);
+      setErrorMsg(error?.message || 'Failed to prepare data');
     }
   };
 
