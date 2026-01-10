@@ -1,12 +1,13 @@
 import ShadowButton from '@/components/button/ShadowButton';
 import GradientBackground from '@/components/main/GradientBackground';
+import { useGetMyProfile } from '@/hooks/app/profile';
 import useAuthStore from '@/store/auth.store';
 import Feather from '@expo/vector-icons/Feather';
 import Foundation from '@expo/vector-icons/Foundation';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { ResizeMode, Video } from 'expo-av';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -18,32 +19,45 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const VideoGridItem = ({ uri }: { uri: string }) => {
+  const player = useVideoPlayer(uri, player => {
+    player.muted = true;
+    player.loop = true;
+    player.play();
+  });
+
+  return (
+    <VideoView
+      style={{ width: '100%', height: '100%' }}
+      player={player}
+      nativeControls={false}
+      contentFit='cover'
+    />
+  );
+};
+
 const Profiles = () => {
   const { user } = useAuthStore();
 
+  const { data } = useGetMyProfile();
+  // @ts-ignore
+  const profile = data?.profile;
+
+  console.log('prifile', profile);
+// ... existing state and logic ...
   // Selected post type state
   const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'music'>(
     'photo'
   );
 
-  // Dummy posts (API-ready structure)
-  const posts = [
-    { id: 1, type: 'photo', uri: 'https://i.pravatar.cc/150?img=11' },
-    { id: 2, type: 'photo', uri: 'https://i.pravatar.cc/150?img=12' },
-    { id: 3, type: 'video', uri: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-    {
-      id: 4,
-      type: 'music',
-      uri: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-    },
-    { id: 5, type: 'photo', uri: 'https://i.pravatar.cc/150?img=13' },
-    { id: 6, type: 'video', uri: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-    { id: 7, type: 'video', uri: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-    { id: 8, type: 'video', uri: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-  ];
+  // Map API posts to the format used in render
+  const displayPosts =
+    selectedType === 'photo'
+      ? profile?.imagePosts || []
+      : selectedType === 'video'
+        ? profile?.videoPosts || []
+        : profile?.audioPosts || [];
 
-  // Filter posts based on selected type
-  const filteredPosts = posts.filter(post => post.type === selectedType);
   return (
     <GradientBackground>
       <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
@@ -74,18 +88,20 @@ const Profiles = () => {
               <TouchableOpacity className='mt-2'>
                 <Image
                   source={{
-                    uri: 'https://randomuser.me/api/portraits/men/44.jpg',
+                    uri:
+                      profile?.profileImageUrl ||
+                      'https://randomuser.me/api/portraits/men/44.jpg',
                   }}
                   style={{ width: 100, height: 100, borderRadius: 100 }}
-                  contentFit='contain'
+                  contentFit='cover'
                 />
               </TouchableOpacity>
               <View>
                 <Text className='text-primary font-roboto-bold text-2xl'>
-                  {user?.name}
+                  {profile?.displayName || user?.name || 'User'}
                 </Text>
                 <Text className='text-primary font-roboto-regular text-lg'>
-                  Singer • Producer • {'\n'}Creator 🎵
+                  {profile?.role || 'User'}
                 </Text>
               </View>
             </View>
@@ -93,13 +109,7 @@ const Profiles = () => {
             {/* details */}
             <View className='mt-3 mx-6'>
               <Text className='font-roboto-medium text-primary'>
-                Making music that moves people ✨
-              </Text>
-              <Text className='font-roboto-medium text-primary'>
-                New EP dropping soon 🎧
-              </Text>
-              <Text className='font-roboto-medium text-primary '>
-                📍 Los Angeles, CA
+                {profile?.bio || 'No bio yet'}
               </Text>
             </View>
 
@@ -110,7 +120,7 @@ const Profiles = () => {
             <View className='flex-row justify-between items-center mt-3 py-3 mx-6'>
               <View>
                 <Text className='text-primary text-center font-roboto-semibold text-2xl'>
-                  127
+                  {profile?.postsCount || 0}
                 </Text>
                 <Text className='text-secondary text-center font-roboto-regular text-lg'>
                   Posts
@@ -118,7 +128,7 @@ const Profiles = () => {
               </View>
               <View>
                 <Text className='text-primary text-center font-roboto-semibold text-2xl'>
-                  10.2K
+                  {profile?.followersCount || 0}
                 </Text>
                 <Text className='text-secondary text-center font-roboto-regular text-lg'>
                   Followers
@@ -126,7 +136,7 @@ const Profiles = () => {
               </View>
               <View>
                 <Text className='text-primary text-center font-roboto-semibold text-2xl'>
-                  892
+                  {profile?.followingCount || 0}
                 </Text>
                 <Text className='text-secondary text-center font-roboto-regular text-lg'>
                   Following
@@ -189,12 +199,12 @@ const Profiles = () => {
 
             {/* post data */}
             <View className='flex-row flex-wrap mt-3 mx-6'>
-              {filteredPosts.length > 0 ? (
-                filteredPosts.map(item => (
-                  <View key={item.id} className='w-1/3 border border-white'>
-                    {item.type === 'photo' && (
+              {displayPosts.length > 0 ? (
+                displayPosts.map((item: any) => (
+                  <View key={item._id} className='w-1/3 border border-white'>
+                    {selectedType === 'photo' && (
                       <Image
-                        source={{ uri: item.uri }}
+                        source={{ uri: item.mediaUrl }}
                         style={{
                           width: '100%',
                           height: 130,
@@ -204,17 +214,9 @@ const Profiles = () => {
                         contentFit='cover'
                       />
                     )}
-                    {item.type === 'video' && (
+                    {selectedType === 'video' && (
                       <View style={{ width: '100%', height: 130, padding: 2 }}>
-                        <Video
-                          source={{ uri: item.uri }}
-                          style={{ width: '100%', height: '100%' }}
-                          useNativeControls={false}
-                          resizeMode={ResizeMode.COVER}
-                          isLooping
-                          isMuted
-                          onError={error => console.log('Video error:', error)}
-                        />
+                        <VideoGridItem uri={item.mediaUrl} />
                         <View className='absolute inset-0 items-center justify-center'>
                           <Feather
                             name='video'
@@ -225,11 +227,11 @@ const Profiles = () => {
                         </View>
                       </View>
                     )}
-                    {item.type === 'music' && (
-                      <View className='p-4 bg-[#292929] items-center justify-center'>
+                    {selectedType === 'music' && (
+                      <View className='p-4 bg-[#292929] items-center justify-center w-full aspect-square'>
                         <Feather name='music' size={40} color='#F54900' />
-                        <Text className='text-white mt-2 text-center text-sm'>
-                          Audio File
+                        <Text className='text-white mt-2 text-center text-xs'>
+                          {item.description || 'Audio File'}
                         </Text>
                       </View>
                     )}
