@@ -56,31 +56,12 @@ export const useUserUnLike = () => {
   });
 };
 
-export const useCreatePost = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (formData: FormData) => {
-      const res = await api.post('/api/posts', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return res;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['post'] });
-    },
-  });
-};
-
 export const useUserGetComment = (id: string) => {
-  console.log(id);
   return useQuery({
     queryKey: ['comment', id],
-
     queryFn: async () => {
       const res = await api.get(`/api/comments?postId=${id}`);
-      return res;
+      return res || { comments: [] };
     },
     enabled: !!id,
   });
@@ -97,7 +78,6 @@ export const useUserCreateComment = () => {
       queryClient.invalidateQueries({
         queryKey: ['comment', variables.postId],
       });
-      queryClient.invalidateQueries({ queryKey: ['post'] });
     },
   });
 };
@@ -119,7 +99,6 @@ export const useDeleteComment = () => {
       queryClient.invalidateQueries({
         queryKey: ['comment', variables.postId],
       });
-      queryClient.invalidateQueries({ queryKey: ['post'] });
     },
   });
 };

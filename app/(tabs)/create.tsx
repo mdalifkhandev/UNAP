@@ -1,5 +1,5 @@
 import GradientBackground from '@/components/main/GradientBackground';
-import { getAuth } from '@/store/auth.store';
+import { useCreatePost } from '@/hooks/app/create';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
@@ -8,7 +8,6 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import * as Sharing from 'expo-sharing';
 import React, { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -25,7 +24,7 @@ const CreatePost = () => {
   const [isFacebook, setIsFacebook] = useState(false);
   const [isInstagram, setIsInstagram] = useState(false);
   const [description, setDescription] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingState, setIsLoadingState] = useState(false);
 
   const [photo, setPhoto] = useState<string | null>(null);
   const [video, setVideo] = useState<string | null>(null);
@@ -34,13 +33,20 @@ const CreatePost = () => {
   const videoRef = useRef<Video>(null);
   const router = useRouter();
 
+  const { mutate: createPost, isPending } = useCreatePost();
+  const isLoading = isLoadingState || isPending;
+
   // Photo pick
   const pickPhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-    if (!result.canceled) setPhoto(result.assets[0].uri);
+    if (!result.canceled) {
+      setPhoto(result.assets[0].uri);
+      setVideo(null);
+      setAudio(null);
+    }
   };
 
   // Video pick
@@ -74,33 +80,6 @@ const CreatePost = () => {
     }
   };
 
-  // Sharing functions (optional, just for social preview)
-  const shareToFacebook = async (fileUri: string | null) => {
-    if (!fileUri) return;
-    if (!(await Sharing.isAvailableAsync())) {
-      alert('Sharing not available!');
-      return;
-    }
-    await Sharing.shareAsync(fileUri, {
-      dialogTitle: 'Share on Facebook',
-      UTI: 'public.jpeg',
-      mimeType: '*/*',
-    });
-  };
-
-  const shareToInstagram = async (fileUri: string | null) => {
-    if (!fileUri) return;
-    const isSharingAvailable = await Sharing.isAvailableAsync();
-    if (!isSharingAvailable) {
-      alert('Sharing feature is not available on this device');
-      return;
-    }
-    await Sharing.shareAsync(fileUri, {
-      dialogTitle: 'Share to Instagram Feed',
-      mimeType: Platform.OS === 'ios' ? 'public.image' : 'image/*',
-    });
-  };
-
   /** ======================= NEW: Prepare all post data ======================= */
   const handleCreatePost = async () => {
     if (!photo && !video && !audio) {
@@ -113,83 +92,63 @@ const CreatePost = () => {
       return;
     }
 
-    setIsLoading(true);
+    const formData = new FormData();
 
-    try {
-      const formData = new FormData();
-
-      // Add media file
-      if (photo) {
-        const uriParts = photo.split('.');
-        const fileType = uriParts[uriParts.length - 1];
-
-        formData.append('media', {
-          uri: photo,
-          name: `photo.${fileType}`,
-          type: `image/${fileType}`,
-        } as any);
-      } else if (video) {
-        const uriParts = video.split('.');
-        const fileType = uriParts[uriParts.length - 1];
-
-        formData.append('media', {
-          uri: video,
-          name: `video.${fileType}`,
-          type: `video/${fileType}`,
-        } as any);
-      } else if (audio) {
-        const uriParts = audio.split('.');
-        const fileType = uriParts[uriParts.length - 1];
-
-        formData.append('media', {
-          uri: audio,
-          name: `audio.${fileType}`,
-          type: `audio/${fileType}`,
-        } as any);
-      }
-
-      // Add other fields
-      formData.append('description', description);
-      formData.append('shareToFacebook', isFacebook.toString());
-      formData.append('shareToInstagram', isInstagram.toString());
-
-      const response = await fetch(
-        'https://ungustatory-erringly-ralph.ngrok-free.dev/api/posts',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${getAuth().user?.token}`,
-          },
-          body: formData,
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create post');
-      }
-      console.log(data);
-      // Reset form
-      setPhoto(null);
-      setVideo(null);
-      setAudio(null);
-      setDescription('');
-      setIsFacebook(false);
-      setIsInstagram(false);
-
-      // Show success message
-      alert('Post created successfully!');
-
-      // Navigate back
-      router.back();
-    } catch (error: any) {
-      console.error('Error creating post:', error);
-      alert(error?.message || 'Failed to create post. Please try again.');
-    } finally {
-      setIsLoading(false);
+    // Add media file
+    if (photo) {
+      const filename = photo.split('/').pop() || 'photo.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const ext = match?.[1]?.toLowerCase() || 'jpg';
+      formData.append('media', {
+        uri: photo,
+        name: filename,
+        type: `image/${ext === 'png' ? 'png' : 'jpeg'}`,
+      } as any);
+      formData.append('mediaType', 'image');
+    } else if (video) {
+      const filename = video.split('/').pop() || 'video.mp4';
+      const match = /\.(\w+)$/.exec(filename);
+      const ext = match?.[1]?.toLowerCase() || 'mp4';
+      formData.append('media', {
+        uri: video,
+        name: filename,
+        type: `video/${ext === 'mov' ? 'quicktime' : 'mp4'}`,
+      } as any);
+      formData.append('mediaType', 'video');
+    } else if (audio) {
+      const filename = audio.split('/').pop() || 'audio.mp3';
+      const match = /\.(\w+)$/.exec(filename);
+      const ext = match?.[1]?.toLowerCase() || 'mp3';
+      formData.append('media', {
+        uri: audio,
+        name: filename,
+        type: `audio/${ext === 'wav' ? 'wav' : 'mpeg'}`,
+      } as any);
+      formData.append('mediaType', 'audio');
     }
+
+    // Add other fields
+    formData.append('description', description);
+    formData.append('shareToFacebook', isFacebook.toString());
+    formData.append('shareToInstagram', isInstagram.toString());
+
+    createPost(formData, {
+      onSuccess: () => {
+        // Reset form
+        setPhoto(null);
+        setVideo(null);
+        setAudio(null);
+        setDescription('');
+        setIsFacebook(false);
+        setIsInstagram(false);
+
+        alert('Post created successfully!');
+        router.push('/(tabs)/home');
+      },
+      onError: (error: any) => {
+        alert(error?.response?.data?.message || 'Failed to create post');
+      },
+    });
   };
 
   return (

@@ -10,6 +10,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -34,7 +35,7 @@ interface Post {
   createdAt: string;
   description: string;
   likeCount: number;
-  mediaType: 'image' | 'video';
+  mediaType: 'image' | 'video' | 'audio';
   mediaUrl: string;
   profile: Profile;
   viewerHasLiked: boolean;
@@ -65,6 +66,11 @@ const PostCard = ({
   const { data: commentData } = useUserGetComment(post?._id || '');
   const { mutate: addComment } = useUserCreateComment();
   const { mutate: deleteComment } = useDeleteComment();
+
+  // Video player setup
+  const player = useVideoPlayer(post?.mediaUrl || '', player => {
+    player.loop = true;
+  });
 
   // Sync state if prop changes (optional, but good for list updates)
   useEffect(() => {
@@ -174,17 +180,50 @@ const PostCard = ({
         )}
       </View>
 
-      {/* post image  */}
-      {postImage && (
-        <Image
-          source={postImage}
-          style={{
-            width: '100%',
-            height: 345,
-          }}
-          contentFit='cover'
-        />
-      )}
+      {/* post media content  */}
+      <View>
+        {post?.mediaType === 'image' && postImage && (
+          <Image
+            source={postImage}
+            style={{ width: '100%', height: 345 }}
+            contentFit='cover'
+          />
+        )}
+
+        {post?.mediaType === 'video' && post?.mediaUrl && (
+          <VideoView
+            style={{ width: '100%', height: 345 }}
+            player={player}
+            allowsFullscreen
+            allowsPictureInPicture
+          />
+        )}
+
+        {post?.mediaType === 'audio' && post?.mediaUrl && (
+          <View className='bg-white/5 p-6 rounded-2xl mx-3 items-center flex-row gap-4'>
+            <TouchableOpacity
+              className='bg-primary/20 p-3 rounded-full'
+              onPress={() => {
+                if (player.playing) player.pause();
+                else player.play();
+              }}
+            >
+              <Ionicons
+                name={player.playing ? 'pause' : 'play'}
+                size={24}
+                color='white'
+              />
+            </TouchableOpacity>
+            <View className='flex-1'>
+              <Text className='text-white font-roboto-medium'>Audio Post</Text>
+              <Text className='text-secondary text-xs'>
+                Click to play/pause
+              </Text>
+            </View>
+            <Ionicons name='musical-note' size={24} color='white' />
+          </View>
+        )}
+      </View>
 
       {/* like comment share */}
       <View className='p-3 flex-row justify-between items-center'>
