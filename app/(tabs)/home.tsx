@@ -3,7 +3,7 @@ import PostCard from '@/components/card/PostCard';
 import SuggestedArtistsCard from '@/components/card/SuggestedArtistsCard';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useGetAllPost } from '@/hooks/app/home';
+import { useCreatePost, useGetAllPost } from '@/hooks/app/home';
 import useAuthStore from '@/store/auth.store';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -54,11 +54,14 @@ const Home = () => {
   const [result] = useGetAllPost();
   const { user } = useAuthStore();
 
+
   // @ts-ignore
   const posts: Post[] = result.data?.posts || [];
   // Use fetching or isLoading depending on the library (urql uses fetching)
   // @ts-ignore
-  const loading = result.fetching || result.isLoading;
+  const loading = result.isFetching || result.isLoading;
+
+  const { mutate: createPost, isPending: isPosting } = useCreatePost();
 
   const handleImagePicker = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -77,6 +80,45 @@ const Home = () => {
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
     }
+  };
+
+  const handlePost = async () => {
+    if (!postText.trim() && !selectedImage) {
+      alert('Please enter some text or select an image');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('description', postText);
+
+    if (selectedImage) {
+      const filename = selectedImage.split('/').pop() || 'post_image.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const ext = match?.[1]?.toLowerCase() || 'jpg';
+      const mimeType =
+        ext === 'png'
+          ? 'image/png'
+          : ext === 'jpeg' || ext === 'jpg'
+            ? 'image/jpeg'
+            : 'image/*';
+
+      formData.append('mediaUrl', {
+        uri: selectedImage,
+        name: filename,
+        type: mimeType,
+      } as any);
+      formData.append('mediaType', 'image');
+    }
+
+    createPost(formData, {
+      onSuccess: () => {
+        setPostText('');
+        setSelectedImage(null);
+      },
+      onError: (error: any) => {
+        alert(error?.response?.data?.message || 'Failed to create post');
+      },
+    });
   };
 
   return (
@@ -150,6 +192,23 @@ const Home = () => {
                   onChangeText={setPostText}
                   multiline
                 />
+
+                {selectedImage && (
+                  <View className='mt-4 relative'>
+                    <Image
+                      source={{ uri: selectedImage }}
+                      style={{ width: '100%', height: 200, borderRadius: 16 }}
+                      contentFit='cover'
+                    />
+                    <TouchableOpacity
+                      onPress={() => setSelectedImage(null)}
+                      className='absolute top-2 right-2 bg-black/50 p-1 rounded-full'
+                    >
+                      <Ionicons name='close' size={20} color='white' />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
                 <View className='flex-row justify-between mt-5'>
                   <View className='flex-row gap-6'>
                     <TouchableOpacity
@@ -161,10 +220,13 @@ const Home = () => {
                     </TouchableOpacity>
                   </View>
                   <TouchableOpacity
-                    className='px-4 py-2 bg-primary rounded-xl'
-                    onPress={() => alert('Posting functionality disabled temporarily')}
+                    className={`px-4 py-2 bg-primary rounded-xl ${isPosting ? 'opacity-50' : ''}`}
+                    onPress={handlePost}
+                    disabled={isPosting}
                   >
-                    <Text className=''>Post</Text>
+                    <Text className=''>
+                      {isPosting ? 'Posting...' : 'Post'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -175,7 +237,12 @@ const Home = () => {
               posts
                 .slice(0, 2)
                 .map(post => (
-                  <PostCard key={post._id} post={post} className='mt-4' currentUserId={user?.id} />
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    className='mt-4'
+                    currentUserId={user?.id}
+                  />
                 ))}
             <OfficePostCard className='mt-4' />
             <SuggestedArtistsCard className='mt-4' />
@@ -183,7 +250,12 @@ const Home = () => {
             {/* All posts */}
             {!loading &&
               posts.map(post => (
-                <PostCard key={post._id} post={post} className='mt-4' currentUserId={user?.id} />
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  className='mt-4'
+                  currentUserId={user?.id}
+                />
               ))}
 
             {/* Loading state */}

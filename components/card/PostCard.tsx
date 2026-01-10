@@ -1,5 +1,8 @@
 import {
+  useDeleteComment,
+  useUserCreateComment,
   useUserFollow,
+  useUserGetComment,
   useUserLike,
   useUserUnFollow,
   useUserUnLike,
@@ -7,8 +10,8 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Define the Post interface matching the one in home.tsx
 interface Author {
@@ -50,16 +53,27 @@ const PostCard = ({
   currentUserId?: string;
 }) => {
   const defaultImage = require('@/assets/images/post.png');
-  const [isFollowing, setIsFollowing] = React.useState(
+  const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
   );
 
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(post?.viewerHasLiked || false);
+  const [likeCount, setLikeCount] = useState(post?.likeCount || 0);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
+
+  const { data: commentData } = useUserGetComment(post?._id || '');
+  const { mutate: addComment } = useUserCreateComment();
+  const { mutate: deleteComment } = useDeleteComment();
 
   // Sync state if prop changes (optional, but good for list updates)
-  React.useEffect(() => {
-    if (post) setIsFollowing(post.viewerIsFollowing);
-  }, [post?.viewerIsFollowing]);
+  useEffect(() => {
+    if (post) {
+      setIsFollowing(post.viewerIsFollowing);
+      setIsLiked(post.viewerHasLiked);
+      setLikeCount(post.likeCount);
+    }
+  }, [post?.viewerIsFollowing, post?.viewerHasLiked, post?.likeCount]);
 
   const { mutate: followUser } = useUserFollow();
   const { mutate: unfollowUser } = useUserUnFollow();
@@ -72,9 +86,11 @@ const PostCard = ({
     if (isLiked) {
       unLikeUser(post._id);
       setIsLiked(false);
+      setLikeCount(prev => Math.max(0, prev - 1));
     } else {
       likeUser({ postId: post._id });
       setIsLiked(true);
+      setLikeCount(prev => prev + 1);
     }
   };
 
@@ -89,7 +105,17 @@ const PostCard = ({
       setIsFollowing(prev => !prev);
     }
   };
-  console.log(isFollowing);
+
+  const handlePostComment = () => {
+    if (!commentText.trim() || !post?._id) return;
+    addComment({ postId: post._id, text: commentText });
+    setCommentText('');
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    if (!post?._id) return;
+    deleteComment({ commentId, postId: post._id });
+  };
 
   // Use post data if provided, otherwise use defaults
   const authorName = post?.profile.displayName || 'Maya Lin';
@@ -108,6 +134,8 @@ const PostCard = ({
 
   // Check if current user is the author
   const isOwner = currentUserId && post?.author?.id === currentUserId;
+
+  const comments = (commentData as any)?.comments || [];
 
   return (
     <View className={`bg-[#FFFFFF0D] rounded-3xl ${className}`}>
@@ -158,18 +186,32 @@ const PostCard = ({
         />
       )}
 
-      {/* like comment sheire */}
+      {/* like comment share */}
       <View className='p-3 flex-row justify-between items-center'>
         <View className='flex-row gap-4'>
-          <TouchableOpacity onPress={handleLikeToggle}>
+          <TouchableOpacity
+            onPress={handleLikeToggle}
+            className='flex-row items-center gap-1.5'
+          >
             <Ionicons
               name={isLiked ? 'heart' : 'heart-outline'}
               size={26}
               color={`${isLiked ? 'red' : 'white'}`}
             />
+            {likeCount > 0 && (
+              <Text className='text-white font-roboto-medium'>{likeCount}</Text>
+            )}
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setShowComments(!showComments)}
+            className='flex-row items-center gap-1.5'
+          >
             <Ionicons name='chatbubble-outline' size={24} color='white' />
+            {post?.commentCount !== undefined && post.commentCount > 0 && (
+              <Text className='text-white font-roboto-medium'>
+                {post.commentCount}
+              </Text>
+            )}
           </TouchableOpacity>
           <TouchableOpacity>
             <Ionicons name='share-social-outline' size={24} color='white' />
@@ -177,7 +219,6 @@ const PostCard = ({
         </View>
 
         <TouchableOpacity>
-          {/* <Feather name="bookmark" size={24} color="white" /> */}
           <Ionicons name='bookmark-outline' size={24} color='white' />
         </TouchableOpacity>
       </View>
@@ -189,6 +230,95 @@ const PostCard = ({
           {timestamp}
         </Text>
       </View>
+
+      {/* expandable comment section */}
+      {showComments && (
+        <View className='px-3 pb-4 border-t border-white/10 pt-3'>
+          {/* Comment Input */}
+          <View className='flex-row items-center gap-2 mb-4'>
+            <TextInput
+              className='flex-1 bg-white/10 text-white p-3 rounded-2xl font-roboto-regular'
+              placeholder='Write a comment...'
+              placeholderTextColor='#999'
+              value={commentText}
+              onChangeText={setCommentText}
+              multiline
+            />
+            <TouchableOpacity
+              onPress={handlePostComment}
+              className='bg-white p-2 rounded-2xl h-[35px] justify-center items-center'
+              disabled={!commentText.trim()}
+            >
+              <Ionicons name='send' size={16} color='black' />
+            </TouchableOpacity>
+          </View>
+
+          {/* Comments List */}
+          {comments.length > 0 ? (
+            comments.map((comment: any) => (
+              <View key={comment._id} className='mb-4'>
+                <View className='flex-row gap-2'>
+                  <Image
+                    source={
+                      comment.profile?.profileImageUrl ||
+                      'https://via.placeholder.com/40' ||
+                      comment.user?.profileImageUrl
+                    }
+                    style={{ width: 32, height: 32, borderRadius: 100 }}
+                  />
+                  <View className='flex-1'>
+                    <View className='bg-white/5 p-3 rounded-2xl'>
+                      <Text className='text-primary text-sm font-roboto-semibold mb-1'>
+                        {comment.profile?.displayName ||
+                          comment.user?.name ||
+                          'Anonymous'}
+                      </Text>
+                      <Text className='text-primary text-sm font-roboto-regular'>
+                        {comment.text}
+                      </Text>
+                    </View>
+                    <View className='flex-row gap-4 mt-1 px-2'>
+                      <TouchableOpacity>
+                        <Text className='text-secondary text-xs font-roboto-medium'>
+                          Like
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity>
+                        <Text className='text-secondary text-xs font-roboto-medium'>
+                          Reply
+                        </Text>
+                      </TouchableOpacity>
+                      {/* Only show delete if user owns the comment */}
+                      {(comment.user?._id === currentUserId ||
+                        comment.user?.id === currentUserId) && (
+                        <TouchableOpacity
+                          onPress={() => handleDeleteComment(comment._id)}
+                        >
+                          <Text className='text-red-400 text-xs font-roboto-medium'>
+                            Delete
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      <Text className='text-secondary/50 text-xs font-roboto-regular ml-auto'>
+                        {new Date(comment.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View className='bg-white/5 p-4 rounded-2xl items-center'>
+              <Text className='text-secondary text-sm font-roboto-regular italic'>
+                No comments yet. Be the first to comment!
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 };

@@ -42,8 +42,10 @@ const Login = () => {
       email,
       password,
     };
+
     mutate(user, {
       onSuccess: data => {
+        console.log(data);
         const user = {
           //@ts-ignore
           refreshToken: data?.refreshToken,
@@ -63,6 +65,7 @@ const Login = () => {
         router.push('/(tabs)/home');
       },
       onError: error => {
+        console.log(error);
         console.log(error);
       },
     });
