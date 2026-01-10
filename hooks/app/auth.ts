@@ -1,10 +1,10 @@
-import api from "@/api/axiosInstance";
-import { useMutation } from "@tanstack/react-query";
+import api from '@/api/axiosInstance';
+import { useMutation } from '@tanstack/react-query';
 
 export const useUserRegister = () => {
   return useMutation({
     mutationFn: async (data: any) => {
-      const res = await api.post("/api/auth/register", data);
+      const res = await api.post('/api/auth/register', data);
       return res;
     },
   });
@@ -13,7 +13,7 @@ export const useUserRegister = () => {
 export const useUserRegisterOtp = () => {
   return useMutation({
     mutationFn: async (data: any) => {
-      const res = await api.post("/api/auth/verify-otp", data);
+      const res = await api.post('/api/auth/verify-otp', data);
       return res;
     },
   });
@@ -22,7 +22,7 @@ export const useUserRegisterOtp = () => {
 export const useUserLogin = () => {
   return useMutation({
     mutationFn: async (data: any) => {
-      const res = await api.post("/api/auth/login", data);
+      const res = await api.post('/api/auth/login', data);
       return res;
     },
   });
@@ -31,7 +31,7 @@ export const useUserLogin = () => {
 export const useUserForgatePasswordSendMail = () => {
   return useMutation({
     mutationFn: async (data: any) => {
-      const res = await api.post("/api/auth/forgot-password", data);
+      const res = await api.post('/api/auth/forgot-password', data);
       return res;
     },
   });
@@ -40,7 +40,7 @@ export const useUserForgatePasswordSendMail = () => {
 export const useUserForgatePasswordVerifyOtp = () => {
   return useMutation({
     mutationFn: async (data: any) => {
-      const res = await api.post("/api/auth/verify-reset-otp", data);
+      const res = await api.post('/api/auth/verify-reset-otp', data);
       return res;
     },
   });
@@ -49,11 +49,9 @@ export const useUserForgatePasswordVerifyOtp = () => {
 export const useUserForgatePasswordResetPassword = () => {
   return useMutation({
     mutationFn: async ({ data, token }: any) => {
-      console.log(data, token);
-
-      const res = await api.post("/api/auth/reset-password", data, {
+      const res = await api.post('/api/auth/reset-password', data, {
         headers: {
-          "x-reset-token": token,
+          'x-reset-token': token,
         },
       });
       return res;

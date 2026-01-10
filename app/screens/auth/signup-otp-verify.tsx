@@ -35,8 +35,6 @@ const OTPVerification = () => {
     // router.push("/(tabs)/home");
     const otpString = otp.join('');
 
-    console.log(Number(otpString));
-    console.log(email);
     mutate(
       { email, otp: Number(otpString) },
       {

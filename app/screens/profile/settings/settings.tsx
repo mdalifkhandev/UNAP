@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const Settings = () => {
   const { clearAuth } = useAuthStore();
   const hendleLogout = () => {
-    console.log('lllll');
     clearAuth();
     router.push('/(auth)/login');
   };

@@ -136,7 +136,6 @@ const EditProfile = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log(data);
       // success → go back
       router.back();
     } catch (error: any) {

@@ -41,7 +41,6 @@ const OTPVerification = () => {
     };
     mutate(data, {
       onSuccess: res => {
-        console.log(res);
         //@ts-ignore
         setResetToken(res.resetToken);
         router.push('/screens/auth/reset-password');

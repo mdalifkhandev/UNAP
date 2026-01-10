@@ -141,8 +141,6 @@ const Home = () => {
     }
   });
 
-  console.log(posts, 'asdf');
-
   return (
     <GradientBackground>
       <SafeAreaView

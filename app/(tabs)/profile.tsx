@@ -20,7 +20,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Profiles = () => {
   const { user } = useAuthStore();
-  console.log(user);
 
   // Selected post type state
   const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'music'>(

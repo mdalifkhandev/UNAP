@@ -33,7 +33,6 @@ const ResetPassword = () => {
       { data, token: resetToken },
       {
         onSuccess: data => {
-          console.log(data, 'data');
           router.push('/(auth)/login');
         },
         onError: error => {

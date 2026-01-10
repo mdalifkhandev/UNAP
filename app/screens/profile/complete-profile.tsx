@@ -135,7 +135,6 @@ const CompleteProfile = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log(data);
       // success → go to home
       router.push('/(tabs)/profile');
     } catch (error: any) {

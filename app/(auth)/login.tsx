@@ -45,7 +45,6 @@ const Login = () => {
 
     mutate(user, {
       onSuccess: data => {
-        console.log(data);
         const user = {
           //@ts-ignore
           refreshToken: data?.refreshToken,
@@ -61,11 +60,9 @@ const Login = () => {
           id: data?.user.id,
         };
         setUser(user);
-        console.log(user);
         router.push('/(tabs)/home');
       },
       onError: error => {
-        console.log(error);
         console.log(error);
       },
     });

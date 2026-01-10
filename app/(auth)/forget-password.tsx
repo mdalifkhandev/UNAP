@@ -22,12 +22,10 @@ const ForgetPassword = () => {
       { email },
       {
         onSuccess: data => {
-          console.log(data);
           setEmailInLocal(email);
           router.push('/screens/auth/otp-verify');
         },
         onError: error => {
-          console.log(error);
           alert('Something went wrong');
         },
       }

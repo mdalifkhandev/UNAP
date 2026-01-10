@@ -61,12 +61,9 @@ const Signup = () => {
       alert('Password not matched');
       return;
     }
-    console.log(formData);
 
     mutate(formData, {
       onSuccess: data => {
-        console.log(data);
-
         router.push('/screens/auth/signup-otp-verify');
         setEmail(formData.email);
       },
