@@ -31,3 +31,19 @@ export const useUserUnFollow = () => {
     },
   });
 };
+export const useUserLike = () => {
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const res = await api.post(`/api/likes`, data);
+      return res;
+    },
+  });
+};
+export const useUserUnLike = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.delete(`/api/likes/${id}`);
+      return res;
+    },
+  });
+};

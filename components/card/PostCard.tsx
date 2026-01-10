@@ -1,8 +1,13 @@
-import { useUserFollow, useUserUnFollow } from '@/hooks/app/home';
+import {
+  useUserFollow,
+  useUserLike,
+  useUserUnFollow,
+  useUserUnLike,
+} from '@/hooks/app/home';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 // Define the Post interface matching the one in home.tsx
@@ -49,6 +54,8 @@ const PostCard = ({
     post?.viewerIsFollowing || false
   );
 
+  const [isLiked, setIsLiked] = useState(false);
+
   // Sync state if prop changes (optional, but good for list updates)
   React.useEffect(() => {
     if (post) setIsFollowing(post.viewerIsFollowing);
@@ -56,14 +63,28 @@ const PostCard = ({
 
   const { mutate: followUser } = useUserFollow();
   const { mutate: unfollowUser } = useUserUnFollow();
+  const { mutate: likeUser } = useUserLike();
+  const { mutate: unLikeUser } = useUserUnLike();
+
+  const handleLikeToggle = () => {
+    if (!post?._id) return;
+
+    if (isLiked) {
+      unLikeUser(post._id);
+      setIsLiked(false);
+    } else {
+      likeUser({ postId: post._id });
+      setIsLiked(true);
+    }
+  };
 
   const handleFollowToggle = () => {
     if (!post?.author.id) return;
-    
+
     if (isFollowing) {
       unfollowUser(post.author.id);
       setIsFollowing(prev => !prev);
-    }else{
+    } else {
       followUser({ userId: post.author.id });
       setIsFollowing(prev => !prev);
     }
@@ -140,8 +161,12 @@ const PostCard = ({
       {/* like comment sheire */}
       <View className='p-3 flex-row justify-between items-center'>
         <View className='flex-row gap-4'>
-          <TouchableOpacity>
-            <Ionicons name='heart-outline' size={26} color='white' />
+          <TouchableOpacity onPress={handleLikeToggle}>
+            <Ionicons
+              name={isLiked ? 'heart' : 'heart-outline'}
+              size={26}
+              color={`${isLiked ? 'red' : 'white'}`}
+            />
           </TouchableOpacity>
           <TouchableOpacity>
             <Ionicons name='chatbubble-outline' size={24} color='white' />
