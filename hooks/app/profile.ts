@@ -27,3 +27,20 @@ export const useUpdateProfile = () => {
     },
   });
 };
+
+export const useCompleteProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const res = await api.post('/api/profile/complete', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
+};

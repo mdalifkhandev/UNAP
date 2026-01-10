@@ -1,13 +1,13 @@
-import api from '@/api/axiosInstance';
 import ShadowButton from '@/components/button/ShadowButton';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
+import { useCompleteProfile, useGetMyProfile } from '@/hooks/app/profile';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -34,8 +34,33 @@ const CompleteProfile = () => {
   const [spotify, setSpotify] = useState('');
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const { data: profileData } = useGetMyProfile();
+  // @ts-ignore
+  const profile = profileData?.profile;
+  const { mutate: completeProfile, isPending: loading } = useCompleteProfile();
+
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || '');
+      setDisplayName(profile.displayName || '');
+      setBio(profile.bio || '');
+      if (profile.role) {
+        const capitalizedRole =
+          profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
+        if (roles.includes(capitalizedRole)) {
+          setSelectedRole(capitalizedRole);
+        }
+      }
+      setInstagram(profile.instagramUrl || '');
+      setYoutube(profile.youtubeUrl || '');
+      setSpotify(profile.spotifyArtistUrl || '');
+      if (profile.profileImageUrl) {
+        setProfileImage(profile.profileImageUrl);
+      }
+    }
+  }, [profile]);
 
   // Helper function to format URLs properly
   const formatUrl = (url: string, platform?: string) => {
@@ -92,68 +117,65 @@ const CompleteProfile = () => {
       return;
     }
 
-    setLoading(true);
     setErrorMsg(null);
 
     try {
       const formData = new FormData();
 
       // profileImage (required)
-      const filename = profileImage.split('/').pop() || 'profile.jpg';
-      const match = /\.(\w+)$/.exec(filename);
-      const ext = match?.[1]?.toLowerCase() || 'jpg';
-      const mimeType =
-        ext === 'png'
-          ? 'image/png'
-          : ext === 'jpeg' || ext === 'jpg'
-            ? 'image/jpeg'
-            : 'image/*';
+      // If it's a new local image
+      if (profileImage && !profileImage.startsWith('http')) {
+        const filename = profileImage.split('/').pop() || 'profile.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const ext = match?.[1]?.toLowerCase() || 'jpg';
+        const mimeType =
+          ext === 'png'
+            ? 'image/png'
+            : ext === 'jpeg' || ext === 'jpg'
+              ? 'image/jpeg'
+              : 'image/*';
 
-      formData.append('profileImage', {
-        uri: profileImage,
-        name: filename,
-        type: mimeType,
-      } as any);
+        formData.append('profileImage', {
+          uri: profileImage,
+          name: filename,
+          type: mimeType,
+        } as any);
+      }
 
-      // other fields (match your Postman body)
+      // other fields
       formData.append('username', username);
       formData.append('role', selectedRole.toLowerCase());
       formData.append('bio', bio);
       formData.append('displayName', displayName);
 
-      // Fixed: Format URLs properly with https://
+      // Format URLs properly
       formData.append('instagramUrl', formatUrl(instagram, 'instagram'));
       formData.append('youtubeUrl', formatUrl(youtube, 'youtube'));
       formData.append('spotifyArtistUrl', formatUrl(spotify, 'spotify'));
 
-      // optional socials if not used
+      // optional socials
       formData.append('tiktokUrl', '');
       formData.append('facebookUrl', '');
 
-      const { data } = await api.post('/api/profile/complete', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      completeProfile(formData, {
+        onSuccess: () => {
+          router.push('/(tabs)/profile');
+        },
+        onError: (error: any) => {
+          const errorResponse = error?.response?.data;
+          if (errorResponse?.error === 'Profile already completed.') {
+            router.push('/(tabs)/profile');
+            return;
+          }
+          setErrorMsg(
+            errorResponse?.error ||
+              error?.message ||
+              'Something went wrong. Please try again.'
+          );
         },
       });
-      // success → go to home
-      router.push('/(tabs)/profile');
     } catch (error: any) {
-      // Check if profile is already completed
-      const errorResponse = error?.response?.data;
-      if (errorResponse?.error === 'Profile already completed.') {
-        // Redirect to home if profile is already completed
-        router.push('/(tabs)/profile');
-        return;
-      }
-
-      // Show other errors
-      setErrorMsg(
-        errorResponse?.error ||
-          error?.message ||
-          'Something went wrong. Please try again.'
-      );
-    } finally {
-      setLoading(false);
+      setErrorMsg(error?.message || 'Failed to prepare data');
     }
   };
 
