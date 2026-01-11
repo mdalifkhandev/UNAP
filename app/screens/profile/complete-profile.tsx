@@ -9,13 +9,13 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -204,17 +204,28 @@ const CompleteProfile = () => {
             <View className='items-center mt-6'>
               <View className='relative'>
                 <TouchableOpacity onPress={pickImage}>
-                  <Image
-                    source={
-                      profileImage
-                        ? { uri: profileImage }
-                        : {
-                            uri: 'data:image/png;base64,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',
-                          }
-                    }
-                    style={{ width: 100, height: 100, borderRadius: 100 }}
-                    contentFit='cover'
-                  />
+                  {profileImage ? (
+                    <Image
+                      source={{ uri: profileImage }}
+                      style={{ width: 100, height: 100, borderRadius: 100 }}
+                      contentFit='cover'
+                    />
+                  ) : (
+                    <View
+                      style={{
+                        width: 100,
+                        height: 100,
+                        borderRadius: 100,
+                        backgroundColor: '#FFFFFF1A',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderWidth: 1,
+                        borderColor: '#FFFFFF30',
+                      }}
+                    >
+                      <Feather name='camera' size={30} color='#FFFFFF98' />
+                    </View>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

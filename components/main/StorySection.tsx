@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 
-interface Story {
+export interface Story {
   id: string;
   user: string;
   avatar: string;
@@ -12,7 +12,7 @@ interface Story {
   isMe?: boolean;
 }
 
-const stories: Story[] = [
+export const stories: Story[] = [
   {
     id: '0',
     user: 'Add to story',
@@ -46,7 +46,7 @@ const stories: Story[] = [
   },
 ];
 
-const StoryCard = ({ story }: { story: Story }) => {
+const StoryCard = ({ story, index }: { story: Story; index: number }) => {
   if (story.isMe) {
     return (
       <TouchableOpacity className="w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#FFFFFF1A] border border-white/10">
@@ -66,9 +66,7 @@ const StoryCard = ({ story }: { story: Story }) => {
       onPress={() => router.push({
         pathname: '/screens/home/story-view',
         params: {
-          user: story.user,
-          avatar: story.avatar,
-          storyImage: story.storyImage
+          initialIndex: index.toString()
         }
       })}
       className="w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#FFFFFF1A] border border-white/10"
@@ -95,7 +93,7 @@ const StorySection = () => {
     <View className="mt-6 mb-2">
       <FlatList
         data={stories}
-        renderItem={({ item }) => <StoryCard story={item} />}
+        renderItem={({ item, index }) => <StoryCard story={item} index={index} />}
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}

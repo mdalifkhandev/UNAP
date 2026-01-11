@@ -1,9 +1,11 @@
+import { stories } from '@/components/main/StorySection';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Dimensions,
+    FlatList,
     StyleSheet,
     Text,
     TextInput,
@@ -14,22 +16,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
-const StoryView = () => {
-  const { user, avatar, storyImage } = useLocalSearchParams<{
-    user: string;
-    avatar: string;
-    storyImage: string;
-  }>();
-
+const StoryItem = ({ item }: { item: any }) => {
   const [comment, setComment] = useState('');
-
   const reactions = ['❤️', '🔥', '😂', '😮', '😢', '👏'];
 
+  if (item.isMe) return null; // Or handle "Create Story" view differently
+
   return (
-    <View style={styles.container}>
+    <View style={styles.storyContainer}>
       {/* Background Story Image */}
       <Image
-        source={{ uri: storyImage }}
+        source={{ uri: item.storyImage }}
         style={styles.storyImage}
         contentFit="cover"
       />
@@ -42,12 +39,12 @@ const StoryView = () => {
         <View style={styles.header}>
           <View style={styles.userInfo}>
             <Image
-              source={{ uri: avatar }}
+              source={{ uri: item.avatar }}
               style={styles.avatar}
               contentFit="cover"
             />
             <View>
-              <Text style={styles.userName}>{user}</Text>
+              <Text style={styles.userName}>{item.user}</Text>
               <Text style={styles.timeText}>Just now</Text>
             </View>
           </View>
@@ -86,10 +83,44 @@ const StoryView = () => {
   );
 };
 
+const StoryView = () => {
+  const { initialIndex } = useLocalSearchParams<{
+    initialIndex: string;
+  }>();
+
+  const activeStories = stories.filter(s => !s.isMe);
+  const startIndex = parseInt(initialIndex || '0');
+  // Adjust index if needed (since we filter out 'isMe')
+  const adjustedIndex = Math.max(0, stories[startIndex]?.isMe ? 0 : activeStories.findIndex(s => s.id === stories[startIndex]?.id));
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={activeStories}
+        renderItem={({ item }) => <StoryItem item={item} />}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        initialScrollIndex={adjustedIndex >= 0 ? adjustedIndex : 0}
+        getItemLayout={(data, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+      />
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'black',
+  },
+  storyContainer: {
+    width: width,
+    height: height,
   },
   storyImage: {
     position: 'absolute',
