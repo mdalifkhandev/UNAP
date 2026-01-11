@@ -21,10 +21,57 @@ export const useGetAllPost = () => {
 };
 
 export const useUserFollow = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: { userId: string }) => {
       const res = await api.post('/api/follows', data);
       return res;
+    },
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ['otherProfile', variables.userId] });
+      await queryClient.cancelQueries({ queryKey: ['post'] });
+
+      const previousOtherProfile = queryClient.getQueryData(['otherProfile', variables.userId]);
+      const previousPosts = queryClient.getQueryData(['post']);
+
+      // Update otherProfile cache
+      queryClient.setQueryData(['otherProfile', variables.userId], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          viewerIsFollowing: true,
+          profile: {
+            ...old.profile,
+            followersCount: (old.profile.followersCount || 0) + 1,
+          },
+        };
+      });
+
+      // Update post cache
+      queryClient.setQueryData(['post'], (old: any) => {
+        if (!old) return old;
+        const updatePosts = (posts: any[]) =>
+          posts.map((p) =>
+            p.author?.id === variables.userId ? { ...p, viewerIsFollowing: true } : p
+          );
+        if (Array.isArray(old)) return updatePosts(old);
+        if (old.posts) return { ...old, posts: updatePosts(old.posts) };
+        return old;
+      });
+
+      return { previousOtherProfile, previousPosts };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousOtherProfile) {
+        queryClient.setQueryData(['otherProfile', variables.userId], context.previousOtherProfile);
+      }
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['post'], context.previousPosts);
+      }
+    },
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['post'] });
+      queryClient.invalidateQueries({ queryKey: ['otherProfile', variables.userId] });
     },
   });
 };
@@ -36,28 +83,129 @@ export const useUserUnFollow = () => {
       const res = await api.delete(`/api/follows/${id}`);
       return res;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['post', 'profile', 'follows','otherProfile'],
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['otherProfile', id] });
+      await queryClient.cancelQueries({ queryKey: ['post'] });
+
+      const previousOtherProfile = queryClient.getQueryData(['otherProfile', id]);
+      const previousPosts = queryClient.getQueryData(['post']);
+
+      // Update otherProfile cache
+      queryClient.setQueryData(['otherProfile', id], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          viewerIsFollowing: false,
+          profile: {
+            ...old.profile,
+            followersCount: Math.max(0, (old.profile.followersCount || 0) - 1),
+          },
+        };
       });
+
+      // Update post cache
+      queryClient.setQueryData(['post'], (old: any) => {
+        if (!old) return old;
+        const updatePosts = (posts: any[]) =>
+          posts.map((p) =>
+            p.author?.id === id ? { ...p, viewerIsFollowing: false } : p
+          );
+        if (Array.isArray(old)) return updatePosts(old);
+        if (old.posts) return { ...old, posts: updatePosts(old.posts) };
+        return old;
+      });
+
+      return { previousOtherProfile, previousPosts };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousOtherProfile) {
+        queryClient.setQueryData(['otherProfile', id], context.previousOtherProfile);
+      }
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['post'], context.previousPosts);
+      }
+    },
+    onSettled: (data, error, id) => {
+      queryClient.invalidateQueries({ queryKey: ['post'] });
+      queryClient.invalidateQueries({ queryKey: ['otherProfile', id] });
     },
   });
 };
 
 export const useUserLike = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: { postId: string }) => {
       const res = await api.post(`/api/likes`, data);
       return res;
+    },
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ['post'] });
+      const previousPosts = queryClient.getQueryData(['post']);
+
+      queryClient.setQueryData(['post'], (old: any) => {
+        if (!old) return old;
+        const updatePosts = (posts: any[]) =>
+          posts.map((p) =>
+            p._id === variables.postId
+              ? { ...p, viewerHasLiked: true, likeCount: (p.likeCount || 0) + 1 }
+              : p
+          );
+        if (Array.isArray(old)) return updatePosts(old);
+        if (old.posts) return { ...old, posts: updatePosts(old.posts) };
+        return old;
+      });
+
+      return { previousPosts };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['post'], context.previousPosts);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['post'] });
     },
   });
 };
 
 export const useUserUnLike = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await api.delete(`/api/likes/${id}`);
       return res;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['post'] });
+      const previousPosts = queryClient.getQueryData(['post']);
+
+      queryClient.setQueryData(['post'], (old: any) => {
+        if (!old) return old;
+        const updatePosts = (posts: any[]) =>
+          posts.map((p) =>
+            p._id === id
+              ? {
+                  ...p,
+                  viewerHasLiked: false,
+                  likeCount: Math.max(0, (p.likeCount || 0) - 1),
+                }
+              : p
+          );
+        if (Array.isArray(old)) return updatePosts(old);
+        if (old.posts) return { ...old, posts: updatePosts(old.posts) };
+        return old;
+      });
+
+      return { previousPosts };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['post'], context.previousPosts);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['post'] });
     },
   });
 };

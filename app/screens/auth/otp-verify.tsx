@@ -46,7 +46,6 @@ const OTPVerification = () => {
         router.push('/screens/auth/reset-password');
       },
       onError: err => {
-        console.log(err);
         alert('Error');
       },
     });

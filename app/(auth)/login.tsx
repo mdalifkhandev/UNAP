@@ -9,11 +9,11 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Text,
-  TouchableOpacity,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -62,9 +62,7 @@ const Login = () => {
         setUser(user);
         router.push('/(tabs)/home');
       },
-      onError: error => {
-        console.log(error);
-      },
+
     });
   };
 
@@ -157,7 +155,7 @@ const Login = () => {
 
               <View className='mt-4 flex-row justify-center items-center'>
                 <Text className='text-secondary_second font-roboto-regular text-sm'>
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                 </Text>
                 <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
                   <Text className='font-roboto-bold text-secondary_second text-sm'>

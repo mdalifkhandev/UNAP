@@ -32,7 +32,7 @@ const OTPVerification = () => {
     }
   };
   const hendleVerifyOTP = () => {
-    // router.push("/(tabs)/home");
+
     const otpString = otp.join('');
 
     mutate(
@@ -57,16 +57,12 @@ const OTPVerification = () => {
 
           router.push('/screens/profile/complete-profile');
         },
-        onError: error => {
-          console.log(error);
-        },
+
       }
     );
   };
 
-  // const hendleVerifyOTP = () => {
-  //   router.push("/screens/profile/complete-profile")
-  // }
+
   return (
     <GradientBackground>
       <SafeAreaView
@@ -118,7 +114,7 @@ const OTPVerification = () => {
             textColor='#2B2B2B'
             backGroundColor='#E8EBEE'
             onPress={hendleVerifyOTP}
-            // onPress={() => router.push("/screens/auth/reset-password")}
+
             className='mt-4'
           />
 

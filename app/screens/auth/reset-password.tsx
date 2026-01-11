@@ -36,13 +36,12 @@ const ResetPassword = () => {
           router.push('/(auth)/login');
         },
         onError: error => {
-          console.log(error, 'error');
           alert('Error');
         },
       }
     );
 
-    // router.push("/(auth)/login")
+
   };
   return (
     <GradientBackground>

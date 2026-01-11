@@ -7,7 +7,6 @@ import {
   useUserUnFollow,
   useUserUnLike,
 } from '@/hooks/app/home';
-import { useGetOtherProfile } from '@/hooks/app/profile';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -54,7 +53,7 @@ const PostCard = ({
   post?: Post;
   currentUserId?: string;
 }) => {
-  const defaultImage = require('@/assets/images/post.png');
+
   const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
   );
@@ -87,8 +86,8 @@ const PostCard = ({
   const { mutate: likeUser } = useUserLike();
   const { mutate: unLikeUser } = useUserUnLike();
 
-  const { data } = useGetOtherProfile(post?.author?.id || '');
-  console.log('other', data);
+
+
 
   const handleLikeToggle = () => {
     if (!post?._id) return;

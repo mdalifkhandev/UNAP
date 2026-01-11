@@ -9,12 +9,12 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -67,14 +67,10 @@ const Signup = () => {
         router.push('/screens/auth/signup-otp-verify');
         setEmail(formData.email);
       },
-      onError: error => {
-        console.log(error);
-      },
+
     });
   };
-  // const hendleRegister = () => {
-  //   router.push("/screens/auth/signup-otp-verify");
-  // }
+
 
   return (
     <GradientBackground>

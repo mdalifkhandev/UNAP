@@ -10,12 +10,12 @@ import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -43,7 +43,7 @@ const Profiles = () => {
   // @ts-ignore
   const profile = data?.profile;
 
-  console.log('prifile', profile);
+
   // ... existing state and logic ...
   // Selected post type state
   const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'music'>(
