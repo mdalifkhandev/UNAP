@@ -1,5 +1,6 @@
 import api from '@/api/axiosInstance';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
 
 export const useGetMyProfile = () => {
   return useQuery({
@@ -22,8 +23,20 @@ export const useUpdateProfile = () => {
       });
       return res;
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Profile Updated',
+        text2: data?.message || 'Your profile has been updated successfully.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Update Failed',
+        text2: error?.response?.data?.message || error.message,
+      });
     },
   });
 };
@@ -39,8 +52,20 @@ export const useCompleteProfile = () => {
       });
       return res;
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Profile Completed',
+        text2: data?.message || 'Your profile has been completed successfully.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Submission Failed',
+        text2: error?.response?.data?.message || error.message,
+      });
     },
   });
 };

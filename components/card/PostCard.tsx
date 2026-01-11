@@ -1,11 +1,13 @@
 import {
-  useDeleteComment,
-  useUserCreateComment,
-  useUserFollow,
-  useUserGetComment,
-  useUserLike,
-  useUserUnFollow,
-  useUserUnLike,
+    useDeleteComment,
+    useSavePost,
+    useUnsavePost,
+    useUserCreateComment,
+    useUserFollow,
+    useUserGetComment,
+    useUserLike,
+    useUserUnFollow,
+    useUserUnLike,
 } from '@/hooks/app/home';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -72,22 +74,33 @@ const PostCard = ({
     player.loop = true;
   });
 
-  // Sync state if prop changes (optional, but good for list updates)
+  const { mutate: followUser } = useUserFollow();
+  const { mutate: unfollowUser } = useUserUnFollow();
+  const { mutate: likeUser } = useUserLike();
+  const { mutate: unLikeUser } = useUserUnLike();
+  const { mutate: savePost } = useSavePost();
+  const { mutate: unsavePost } = useUnsavePost();
+
+  const [isBookmarked, setIsBookmarked] = useState(
+    // @ts-ignore
+    post?.viewerHasBookmarked || false
+  );
+
   useEffect(() => {
     if (post) {
       setIsFollowing(post.viewerIsFollowing);
       setIsLiked(post.viewerHasLiked);
       setLikeCount(post.likeCount);
+      // @ts-ignore
+      setIsBookmarked(post.viewerHasBookmarked || false);
     }
-  }, [post?.viewerIsFollowing, post?.viewerHasLiked, post?.likeCount]);
-
-  const { mutate: followUser } = useUserFollow();
-  const { mutate: unfollowUser } = useUserUnFollow();
-  const { mutate: likeUser } = useUserLike();
-  const { mutate: unLikeUser } = useUserUnLike();
-
-
-
+  }, [
+    post?.viewerIsFollowing,
+    post?.viewerHasLiked,
+    post?.likeCount,
+    // @ts-ignore
+    post?.viewerHasBookmarked,
+  ]);
 
   const handleLikeToggle = () => {
     if (!post?._id) return;
@@ -112,6 +125,18 @@ const PostCard = ({
     } else {
       followUser({ userId: post.author.id });
       setIsFollowing(prev => !prev);
+    }
+  };
+
+  const handleBookmarkToggle = () => {
+    if (!post?._id) return;
+
+    if (isBookmarked) {
+      unsavePost(post._id);
+      setIsBookmarked(false);
+    } else {
+      savePost({ postId: post._id });
+      setIsBookmarked(true);
     }
   };
 
@@ -269,8 +294,12 @@ const PostCard = ({
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity>
-          <Ionicons name='bookmark-outline' size={24} color='white' />
+        <TouchableOpacity onPress={handleBookmarkToggle}>
+          <Ionicons
+            name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+            size={24}
+            color='white'
+          />
         </TouchableOpacity>
       </View>
 

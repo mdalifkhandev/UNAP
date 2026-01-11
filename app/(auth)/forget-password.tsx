@@ -9,6 +9,8 @@ import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Toast from 'react-native-toast-message';
+
 const ForgetPassword = () => {
   const [email, setEmail] = React.useState('');
   const { mutate } = useUserForgatePasswordSendMail();
@@ -16,7 +18,11 @@ const ForgetPassword = () => {
 
   const hendleForgatePasswordSendMail = () => {
     if (!email.trim()) {
-      return alert('Please enter your email');
+      return Toast.show({
+        type: 'error',
+        text1: 'Required',
+        text2: 'Please enter your email',
+      });
     }
     mutate(
       { email },
@@ -24,9 +30,6 @@ const ForgetPassword = () => {
         onSuccess: data => {
           setEmailInLocal(email);
           router.push('/screens/auth/otp-verify');
-        },
-        onError: error => {
-          alert('Something went wrong');
         },
       }
     );

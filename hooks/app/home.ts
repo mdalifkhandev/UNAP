@@ -1,22 +1,25 @@
 import api from '@/api/axiosInstance';
 import {
+  useInfiniteQuery,
   useMutation,
-  useQueries,
   useQuery,
-  useQueryClient,
+  useQueryClient
 } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
 
 export const useGetAllPost = () => {
-  return useQueries({
-    queries: [
-      {
-        queryKey: ['post'],
-        queryFn: async () => {
-          const result = await api.get('/api/feed?page=1&limit=5');
-          return result;
-        },
-      },
-    ],
+  return useInfiniteQuery({
+    queryKey: ['post'],
+    queryFn: async ({ pageParam = 1 }) => {
+      const result = await api.get(`/api/feed?page=${pageParam}&limit=5`);
+      return result;
+    },
+    getNextPageParam: (lastPage: any, allPages) => {
+      const posts = lastPage?.posts || [];
+      if (posts.length < 5) return undefined;
+      return allPages.length + 1;
+    },
+    initialPageParam: 1,
   });
 };
 
@@ -39,7 +42,6 @@ export const useUserFollow = () => {
       ]);
       const previousPosts = queryClient.getQueryData(['post']);
 
-      // Update otherProfile cache
       queryClient.setQueryData(
         ['otherProfile', variables.userId],
         (old: any) => {
@@ -55,7 +57,6 @@ export const useUserFollow = () => {
         }
       );
 
-      // Update post cache
       queryClient.setQueryData(['post'], (old: any) => {
         if (!old) return old;
         const updatePosts = (posts: any[]) =>
@@ -65,13 +66,28 @@ export const useUserFollow = () => {
               : p
           );
         if (Array.isArray(old)) return updatePosts(old);
-        if (old.posts) return { ...old, posts: updatePosts(old.posts) };
+        if (old.pages) {
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              posts: updatePosts(page.posts),
+            })),
+          };
+        }
         return old;
       });
 
       return { previousOtherProfile, previousPosts };
     },
-    onError: (err, variables, context) => {
+    onSuccess: (data: any) => {
+      Toast.show({
+        type: 'success',
+        text1: 'Followed',
+        text2: data?.message || 'You are now following this user.',
+      });
+    },
+    onError: (err: any, variables, context) => {
       if (context?.previousOtherProfile) {
         queryClient.setQueryData(
           ['otherProfile', variables.userId],
@@ -81,6 +97,11 @@ export const useUserFollow = () => {
       if (context?.previousPosts) {
         queryClient.setQueryData(['post'], context.previousPosts);
       }
+      Toast.show({
+        type: 'error',
+        text1: 'Follow Failed',
+        text2: err?.response?.data?.message || err.message,
+      });
     },
     onSettled: (data, error, variables) => {
       queryClient.invalidateQueries({ queryKey: ['post'] });
@@ -108,7 +129,6 @@ export const useUserUnFollow = () => {
       ]);
       const previousPosts = queryClient.getQueryData(['post']);
 
-      // Update otherProfile cache
       queryClient.setQueryData(['otherProfile', id], (old: any) => {
         if (!old) return old;
         return {
@@ -121,7 +141,6 @@ export const useUserUnFollow = () => {
         };
       });
 
-      // Update post cache
       queryClient.setQueryData(['post'], (old: any) => {
         if (!old) return old;
         const updatePosts = (posts: any[]) =>
@@ -129,13 +148,28 @@ export const useUserUnFollow = () => {
             p.author?.id === id ? { ...p, viewerIsFollowing: false } : p
           );
         if (Array.isArray(old)) return updatePosts(old);
-        if (old.posts) return { ...old, posts: updatePosts(old.posts) };
+        if (old.pages) {
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              posts: updatePosts(page.posts),
+            })),
+          };
+        }
         return old;
       });
 
       return { previousOtherProfile, previousPosts };
     },
-    onError: (err, id, context) => {
+    onSuccess: (data: any) => {
+      Toast.show({
+        type: 'success',
+        text1: 'Unfollowed',
+        text2: data?.message || 'You have unfollowed this user.',
+      });
+    },
+    onError: (err: any, id, context) => {
       if (context?.previousOtherProfile) {
         queryClient.setQueryData(
           ['otherProfile', id],
@@ -145,6 +179,11 @@ export const useUserUnFollow = () => {
       if (context?.previousPosts) {
         queryClient.setQueryData(['post'], context.previousPosts);
       }
+      Toast.show({
+        type: 'error',
+        text1: 'Unfollow Failed',
+        text2: err?.response?.data?.message || err.message,
+      });
     },
     onSettled: (data, error, id) => {
       queryClient.invalidateQueries({ queryKey: ['post'] });
@@ -177,7 +216,15 @@ export const useUserLike = () => {
               : p
           );
         if (Array.isArray(old)) return updatePosts(old);
-        if (old.posts) return { ...old, posts: updatePosts(old.posts) };
+        if (old.pages) {
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              posts: updatePosts(page.posts),
+            })),
+          };
+        }
         return old;
       });
 
@@ -218,7 +265,15 @@ export const useUserUnLike = () => {
               : p
           );
         if (Array.isArray(old)) return updatePosts(old);
-        if (old.posts) return { ...old, posts: updatePosts(old.posts) };
+        if (old.pages) {
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              posts: updatePosts(page.posts),
+            })),
+          };
+        }
         return old;
       });
 
@@ -253,9 +308,21 @@ export const useUserCreateComment = () => {
       const res = await api.post('/api/comments', data);
       return res;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data: any, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['comment', variables.postId],
+      });
+      Toast.show({
+        type: 'success',
+        text1: 'Comment Posted',
+        text2: data?.message || 'Your comment has been added.',
+      });
+    },
+    onError: (err: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Comment Failed',
+        text2: err?.response?.data?.message || err.message,
       });
     },
   });
@@ -274,10 +341,82 @@ export const useDeleteComment = () => {
       const res = await api.delete(`/api/comments/${commentId}`);
       return res;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data: any, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['comment', variables.postId],
       });
+      Toast.show({
+        type: 'success',
+        text1: 'Comment Deleted',
+        text2: data?.message || 'Your comment has been removed.',
+      });
+    },
+    onError: (err: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Delete Failed',
+        text2: err?.response?.data?.message || err.message,
+      });
+    },
+  });
+};
+
+export const useSavePost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { postId: string }) => {
+      const res = await api.post('/api/bookmarks', data);
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['saved-posts'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Post Saved',
+        text2: data?.message || 'Post added to your bookmarks.',
+      });
+    },
+    onError: (err: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Save Failed',
+        text2: err?.response?.data?.message || err.message,
+      });
+    },
+  });
+};
+
+export const useUnsavePost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.delete(`/api/bookmarks/${id}`);
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['saved-posts'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Post Removed',
+        text2: data?.message || 'Post removed from your bookmarks.',
+      });
+    },
+    onError: (err: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Remove Failed',
+        text2: err?.response?.data?.message || err.message,
+      });
+    },
+  });
+};
+
+export const useGetSavedPosts = () => {
+  return useQuery({
+    queryKey: ['saved-posts'],
+    queryFn: async () => {
+      const res = await api.get('/api/bookmarks');
+      return res;
     },
   });
 };

@@ -9,6 +9,8 @@ import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Toast from 'react-native-toast-message';
+
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,10 +20,18 @@ const ResetPassword = () => {
 
   const handleForgatePasswordResetPassword = () => {
     if (!newPassword.trim() || !confirmPassword.trim()) {
-      return alert('Please enter your password');
+      return Toast.show({
+        type: 'error',
+        text1: 'Required',
+        text2: 'Please enter your password',
+      });
     }
     if (newPassword !== confirmPassword) {
-      return alert('Password does not match');
+      return Toast.show({
+        type: 'error',
+        text1: 'Mismatch',
+        text2: 'Password does not match',
+      });
     }
 
     const data = {
@@ -35,13 +45,8 @@ const ResetPassword = () => {
         onSuccess: data => {
           router.push('/(auth)/login');
         },
-        onError: error => {
-          alert('Error');
-        },
       }
     );
-
-
   };
   return (
     <GradientBackground>

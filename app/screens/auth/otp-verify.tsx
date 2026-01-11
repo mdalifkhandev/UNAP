@@ -8,6 +8,8 @@ import React, { useRef, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Toast from 'react-native-toast-message';
+
 const OTPVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '']);
   const inputRefs = useRef<(TextInput | null)[]>([]);
@@ -34,6 +36,13 @@ const OTPVerification = () => {
 
   const handleForgatePasswordVerifyOtp = () => {
     const otpString = otp.join('');
+    if (otpString.length < 5) {
+      return Toast.show({
+        type: 'error',
+        text1: 'Incomplete OTP',
+        text2: 'Please enter the full 5-digit code.',
+      });
+    }
     const otpNumber = Number(otpString);
     const data = {
       email,
@@ -44,9 +53,6 @@ const OTPVerification = () => {
         //@ts-ignore
         setResetToken(res.resetToken);
         router.push('/screens/auth/reset-password');
-      },
-      onError: err => {
-        alert('Error');
       },
     });
   };

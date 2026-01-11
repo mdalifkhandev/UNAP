@@ -148,21 +148,28 @@ const Profiles = () => {
             <View className='border-b border-[#292929] w-full my-3 mx-6'></View>
 
             {/* edit/share buttons */}
-            <View className='flex-row justify-center items-center gap-5 mx-6'>
+            {/* edit/share/saved buttons */}
+            <View className='flex-row justify-center items-center gap-3 mx-4'>
               <ShadowButton
                 text='Edit Profile'
                 textColor='#2B2B2B'
                 backGroundColor='#E8EBEE'
                 onPress={() => router.push('/screens/profile/edit-profile')}
-                className='mt-4'
+                className='mt-4 flex-1'
               />
               <ShadowButton
-                text='Share Profile'
+                text='Saved Posts'
                 textColor='#E6E6E6'
                 backGroundColor='#000000'
-                onPress={() => router.push('/(tabs)/home')}
-                className='mt-4 border border-[#E6E6E6]'
+                onPress={() => router.push('/screens/profile/saved-posts')}
+                className='mt-4 border border-[#E6E6E6] flex-1'
               />
+              <TouchableOpacity
+                onPress={() => router.push('/(tabs)/home')}
+                className='mt-4 bg-[#FFFFFF0D] border border-[#E6E6E6] p-3 rounded-2xl items-center justify-center'
+              >
+                <Ionicons name='share-social-outline' size={24} color='white' />
+              </TouchableOpacity>
             </View>
 
             {/* border */}

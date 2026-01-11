@@ -9,14 +9,15 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const Signup = () => {
   const socialIcons = {
@@ -48,17 +49,29 @@ const Signup = () => {
 
   const hendleRegister = async () => {
     if (!isTerm) {
-      alert('Please accept terms & conditions');
+      Toast.show({
+        type: 'error',
+        text1: 'Terms Required',
+        text2: 'Please accept terms & conditions',
+      });
       return;
     }
 
     if (!formData.email || !formData.password) {
-      alert('Email & Password are required');
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Email & Password are required',
+      });
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert('Password not matched');
+      Toast.show({
+        type: 'error',
+        text1: 'Password Mismatch',
+        text2: 'Confirm password does not match.',
+      });
       return;
     }
 
