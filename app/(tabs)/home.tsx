@@ -3,6 +3,7 @@ import PostCard from '@/components/card/PostCard';
 import SuggestedArtistsCard from '@/components/card/SuggestedArtistsCard';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
+import StorySection from '@/components/main/StorySection';
 import { useGetAllPost } from '@/hooks/app/home';
 import { useCreatePost } from '@/hooks/app/post';
 import useAuthStore from '@/store/auth.store';
@@ -14,12 +15,12 @@ import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useState } from 'react';
 import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Text,
-  TouchableOpacity,
-  View,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -177,6 +178,8 @@ const Home = () => {
           </TouchableOpacity>
         </View>
       </View>
+
+      <StorySection />
 
       {/* post create card */}
       <View className='p-6 bg-[#FFFFFF0D] rounded-3xl mt-6 flex-row gap-5'>
