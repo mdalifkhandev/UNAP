@@ -7,6 +7,7 @@ import {
   useUserUnFollow,
   useUserUnLike,
 } from '@/hooks/app/home';
+import { useGetOtherProfile } from '@/hooks/app/profile';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -86,6 +87,9 @@ const PostCard = ({
   const { mutate: likeUser } = useUserLike();
   const { mutate: unLikeUser } = useUserUnLike();
 
+  const { data } = useGetOtherProfile(post?.author?.id || '');
+  console.log('other', data);
+
   const handleLikeToggle = () => {
     if (!post?._id) return;
 
@@ -148,7 +152,16 @@ const PostCard = ({
       {/* post header */}
       <View className='p-4 flex-row justify-between items-center'>
         <TouchableOpacity
-          onPress={() => router.push('/(tabs)/profile')}
+          onPress={() => {
+            if (isOwner) {
+              router.push('/(tabs)/profile');
+            } else {
+              router.push({
+                pathname: '/screens/profile/other-profile',
+                params: { id: post?.author?.id },
+              });
+            }
+          }}
           className='flex-row gap-3'
         >
           <Image

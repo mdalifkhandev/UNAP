@@ -6,6 +6,7 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 const SuggestedArtistsCard = ({ className }: { className?: string }) => {
   const suggestedPrifile = [
     {
+      id: "1",
       name: "Ava Martinez",
       profession: "Digital Artist",
       image: {
@@ -13,6 +14,7 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
       },
     },
     {
+      id: "2",
       name: "Liam Anderson",
       profession: "Fitness Trainer",
       image: {
@@ -95,7 +97,13 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
       >
         {suggestedPrifile.map((item, index) => (
           <TouchableOpacity
-            onPress={() => router.push("/(tabs)/profile")}
+            onPress={() =>
+              item.id ?
+              router.push({
+                pathname: "/screens/profile/other-profile",
+                params: { id: item.id },
+              }) : router.push("/(tabs)/profile")
+            }
             key={index}
             className="items-center"
             style={{ width: 80 }}

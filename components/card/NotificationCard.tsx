@@ -15,6 +15,7 @@ type NotificationCardProps = {
   onMenuToggle?: (id: string) => void;
   onMenuClose?: () => void;
   id: string;
+  userId?: string;
 };
 
 const NotificationCard = ({
@@ -28,6 +29,7 @@ const NotificationCard = ({
   onMenuToggle,
   onMenuClose,
   id,
+  userId,
 }: NotificationCardProps) => {
   const [isRead, setIsRead] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
@@ -55,7 +57,16 @@ const NotificationCard = ({
         className={`bg-[#FFFFFF0D] py-5 px-4 rounded-xl flex-row justify-between gap-5 ${className} ${isRead ? 'opacity-60' : ''}`}
       >
         <TouchableOpacity
-          onPress={() => router.push("/(tabs)/profile")}
+          onPress={() => {
+            if (userId) {
+              router.push({
+                pathname: "/screens/profile/other-profile",
+                params: { id: userId },
+              });
+            } else {
+              router.push("/(tabs)/profile");
+            }
+          }}
           className="relative"
         >
           <Image

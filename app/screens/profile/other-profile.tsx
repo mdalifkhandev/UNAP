@@ -1,21 +1,21 @@
 import ShadowButton from '@/components/button/ShadowButton';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useGetMyProfile } from '@/hooks/app/profile';
-import useAuthStore from '@/store/auth.store';
+import { useUserFollow, useUserUnFollow } from '@/hooks/app/home';
+import { useGetOtherProfile } from '@/hooks/app/profile';
 import Feather from '@expo/vector-icons/Feather';
 import Foundation from '@expo/vector-icons/Foundation';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -36,19 +36,37 @@ const VideoGridItem = ({ uri }: { uri: string }) => {
   );
 };
 
-const Profiles = () => {
-  const { user } = useAuthStore();
+const OtherProfile = () => {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data, isLoading } = useGetOtherProfile(id || '');
 
-  const { data } = useGetMyProfile();
+  // Hooks for follow/unfollow
+  const { mutate: followUser } = useUserFollow();
+  const { mutate: unfollowUser } = useUserUnFollow();
+
   // @ts-ignore
   const profile = data?.profile;
+  // @ts-ignore
+  const viewerIsFollowingInitial = data?.viewerIsFollowing || false;
 
-  console.log('prifile', profile);
-  // ... existing state and logic ...
-  // Selected post type state
+  const [isFollowing, setIsFollowing] = useState(viewerIsFollowingInitial);
   const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'music'>(
     'photo'
   );
+
+  useEffect(() => {
+    setIsFollowing(viewerIsFollowingInitial);
+  }, [viewerIsFollowingInitial]);
+
+  const handleFollowToggle = () => {
+    if (!id) return;
+    if (isFollowing) {
+      unfollowUser(id);
+    } else {
+      followUser({ userId: id });
+    }
+    setIsFollowing(!isFollowing);
+  };
 
   // Map API posts to the format used in render
   const displayPosts =
@@ -58,6 +76,16 @@ const Profiles = () => {
         ? profile?.videoPosts || []
         : profile?.audioPosts || [];
 
+  if (isLoading) {
+    return (
+      <GradientBackground>
+        <SafeAreaView className='flex-1 justify-center items-center'>
+          <Text className='text-primary'>Loading...</Text>
+        </SafeAreaView>
+      </GradientBackground>
+    );
+  }
+
   return (
     <GradientBackground>
       <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
@@ -65,16 +93,14 @@ const Profiles = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
         >
-          {/* headers */}
-          <View className='mt-3 flex-row items-center mx-6 justify-between'>
-            <Text className='font-roboto-bold text-primary text-2xl text-center flex-1'>
+          {/* header */}
+          <View className='mt-3 flex-row items-center mx-6'>
+            <TouchableOpacity onPress={() => router.back()} className='p-2 -ml-2'>
+              <Ionicons name='chevron-back' size={28} color='white' />
+            </TouchableOpacity>
+            <Text className='font-roboto-bold text-primary text-2xl text-center flex-1 mr-8'>
               Profile
             </Text>
-            <TouchableOpacity
-              onPress={() => router.push('/screens/profile/settings/settings')}
-            >
-              <Ionicons name='settings-outline' size={24} color='white' />
-            </TouchableOpacity>
           </View>
 
           <View className='border-b border-[#292929] w-full mt-2'></View>
@@ -85,7 +111,7 @@ const Profiles = () => {
           >
             {/* profile picture */}
             <View className='flex-row gap-4 mt-4 items-center mx-6'>
-              <TouchableOpacity className='mt-2'>
+              <View className='mt-2'>
                 <Image
                   source={{
                     uri:
@@ -95,10 +121,10 @@ const Profiles = () => {
                   style={{ width: 100, height: 100, borderRadius: 100 }}
                   contentFit='cover'
                 />
-              </TouchableOpacity>
+              </View>
               <View>
                 <Text className='text-primary font-roboto-bold text-2xl'>
-                  {profile?.displayName || user?.name || 'User'}
+                  {profile?.displayName || 'User'}
                 </Text>
                 <Text className='text-primary font-roboto-regular text-lg'>
                   {profile?.role || 'User'}
@@ -147,20 +173,28 @@ const Profiles = () => {
             {/* border */}
             <View className='border-b border-[#292929] w-full my-3 mx-6'></View>
 
-            {/* edit/share buttons */}
+            {/* follow/message buttons */}
             <View className='flex-row justify-center items-center gap-5 mx-6'>
               <ShadowButton
-                text='Edit Profile'
-                textColor='#2B2B2B'
-                backGroundColor='#E8EBEE'
-                onPress={() => router.push('/screens/profile/edit-profile')}
-                className='mt-4'
+                text={isFollowing ? 'Unfollow' : 'Follow'}
+                textColor={isFollowing ? '#E6E6E6' : '#2B2B2B'}
+                backGroundColor={isFollowing ? '#000000' : '#E8EBEE'}
+                onPress={handleFollowToggle}
+                className={`mt-4 ${isFollowing ? 'border border-[#E6E6E6]' : ''}`}
               />
               <ShadowButton
-                text='Share Profile'
+                text='Message'
                 textColor='#E6E6E6'
                 backGroundColor='#000000'
-                onPress={() => router.push('/(tabs)/home')}
+                onPress={() => {
+                   // Navigate to chat if implemented
+                   if (id) {
+                     router.push({
+                       pathname: '/screens/chat/chat-screen',
+                       params: { userId: id }
+                     });
+                   }
+                }}
                 className='mt-4 border border-[#E6E6E6]'
               />
             </View>
@@ -250,4 +284,4 @@ const Profiles = () => {
   );
 };
 
-export default Profiles;
+export default OtherProfile;

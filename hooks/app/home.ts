@@ -30,10 +30,16 @@ export const useUserFollow = () => {
 };
 
 export const useUserUnFollow = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await api.delete(`/api/follows/${id}`);
       return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['post', 'profile', 'follows','otherProfile'],
+      });
     },
   });
 };

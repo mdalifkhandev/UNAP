@@ -44,3 +44,13 @@ export const useCompleteProfile = () => {
     },
   });
 };
+
+export const useGetOtherProfile = (id: string) => {
+  return useQuery({
+    queryKey: ['otherProfile', id],
+    queryFn: async () => {
+      const res = await api.get(`/api/users/${id}/overview`);
+      return res;
+    },
+  });
+};
