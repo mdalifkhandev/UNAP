@@ -12,7 +12,7 @@ export const useGetAllPost = () => {
       {
         queryKey: ['post'],
         queryFn: async () => {
-          const result = await api.get('/api/feed');
+          const result = await api.get('/api/feed?page=1&limit=5');
           return result;
         },
       },
@@ -27,32 +27,42 @@ export const useUserFollow = () => {
       const res = await api.post('/api/follows', data);
       return res;
     },
-    onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: ['otherProfile', variables.userId] });
+    onMutate: async variables => {
+      await queryClient.cancelQueries({
+        queryKey: ['otherProfile', variables.userId],
+      });
       await queryClient.cancelQueries({ queryKey: ['post'] });
 
-      const previousOtherProfile = queryClient.getQueryData(['otherProfile', variables.userId]);
+      const previousOtherProfile = queryClient.getQueryData([
+        'otherProfile',
+        variables.userId,
+      ]);
       const previousPosts = queryClient.getQueryData(['post']);
 
       // Update otherProfile cache
-      queryClient.setQueryData(['otherProfile', variables.userId], (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          viewerIsFollowing: true,
-          profile: {
-            ...old.profile,
-            followersCount: (old.profile.followersCount || 0) + 1,
-          },
-        };
-      });
+      queryClient.setQueryData(
+        ['otherProfile', variables.userId],
+        (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            viewerIsFollowing: true,
+            profile: {
+              ...old.profile,
+              followersCount: (old.profile.followersCount || 0) + 1,
+            },
+          };
+        }
+      );
 
       // Update post cache
       queryClient.setQueryData(['post'], (old: any) => {
         if (!old) return old;
         const updatePosts = (posts: any[]) =>
-          posts.map((p) =>
-            p.author?.id === variables.userId ? { ...p, viewerIsFollowing: true } : p
+          posts.map(p =>
+            p.author?.id === variables.userId
+              ? { ...p, viewerIsFollowing: true }
+              : p
           );
         if (Array.isArray(old)) return updatePosts(old);
         if (old.posts) return { ...old, posts: updatePosts(old.posts) };
@@ -63,7 +73,10 @@ export const useUserFollow = () => {
     },
     onError: (err, variables, context) => {
       if (context?.previousOtherProfile) {
-        queryClient.setQueryData(['otherProfile', variables.userId], context.previousOtherProfile);
+        queryClient.setQueryData(
+          ['otherProfile', variables.userId],
+          context.previousOtherProfile
+        );
       }
       if (context?.previousPosts) {
         queryClient.setQueryData(['post'], context.previousPosts);
@@ -71,7 +84,9 @@ export const useUserFollow = () => {
     },
     onSettled: (data, error, variables) => {
       queryClient.invalidateQueries({ queryKey: ['post'] });
-      queryClient.invalidateQueries({ queryKey: ['otherProfile', variables.userId] });
+      queryClient.invalidateQueries({
+        queryKey: ['otherProfile', variables.userId],
+      });
     },
   });
 };
@@ -83,11 +98,14 @@ export const useUserUnFollow = () => {
       const res = await api.delete(`/api/follows/${id}`);
       return res;
     },
-    onMutate: async (id) => {
+    onMutate: async id => {
       await queryClient.cancelQueries({ queryKey: ['otherProfile', id] });
       await queryClient.cancelQueries({ queryKey: ['post'] });
 
-      const previousOtherProfile = queryClient.getQueryData(['otherProfile', id]);
+      const previousOtherProfile = queryClient.getQueryData([
+        'otherProfile',
+        id,
+      ]);
       const previousPosts = queryClient.getQueryData(['post']);
 
       // Update otherProfile cache
@@ -107,7 +125,7 @@ export const useUserUnFollow = () => {
       queryClient.setQueryData(['post'], (old: any) => {
         if (!old) return old;
         const updatePosts = (posts: any[]) =>
-          posts.map((p) =>
+          posts.map(p =>
             p.author?.id === id ? { ...p, viewerIsFollowing: false } : p
           );
         if (Array.isArray(old)) return updatePosts(old);
@@ -119,7 +137,10 @@ export const useUserUnFollow = () => {
     },
     onError: (err, id, context) => {
       if (context?.previousOtherProfile) {
-        queryClient.setQueryData(['otherProfile', id], context.previousOtherProfile);
+        queryClient.setQueryData(
+          ['otherProfile', id],
+          context.previousOtherProfile
+        );
       }
       if (context?.previousPosts) {
         queryClient.setQueryData(['post'], context.previousPosts);
@@ -139,16 +160,20 @@ export const useUserLike = () => {
       const res = await api.post(`/api/likes`, data);
       return res;
     },
-    onMutate: async (variables) => {
+    onMutate: async variables => {
       await queryClient.cancelQueries({ queryKey: ['post'] });
       const previousPosts = queryClient.getQueryData(['post']);
 
       queryClient.setQueryData(['post'], (old: any) => {
         if (!old) return old;
         const updatePosts = (posts: any[]) =>
-          posts.map((p) =>
+          posts.map(p =>
             p._id === variables.postId
-              ? { ...p, viewerHasLiked: true, likeCount: (p.likeCount || 0) + 1 }
+              ? {
+                  ...p,
+                  viewerHasLiked: true,
+                  likeCount: (p.likeCount || 0) + 1,
+                }
               : p
           );
         if (Array.isArray(old)) return updatePosts(old);
@@ -176,14 +201,14 @@ export const useUserUnLike = () => {
       const res = await api.delete(`/api/likes/${id}`);
       return res;
     },
-    onMutate: async (id) => {
+    onMutate: async id => {
       await queryClient.cancelQueries({ queryKey: ['post'] });
       const previousPosts = queryClient.getQueryData(['post']);
 
       queryClient.setQueryData(['post'], (old: any) => {
         if (!old) return old;
         const updatePosts = (posts: any[]) =>
-          posts.map((p) =>
+          posts.map(p =>
             p._id === id
               ? {
                   ...p,

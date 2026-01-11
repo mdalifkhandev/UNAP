@@ -206,7 +206,7 @@ const PostCard = ({
           <VideoView
             style={{ width: '100%', height: 345 }}
             player={player}
-            allowsFullscreen
+            fullscreenOptions={{ enable: true }}
             allowsPictureInPicture
           />
         )}

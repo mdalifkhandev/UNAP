@@ -3,12 +3,12 @@ import { useCreatePost } from '@/hooks/app/create';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
-import { ResizeMode, Video } from 'expo-av';
 import * as DocumentPicker from 'expo-document-picker';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -30,8 +30,12 @@ const CreatePost = () => {
   const [video, setVideo] = useState<string | null>(null);
   const [audio, setAudio] = useState<string | null>(null);
 
-  const videoRef = useRef<Video>(null);
   const router = useRouter();
+  const [videoPlayerUri, setVideoPlayerUri] = useState<string | null>(null);
+  const videoPlayer = useVideoPlayer(videoPlayerUri || '', player => {
+    player.loop = true;
+    player.play();
+  });
 
   const { mutate: createPost, isPending } = useCreatePost();
   const isLoading = isLoadingState || isPending;
@@ -44,7 +48,8 @@ const CreatePost = () => {
     });
     if (!result.canceled) {
       setPhoto(result.assets[0].uri);
-      setVideo(null);
+      setVideo(result.assets[0].uri); // Keep uri for upload
+      setVideoPlayerUri(null);
       setAudio(null);
     }
   };
@@ -57,6 +62,7 @@ const CreatePost = () => {
     });
     if (!result.canceled) {
       setVideo(result.assets[0].uri);
+      setVideoPlayerUri(result.assets[0].uri);
       setPhoto(null);
       setAudio(null);
     }
@@ -74,6 +80,7 @@ const CreatePost = () => {
         setAudio(audioUri);
         setPhoto(null);
         setVideo(null);
+        setVideoPlayerUri(null);
       }
     } catch (error) {
       console.error('Error picking audio:', error);
@@ -137,6 +144,7 @@ const CreatePost = () => {
         // Reset form
         setPhoto(null);
         setVideo(null);
+        setVideoPlayerUri(null);
         setAudio(null);
         setDescription('');
         setIsFacebook(false);
@@ -198,13 +206,10 @@ const CreatePost = () => {
                   />
                 )}
                 {video && (
-                  <Video
-                    ref={videoRef}
+                  <VideoView
                     style={{ width: '100%', height: 300, borderRadius: 12 }}
-                    source={{ uri: video }}
-                    useNativeControls
-                    resizeMode={ResizeMode.CONTAIN}
-                    isLooping
+                    player={videoPlayer}
+                    nativeControls
                   />
                 )}
                 {audio && (

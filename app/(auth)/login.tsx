@@ -9,13 +9,14 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Text,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
@@ -45,6 +46,14 @@ const Login = () => {
 
     mutate(user, {
       onSuccess: data => {
+        Toast.show({
+          type: 'success',
+          text1: 'Login Successful',
+          text2: 'Welcome back to UNAP',
+        });
+
+        console.log('success');
+
         const user = {
           //@ts-ignore
           refreshToken: data?.refreshToken,
@@ -62,7 +71,13 @@ const Login = () => {
         setUser(user);
         router.push('/(tabs)/home');
       },
-
+      onError: error => {
+        Toast.show({
+          type: 'error',
+          text1: 'Login Failed',
+          text2: error.message,
+        });
+      },
     });
   };
 

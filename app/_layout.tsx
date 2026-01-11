@@ -8,6 +8,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 import './global.css';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -49,7 +50,8 @@ const RootLayout = () => {
           <Stack.Screen name='(tabs)' />
         </Stack>
       </QueryClientProvider>
-      <StatusBar style='auto' />
+      <StatusBar style='light' />
+      <Toast />
     </ThemeProvider>
   );
 };
