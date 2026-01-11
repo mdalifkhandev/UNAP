@@ -1,7 +1,5 @@
 import {
     useDeleteComment,
-    useSavePost,
-    useUnsavePost,
     useUserCreateComment,
     useUserFollow,
     useUserGetComment,
@@ -9,12 +7,14 @@ import {
     useUserUnFollow,
     useUserUnLike,
 } from '@/hooks/app/home';
+import { useSavePost, useUnsavePost } from '@/hooks/app/post';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 // Define the Post interface matching the one in home.tsx
 interface Author {
@@ -49,11 +49,13 @@ const PostCard = ({
   img,
   post,
   currentUserId,
+  isSavedScreen = false,
 }: {
   className?: string;
   img?: any;
   post?: Post;
   currentUserId?: string;
+  isSavedScreen?: boolean;
 }) => {
 
   const [isFollowing, setIsFollowing] = useState(
@@ -131,12 +133,22 @@ const PostCard = ({
   const handleBookmarkToggle = () => {
     if (!post?._id) return;
 
-    if (isBookmarked) {
+    if (isSavedScreen) {
+      // On saved screen, only allowed to unsave (delete)
       unsavePost(post._id);
       setIsBookmarked(false);
     } else {
-      savePost({ postId: post._id });
-      setIsBookmarked(true);
+      // On home screen, only allowed to save
+      if (!isBookmarked) {
+        savePost(post._id);
+        setIsBookmarked(true);
+      } else {
+        Toast.show({
+          type: 'info',
+          text1: 'Post Saved',
+          text2: 'This post is already in your saved collection.',
+        });
+      }
     }
   };
 
@@ -296,9 +308,9 @@ const PostCard = ({
 
         <TouchableOpacity onPress={handleBookmarkToggle}>
           <Ionicons
-            name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+            name={isSavedScreen ? 'trash-outline' : (isBookmarked ? 'bookmark' : 'bookmark-outline')}
             size={24}
-            color='white'
+            color={isSavedScreen ? '#FF4B4B' : 'white'}
           />
         </TouchableOpacity>
       </View>

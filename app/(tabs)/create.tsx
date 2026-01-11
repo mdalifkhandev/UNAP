@@ -1,5 +1,5 @@
 import GradientBackground from '@/components/main/GradientBackground';
-import { useCreatePost } from '@/hooks/app/create';
+import { useCreatePost } from '@/hooks/app/post';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
@@ -178,9 +178,9 @@ const CreatePost = () => {
             <TouchableOpacity
               onPress={handleCreatePost}
               disabled={isLoading}
-              className={`px-4 py-2 rounded-full ${isLoading ? 'bg-blue-400' : 'bg-blue-500'}`}
+              className={`px-4 py-2 rounded-full ${isLoading ? 'bg-white/40' : 'bg-white'}`}
             >
-              <Text className='text-white text-center font-bold'>
+              <Text className='text-black text-center font-bold'>
                 {isLoading ? 'Posting...' : 'Post'}
               </Text>
             </TouchableOpacity>

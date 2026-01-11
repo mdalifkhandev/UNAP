@@ -50,7 +50,7 @@ const RootLayout = () => {
           <Stack.Screen name='(tabs)' />
         </Stack>
       </QueryClientProvider>
-      <StatusBar style='light' />
+      <StatusBar style='auto' />
       <Toast />
     </ThemeProvider>
   );

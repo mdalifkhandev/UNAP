@@ -1,26 +1,27 @@
 import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useGetSavedPosts } from '@/hooks/app/home';
+import { useGetAllSavePost } from '@/hooks/app/post';
 import useAuthStore from '@/store/auth.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SavedPosts = () => {
-  const { data, isLoading, refetch, isRefetching } = useGetSavedPosts();
+  const { data, isLoading, refetch, isRefetching } = useGetAllSavePost();
   const { user } = useAuthStore();
 
+  // Handle both bookmarks structure and direct posts array
   // @ts-ignore
-  const posts = data?.bookmarks?.map((b: any) => b.post) || [];
+  const posts = data?.bookmarks?.map((b: any) => b.post) || data?.posts || (Array.isArray(data) ? data : []);
 
   const renderHeader = () => (
     <View className='flex-row items-center mx-6 mt-3 mb-6'>
@@ -43,7 +44,7 @@ const SavedPosts = () => {
           <FlatList
             data={posts}
             renderItem={({ item }) => (
-              <PostCard post={item} className='mt-0 mb-6 mx-4' currentUserId={user?.id} />
+              <PostCard post={item} className='mt-0 mb-6 mx-4' currentUserId={user?.id} isSavedScreen={true} />
             )}
             keyExtractor={item => item?._id || Math.random().toString()}
             ListHeaderComponent={renderHeader}

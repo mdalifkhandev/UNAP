@@ -3,8 +3,8 @@ import PostCard from '@/components/card/PostCard';
 import SuggestedArtistsCard from '@/components/card/SuggestedArtistsCard';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useCreatePost } from '@/hooks/app/create';
 import { useGetAllPost } from '@/hooks/app/home';
+import { useCreatePost } from '@/hooks/app/post';
 import useAuthStore from '@/store/auth.store';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -14,12 +14,12 @@ import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useState } from 'react';
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
