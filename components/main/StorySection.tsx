@@ -49,7 +49,10 @@ export const stories: Story[] = [
 const StoryCard = ({ story, index }: { story: Story; index: number }) => {
   if (story.isMe) {
     return (
-      <TouchableOpacity className="w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#FFFFFF1A] border border-white/10">
+      <TouchableOpacity
+        onPress={() => router.push('/screens/home/create-story')}
+        className="w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#FFFFFF1A] border border-white/10"
+      >
         <Image source={story.storyImage} style={{ width: '100%', height: '70%' }} contentFit="cover" />
         <View className="flex-1 items-center justify-center -mt-5">
           <View className="bg-white p-1 rounded-full border-2 border-black">
