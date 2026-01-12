@@ -14,7 +14,7 @@ export const useCreatePost = () => {
       return res;
     },
     onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ['post'] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
       Toast.show({
         type: 'success',
         text1: 'Post Created',

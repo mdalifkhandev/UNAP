@@ -11,6 +11,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -59,7 +60,7 @@ const Home = () => {
   } = useGetAllPost();
   const { user } = useAuthStore();
 
-  const posts = data?.pages.flatMap((page: any) => page.posts) || [];
+  const posts = data?.pages.flatMap((page: any) => page.posts || []) || [];
 
   const renderHeader = () => (
     <View>
@@ -115,13 +116,27 @@ const Home = () => {
   const renderFooter = () => {
     if (!isFetchingNextPage) return <View className='h-20' />;
     return (
-      <View className='py-4'>
-        <Text className='text-white text-center font-roboto-medium'>
-          Loading more...
-        </Text>
+      <View className='py-4 items-center'>
+        <ActivityIndicator size='small' color='white' />
       </View>
     );
   };
+
+  if (isLoading && !isRefetching) {
+    return (
+      <GradientBackground>
+        <SafeAreaView
+          className='flex-1 mx-6 mt-2.5 mb-17'
+          edges={['top', 'left', 'right']}
+        >
+          {renderHeader()}
+          <View className='flex-1 justify-center items-center'>
+            <ActivityIndicator size='large' color='white' />
+          </View>
+        </SafeAreaView>
+      </GradientBackground>
+    );
+  }
 
   return (
     <GradientBackground>
@@ -149,18 +164,11 @@ const Home = () => {
             refreshing={isRefetching}
             onRefresh={refetch}
             ListEmptyComponent={
-              !isLoading ? (
-                <View className='mt-10'>
-                  <Text className='text-white text-center'>No posts found</Text>
-                </View>
-              ) : null
+              <View className='mt-10'>
+                <Text className='text-white text-center'>No posts found</Text>
+              </View>
             }
           />
-          {isLoading && posts.length === 0 && (
-            <View className='absolute inset-0 justify-center items-center'>
-              <Text className='text-white'>Loading...</Text>
-            </View>
-          )}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </GradientBackground>

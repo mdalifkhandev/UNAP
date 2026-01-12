@@ -3,7 +3,7 @@ import {
   useInfiniteQuery,
   useMutation,
   useQuery,
-  useQueryClient
+  useQueryClient,
 } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -16,7 +16,7 @@ export const useGetAllPost = () => {
     },
     getNextPageParam: (lastPage: any, allPages) => {
       const posts = lastPage?.posts || [];
-      if (posts.length < 5) return undefined;
+      if (posts.length === 0) return undefined;
       return allPages.length + 1;
     },
     initialPageParam: 1,
@@ -360,4 +360,3 @@ export const useDeleteComment = () => {
     },
   });
 };
-
