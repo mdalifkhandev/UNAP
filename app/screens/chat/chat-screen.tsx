@@ -1,7 +1,7 @@
 import BackButton from '@/components/button/BackButton';
 import GradientBackground from '@/components/main/GradientBackground';
 import ChatSettings from '@/components/modal/ChatSettings';
-import { useGetAllMessages } from '@/hooks/app/chat';
+import { useChattingSendMessage, useGetAllMessages } from '@/hooks/app/chat';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
@@ -18,76 +18,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-/**
- * ✅ Logged-in user id
- * (Later this will come from auth)
- */
-const CURRENT_USER_ID = 'me';
 
-/**
- * ✅ Dummy messages with senderId
- */
-// const dummyMessages = {
-//   'Arif Hasan dwadadaw': [
-//     {
-//       id: '1',
-//       senderId: 'Arif Hasan dwadadaw',
-//       text: 'Hey! Are you coming today?',
-//       time: '09:10 AM',
-//     },
-//     {
-//       id: '2',
-//       senderId: 'me',
-//       text: "Yes! I'll be there in 30 minutes.",
-//       time: '09:12 AM',
-//     },
-//     {
-//       id: '3',
-//       senderId: 'Arif Hasan dwadadaw',
-//       text: "Great! Don't forget to bring the documents.",
-//       time: '09:15 AM',
-//     },
-//   ],
-//   'Nusrat Jahan': [
-//     {
-//       id: '1',
-//       senderId: 'Nusrat Jahan',
-//       text: 'I have sent the documents.',
-//       time: '08:50 AM',
-//     },
-//     {
-//       id: '2',
-//       senderId: 'me',
-//       text: "Thanks! I'll check them now.",
-//       time: '08:55 AM',
-//     },
-//     {
-//       id: '3',
-//       senderId: 'Nusrat Jahan',
-//       text: 'Let me know if you need any changes.',
-//       time: '09:00 AM',
-//     },
-//   ],
-//   default: [
-//     {
-//       id: '1',
-//       senderId: 'other',
-//       text: 'Hi! How are you doing today?',
-//       time: '09:10 AM',
-//     },
-//     {
-//       id: '2',
-//       senderId: 'me',
-//       text: "Hey! I'm good, thanks for asking.",
-//       time: '09:12 AM',
-//     },
-//   ],
-// };
 
 const ChatScreen = () => {
   const flatRef = useRef<FlatList>(null);
   const params = useLocalSearchParams();
   const [showMenu, setShowMenu] = useState(false);
+  const [message, setMessage] = useState('');
 
   const userName = (params.userName as string) || 'Unknown User';
   const userImage = params.userImage as string | undefined;
@@ -97,18 +34,26 @@ const ChatScreen = () => {
   const receiverId = params.receiverId as string;
 
   const {data, isLoading, isError, error} = useGetAllMessages(userId);
+  const {mutateAsync:sendMessage,isPending:isSendingMessage}=useChattingSendMessage()
 
-  console.log('Messages data:', JSON.stringify(data?.messages, null, 2));
 
+
+  // @ts-ignore
   const messages = data?.messages || [];
 
-  console.log('Chat screen params:', {
-    userName,
-    userId,
-    conversationId,
-    senderId,
-    receiverId
-  });
+  const handleSendMessage = async () => {
+  if (!message.trim()) return;
+
+  try {
+    await sendMessage({
+      data: { text: message },
+      userId: receiverId
+    });
+    setMessage(''); // Clear input after sending
+  } catch (error) {
+    console.error('Failed to send message:', error);
+  }
+};
 
   useEffect(() => {
     setTimeout(() => {
@@ -255,12 +200,26 @@ const ChatScreen = () => {
                 placeholder='Type a message...'
                 placeholderTextColor='#9ca3af'
                 multiline
+                value={message}
+                onChangeText={setMessage}
                 className='flex-1 text-white text-[15px] border border-[#5E5E5E] rounded-[10px] px-3'
               />
             </View>
 
-            <TouchableOpacity className='bg-[#ffffff0d] h-12 w-12 rounded-full items-center justify-center border border-[#ffffff1a]'>
-              <Feather name='send' size={24} color='white' />
+            <TouchableOpacity
+              onPress={handleSendMessage}
+              disabled={isSendingMessage || !message.trim()}
+              className={`h-12 w-12 rounded-full items-center justify-center border ${
+                isSendingMessage || !message.trim()
+                  ? 'border-[#5E5E5E] bg-[#ffffff0a]'
+                  : 'border-[#ffffff1a] bg-[#ffffff0d]'
+              }`}
+            >
+              <Feather
+                name='send'
+                size={24}
+                color={(isSendingMessage || !message.trim()) ? '#9ca3af' : 'white'}
+              />
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
