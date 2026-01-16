@@ -171,7 +171,6 @@ const ChatsList = () => {
                         </Text>
                       </View>
                     </View>
-                        {chat?.lastMessage?.text}
                     <View className='flex-1 items-end'>
                       <Text
                         className='text-secondary text-center'

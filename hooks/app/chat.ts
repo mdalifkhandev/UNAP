@@ -11,6 +11,17 @@ export const useGetAllChatList = () => {
   });
 };
 
+export const useGetAllMessages=(userId:string)=>{
+  return useQuery({
+    queryKey:['chat'],
+    queryFn:async()=>{
+      const res=await api.get(`/api/chats/${userId}/messages?page=1&limit=10`);
+      return res;
+    },
+    enabled: !!userId,
+  })
+}
+
 export const useChatting = () => {
   return useMutation({
     mutationFn: async ({ data, userId }: any) => {
