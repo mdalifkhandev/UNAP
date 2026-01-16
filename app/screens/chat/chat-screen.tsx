@@ -90,6 +90,18 @@ const ChatScreen = () => {
 
   const userName = (params.userName as string) || 'Unknown User';
   const userImage = params.userImage as string | undefined;
+  const userId = params.userId as string;
+  const conversationId = params.conversationId as string;
+  const senderId = params.senderId as string;
+  const receiverId = params.receiverId as string;
+
+  console.log('Chat screen params:', {
+    userName,
+    userId,
+    conversationId,
+    senderId,
+    receiverId
+  });
 
   const messages =
     dummyMessages[userName as keyof typeof dummyMessages] ||
@@ -131,7 +143,7 @@ const ChatScreen = () => {
                 : require('@/assets/images/profile.png')
             }
             style={{ width: 40, height: 40, borderRadius: 100 }}
-            contentFit='contain'
+            contentFit='cover'
           />
           <View className='h-3 w-3 rounded-full bg-[#00B56C] absolute right-0 bottom-0' />
         </TouchableOpacity>
@@ -167,7 +179,7 @@ const ChatScreen = () => {
                       : require('@/assets/images/profile.png')
                   }
                   style={{ width: 46, height: 46, borderRadius: 100 }}
-                  contentFit='contain'
+                  contentFit='cover'
                 />
                 <View className='h-3 w-3 rounded-full bg-[#00B56C] absolute right-0 bottom-0' />
               </TouchableOpacity>

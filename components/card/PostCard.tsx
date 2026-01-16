@@ -1,11 +1,11 @@
 import {
-    useDeleteComment,
-    useUserCreateComment,
-    useUserFollow,
-    useUserGetComment,
-    useUserLike,
-    useUserUnFollow,
-    useUserUnLike,
+  useDeleteComment,
+  useUserCreateComment,
+  useUserFollow,
+  useUserGetComment,
+  useUserLike,
+  useUserUnFollow,
+  useUserUnLike,
 } from '@/hooks/app/home';
 import { useSavePost, useUnsavePost } from '@/hooks/app/post';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -57,7 +57,6 @@ const PostCard = ({
   currentUserId?: string;
   isSavedScreen?: boolean;
 }) => {
-
   const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
   );
@@ -222,8 +221,9 @@ const PostCard = ({
           >
             <Text
               className={`font-roboto-semibold ${isFollowing ? 'text-secondary' : 'text-primary'}`}
+              // numberOfLines={1}
             >
-              {isFollowing ? 'Unfollow' : 'Follow'}
+              {isFollowing ? 'Unfollow' : 'Follow '}
             </Text>
           </TouchableOpacity>
         )}
@@ -308,7 +308,13 @@ const PostCard = ({
 
         <TouchableOpacity onPress={handleBookmarkToggle}>
           <Ionicons
-            name={isSavedScreen ? 'trash-outline' : (isBookmarked ? 'bookmark' : 'bookmark-outline')}
+            name={
+              isSavedScreen
+                ? 'trash-outline'
+                : isBookmarked
+                  ? 'bookmark'
+                  : 'bookmark-outline'
+            }
             size={24}
             color={isSavedScreen ? '#FF4B4B' : 'white'}
           />

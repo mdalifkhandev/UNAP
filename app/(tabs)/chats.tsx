@@ -1,4 +1,5 @@
 import GradientBackground from '@/components/main/GradientBackground';
+import { useGetAllChatList } from '@/hooks/app/chat';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -15,96 +16,39 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const chatData = [
-  {
-    name: 'Arif Hasan dwadadaw',
-    message: 'Hey! Are you coming today?',
-    time: '09:12 AM',
-    read: false,
-  },
-  {
-    name: 'Nusrat Jahan',
-    image: 'https://randomuser.me/api/portraits/women/44.jpg',
-    message: 'I have sent the documents.',
-    time: '08:50 AM',
-    read: false,
-  },
-  {
-    name: 'Mehedi Hossain',
-    image: 'https://randomuser.me/api/portraits/men/32.jpg',
-    message: 'Got it bro! Thanks! erfgegfegegretgregergerer',
-    time: '08:12 AM',
-    read: false,
-  },
-  {
-    name: 'Tania Akter',
-    image: 'https://randomuser.me/api/portraits/women/65.jpg',
-    message: 'Let’s meet after lunch.',
-    time: 'Yesterday',
-  },
-  {
-    name: 'Sakib Rahman',
-    image: 'https://randomuser.me/api/portraits/men/76.jpg',
-    message: 'Can you review my code?',
-    time: 'Yesterday',
-  },
-  {
-    name: 'Maliha Chowdhury',
-    image: 'https://randomuser.me/api/portraits/women/21.jpg',
-    message: 'I reached home safely! ererfawefdwefwerfwerfwerfwerfwef',
-    time: 'Monday',
-  },
-  {
-    name: 'Farhan Khan',
-    image: 'https://randomuser.me/api/portraits/men/89.jpg',
-    message: "Call me when you're free.",
-    time: 'Monday',
-  },
-  {
-    name: 'Sadia Afreen',
-    image: 'https://randomuser.me/api/portraits/women/17.jpg',
-    message: 'We should plan the trip.',
-    time: 'Sunday',
-  },
-  {
-    name: 'Tanvir Ahmed',
-    image: 'https://randomuser.me/api/portraits/men/56.jpg',
-    message: 'Bro! Where are you?',
-    time: 'Sunday',
-  },
-  {
-    name: 'Sakib Rahman',
-    image: 'https://randomuser.me/api/portraits/men/76.jpg',
-    message: 'Can you review my code?',
-    time: 'Yesterday',
-  },
-  {
-    name: 'Maliha Chowdhury',
-    image: 'https://randomuser.me/api/portraits/women/21.jpg',
-    message: 'I reached home safely!',
-    time: 'Monday',
-  },
-  {
-    name: 'Farhan Khan',
-    image: 'https://randomuser.me/api/portraits/men/89.jpg',
-    message: "Call me when you're free.",
-    time: 'Monday',
-  },
-  {
-    name: 'Sadia Afreen',
-    image: 'https://randomuser.me/api/portraits/women/17.jpg',
-    message: 'We should plan the trip.',
-    time: 'Sunday',
-  },
-  {
-    name: 'Tanvir Ahmed',
-    image: 'https://randomuser.me/api/portraits/men/56.jpg',
-    message: 'Bro! Where are you?',
-    time: 'Sunday',
-  },
-];
+const formatMessageTime = (createdAt: string) => {
+  const messageDate = new Date(createdAt);
+  const today = new Date();
+  const isToday = messageDate.toDateString() === today.toDateString();
+
+  if (isToday) {
+    return messageDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } else {
+    return messageDate.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+};
 
 const ChatsList = () => {
+  const { data, isLoading, isError, error } = useGetAllChatList();
+
+  console.log(
+    JSON.stringify(data,null,2)
+  );
+
+
+// @ts-ignore
+  const chatData = data?.chats ?? [];
+
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter chats based on search query
@@ -114,8 +58,27 @@ const ChatsList = () => {
     }
 
     const query = searchQuery.toLowerCase();
-    return chatData.filter(chat => chat.name.toLowerCase().includes(query));
-  }, [searchQuery]);
+    return chatData.filter((chat: any) =>
+      chat?.name.toLowerCase().includes(query)
+    );
+  }, [searchQuery, chatData]);
+
+  if (isLoading) {
+    return <Text className='text-white text-center mt-10'>Loading...</Text>;
+  }
+
+  if (isError) {
+    return (
+      <View className='flex-1 justify-center items-center'>
+        <Text className='text-red-500 text-center mt-10'>
+          Failed to load chats
+        </Text>
+        <Text className='text-white text-center mt-2'>
+          {error?.message || 'Unknown error'}
+        </Text>
+      </View>
+    );
+  }
   return (
     <GradientBackground>
       <SafeAreaView className='flex-1  ' edges={['top', 'left', 'right']}>
@@ -153,23 +116,26 @@ const ChatsList = () => {
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* chat list  */}
             <View className='mx-6 mt-6'>
-              {filteredChats.map((chat, index) => (
+              {filteredChats.map((chat: any, index: number) => (
                 <View key={index}>
                   <TouchableOpacity
                     onPress={() =>
                       router.push({
                         pathname: '/screens/chat/chat-screen',
                         params: {
-                          userId: chat.name,
-                          userName: chat.name,
-                          userImage: chat.image || null,
+                          userId: chat?.userId,
+                          userName: chat?.name,
+                          userImage: chat?.profileImageUrl || null,
+                          conversationId: chat?.conversationId,
+                          senderId: chat?.lastMessage?.senderId,
+                          receiverId: chat?.userId,
                         },
                       })
                     }
                     className='flex-row justify-between  my-3'
                   >
                     <View className='w-[70%] flex-row gap-2 items-center'>
-                      {chat.read === false && (
+                      {chat?.unreadCount !== 0 && (
                         <View className=' bg-[#007AFF] h-2 w-2 rounded-full' />
                       )}
                       <TouchableOpacity
@@ -178,8 +144,8 @@ const ChatsList = () => {
                       >
                         <Image
                           source={
-                            chat.image
-                              ? { uri: chat.image }
+                            chat?.profileImageUrl
+                              ? { uri: chat?.profileImageUrl }
                               : require('@/assets/images/profile.png')
                           }
                           style={{
@@ -195,23 +161,24 @@ const ChatsList = () => {
                           className='text-primary font-roboto-semibold text-xl'
                           numberOfLines={1}
                         >
-                          {chat.name}
+                          {chat?.name}
                         </Text>
                         <Text
                           className='text-secondary font-roboto-regular mt-1'
                           numberOfLines={1}
                         >
-                          {/* {chat.message} */}
+                          {chat?.lastMessage?.text}
                         </Text>
                       </View>
                     </View>
-
+                        {chat?.lastMessage?.text}
                     <View className='flex-1 items-end'>
                       <Text
                         className='text-secondary text-center'
                         numberOfLines={1}
                       >
-                        {chat.time}
+                        {chat?.lastMessage?.createdAt ? formatMessageTime(chat.lastMessage.createdAt) : ''}
+
                       </Text>
                     </View>
                   </TouchableOpacity>
