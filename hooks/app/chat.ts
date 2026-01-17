@@ -36,3 +36,18 @@ export const useChattingSendMessage = () => {
     },
   });
 };
+
+export const useMarkMessagesAsRead = () => {
+  const queryClientInstance = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await api.post(`/api/chats/${userId}/read`);
+      return res;
+    },
+    onSuccess: (_, userId) => {
+      // Invalidate chat list to update unread count
+      queryClientInstance.invalidateQueries({ queryKey: ['chatlist'] });
+    },
+  });
+};

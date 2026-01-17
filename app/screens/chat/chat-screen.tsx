@@ -1,7 +1,8 @@
 import BackButton from '@/components/button/BackButton';
 import GradientBackground from '@/components/main/GradientBackground';
 import ChatSettings from '@/components/modal/ChatSettings';
-import { useChattingSendMessage, useGetAllMessages } from '@/hooks/app/chat';
+import { useChattingSendMessage, useGetAllMessages, useMarkMessagesAsRead } from '@/hooks/app/chat';
+import { useSocketChat } from '@/hooks/app/useSocketChat';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
@@ -35,6 +36,8 @@ const ChatScreen = () => {
 
   const {data, isLoading, isError, error} = useGetAllMessages(userId);
   const {mutateAsync:sendMessage,isPending:isSendingMessage}=useChattingSendMessage()
+  const {mutate:markAsRead}=useMarkMessagesAsRead()
+  const {isConnected, sendMessage: sendSocketMessage} = useSocketChat(userId, conversationId);
 
 
 
@@ -45,15 +48,28 @@ const ChatScreen = () => {
   if (!message.trim()) return;
 
   try {
-    await sendMessage({
-      data: { text: message },
-      userId: receiverId
-    });
+    if (isConnected) {
+      // Use socket for real-time messaging
+      await sendSocketMessage(receiverId, message);
+    } else {
+      // Fallback to REST API
+      await sendMessage({
+        data: { text: message },
+        userId: receiverId
+      });
+    }
     setMessage(''); // Clear input after sending
   } catch (error) {
     console.error('Failed to send message:', error);
   }
 };
+
+  useEffect(() => {
+    // Mark messages as read when chat screen opens
+    if (userId) {
+      markAsRead(userId);
+    }
+  }, [userId, markAsRead]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -167,9 +183,12 @@ const ChatScreen = () => {
                 <Text className='text-primary font-roboto-semibold text-xl'>
                   {userName}
                 </Text>
-                <Text className='text-secondary font-roboto-regular mt-1'>
-                  Online
-                </Text>
+                <View className='flex-row items-center gap-2'>
+                  <View className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <Text className='text-xs text-secondary'>
+                    {isConnected ? 'Online' : 'Offline'}
+                  </Text>
+                </View>
               </View>
             </View>
             <TouchableOpacity onPress={() => setShowMenu(true)}>
