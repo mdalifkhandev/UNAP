@@ -2,8 +2,8 @@ import { getAuth } from '@/store/auth.store';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://10.10.11.18:4000',
-
+  // baseURL: 'http://10.10.11.18:4000',
+  baseURL: 'https://176j23b6-4000.inc1.devtunnels.ms',
   headers: {
     'Content-Type': 'application/json',
   },
