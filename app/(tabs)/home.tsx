@@ -1,7 +1,6 @@
 import OfficePostCard from '@/components/card/OfficePostCard';
 import PostCard from '@/components/card/PostCard';
 import SuggestedArtistsCard from '@/components/card/SuggestedArtistsCard';
-import CreatePostCard from '@/components/main/CreatePostCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import StorySection from '@/components/main/StorySection';
 import { useGetAllPost } from '@/hooks/app/home';
@@ -95,7 +94,15 @@ const Home = () => {
       <StorySection />
 
       {/* post create card */}
-      <CreatePostCard />
+      {/* <CreatePostCard /> */}
+      <TouchableOpacity
+        onPress={() => router.push('/(tabs)/create')}
+        className='bg-white/10 rounded-2xl px-4 py-2 mt-4 h-11'
+      >
+        <Text className='text-[#9CA3AF] text-base flex-1'>
+          What's on your mind?
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
