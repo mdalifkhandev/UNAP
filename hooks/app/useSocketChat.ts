@@ -81,16 +81,8 @@ export const useSocketChat = (currentUserId: string, currentConversationId: stri
 
           console.log('Message sent successfully:', ack.message);
 
-          // Update UI with the sent message
-          queryClient.setQueryData(['chat', currentUserId], (oldData: any) => {
-            if (!oldData?.messages) return oldData;
-
-            return {
-              ...oldData,
-              messages: [...oldData.messages, ack.message]
-            };
-          });
-
+          // Don't add message here - let the 'message:new' event handle it
+          // This prevents duplicate messages
           // Update chat list
           queryClient.invalidateQueries({ queryKey: ['chatlist'] });
 

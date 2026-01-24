@@ -5,6 +5,7 @@ import { useChattingSendMessage, useGetAllMessages, useMarkMessagesAsRead } from
 import { useSocketChat } from '@/hooks/app/useSocketChat';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
+import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -26,6 +27,7 @@ const ChatScreen = () => {
   const params = useLocalSearchParams();
   const [showMenu, setShowMenu] = useState(false);
   const [message, setMessage] = useState('');
+  const queryClient = useQueryClient();
 
   const userName = (params.userName as string) || 'Unknown User';
   const userImage = params.userImage as string | undefined;
@@ -47,7 +49,16 @@ const ChatScreen = () => {
   const handleSendMessage = async () => {
   if (!message.trim()) return;
 
+  const tempMessage = {
+    _id: `temp-${Date.now()}`,
+    senderId: senderId,
+    text: message.trim(),
+    createdAt: new Date().toISOString(),
+    isTemp: true // Mark as temporary
+  };
+
   try {
+    // Add temporary message immediately for better UX
     if (isConnected) {
       // Use socket for real-time messaging
       await sendSocketMessage(receiverId, message);
@@ -61,6 +72,14 @@ const ChatScreen = () => {
     setMessage(''); // Clear input after sending
   } catch (error) {
     console.error('Failed to send message:', error);
+    // Remove temporary message on error
+    queryClient.setQueryData(['chat', userId], (oldData: any) => {
+      if (!oldData?.messages) return oldData;
+      return {
+        ...oldData,
+        messages: oldData.messages.filter((msg: any) => msg._id !== tempMessage._id)
+      };
+    });
   }
 };
 
@@ -200,7 +219,7 @@ const ChatScreen = () => {
           <FlatList
             ref={flatRef}
             data={messages}
-            keyExtractor={item => item._id}
+            keyExtractor={(item, index) => `${item._id || item.id || `message-${index}`}`}
             renderItem={renderMessage}
             onContentSizeChange={() =>
               flatRef.current?.scrollToEnd({ animated: true })

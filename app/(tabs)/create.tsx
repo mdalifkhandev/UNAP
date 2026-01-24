@@ -3,6 +3,7 @@ import { useCreatePost } from '@/hooks/app/post';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -55,11 +56,11 @@ const CreatePost = () => {
   const { mutate: createPost, isPending } = useCreatePost();
   const isLoading = isLoadingState || isPending;
 
-  // Load scheduled posts from localStorage
+  // Load scheduled posts from AsyncStorage
   React.useEffect(() => {
-    const loadScheduledPosts = () => {
+    const loadScheduledPosts = async () => {
       try {
-        const stored = localStorage.getItem('scheduledPosts');
+        const stored = await AsyncStorage.getItem('scheduledPosts');
         if (stored) {
           const posts = JSON.parse(stored);
           setScheduledPosts(posts);
@@ -95,10 +96,10 @@ const CreatePost = () => {
     return () => clearInterval(interval);
   }, [scheduledPosts]);
 
-  // Save scheduled posts to localStorage
-  const saveScheduledPosts = (posts: ScheduledPost[]) => {
+  // Save scheduled posts to AsyncStorage
+  const saveScheduledPosts = async (posts: ScheduledPost[]) => {
     try {
-      localStorage.setItem('scheduledPosts', JSON.stringify(posts));
+      await AsyncStorage.setItem('scheduledPosts', JSON.stringify(posts));
     } catch (error) {
       console.error('Error saving scheduled posts:', error);
     }
