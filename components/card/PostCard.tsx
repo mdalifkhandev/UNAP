@@ -7,7 +7,7 @@ import {
   useUserUnFollow,
   useUserUnLike,
 } from '@/hooks/app/home';
-import { useSavePost, useUnsavePost } from '@/hooks/app/post';
+import { useDeletePost, useSavePost, useUnsavePost } from '@/hooks/app/post';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -81,6 +81,7 @@ const PostCard = ({
   const { mutate: unLikeUser } = useUserUnLike();
   const { mutate: savePost } = useSavePost();
   const { mutate: unsavePost } = useUnsavePost();
+  const { mutate: deletePost } = useDeletePost();
 
   const [isBookmarked, setIsBookmarked] = useState(
     // @ts-ignore
@@ -160,6 +161,19 @@ const PostCard = ({
   const handleDeleteComment = (commentId: string) => {
     if (!post?._id) return;
     deleteComment({ commentId, postId: post._id });
+  };
+
+  const handleDeletePost = () => {
+    if (!post?._id) return;
+    // Show confirmation dialog before deleting
+    Toast.show({
+      type: 'info',
+      text1: 'Delete Post',
+      text2: 'Are you sure you want to delete this post?',
+      onPress: () => {
+        deletePost(post._id);
+      },
+    });
   };
 
   // Use post data if provided, otherwise use defaults

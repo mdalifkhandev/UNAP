@@ -1,5 +1,7 @@
 import ShadowButton from '@/components/button/ShadowButton';
+import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
+import { useDeletePost, useGetMyPosts } from '@/hooks/app/post';
 import { useGetMyProfile } from '@/hooks/app/profile';
 import useAuthStore from '@/store/auth.store';
 import Feather from '@expo/vector-icons/Feather';
@@ -10,12 +12,12 @@ import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -46,7 +48,7 @@ const Profiles = () => {
 
   // ... existing state and logic ...
   // Selected post type state
-  const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'music'>(
+  const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'music' | 'all'>(
     'photo'
   );
 
@@ -56,7 +58,14 @@ const Profiles = () => {
       ? profile?.imagePosts || []
       : selectedType === 'video'
         ? profile?.videoPosts || []
-        : profile?.audioPosts || [];
+        : selectedType === 'music'
+          ? profile?.audioPosts || []
+          : null; // 'all' will use myPosts hook
+
+  // Get all posts for the 'all' tab
+  const { data: myPostsData } = useGetMyPosts();
+  const allPosts = myPostsData?.posts || [];
+  const { mutate: deletePost } = useDeletePost();
 
   return (
     <GradientBackground>
@@ -176,28 +185,30 @@ const Profiles = () => {
             <View className='border-b border-[#292929] w-full mt-24 mx-6'></View>
 
             {/* post filter buttons */}
-            <View className='flex-row justify-between items-center gap-6 mt-3 mx-6'>
-              {['photo', 'video', 'music'].map(type => {
+            <View className='flex-row justify-between items-center gap-4 mt-3 mx-6'>
+              {['all','photo', 'video', 'music' ].map(type => {
                 const Icon = type === 'photo' ? Foundation : Feather;
                 const iconName =
                   type === 'photo'
                     ? 'photo'
                     : type === 'video'
                       ? 'video'
-                      : 'music';
+                      : type === 'music'
+                        ? 'music'
+                        : 'grid';
                 return (
                   <TouchableOpacity
                     key={type}
                     onPress={() =>
-                      setSelectedType(type as 'photo' | 'video' | 'music')
+                      setSelectedType(type as 'photo' | 'video' | 'music' | 'all')
                     }
-                    className={`px-5 py-4 rounded-lg flex-row gap-2 items-center ${
+                    className={`px-3 py-3 rounded-lg flex-row gap-2 items-center ${
                       selectedType === type ? 'bg-[#444]' : 'bg-transparent'
                     }`}
                   >
-                    <Icon name={iconName as any} size={24} color='white' />
-                    <Text className='text-primary font-roboto-regular mt-1'>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    <Icon name={iconName as any} size={20} color='white' />
+                    <Text className='text-primary font-roboto-regular text-sm'>
+                      {type === 'all' ? 'All Posts' : type.charAt(0).toUpperCase() + type.slice(1)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -205,49 +216,70 @@ const Profiles = () => {
             </View>
 
             {/* post data */}
-            <View className='flex-row flex-wrap mt-3 mx-6'>
-              {displayPosts.length > 0 ? (
-                displayPosts.map((item: any) => (
-                  <View key={item._id} className='w-1/3 border border-white'>
-                    {selectedType === 'photo' && (
-                      <Image
-                        source={{ uri: item.mediaUrl }}
-                        style={{
-                          width: '100%',
-                          height: 130,
-                          borderWidth: 1,
-                          borderColor: 'white',
-                        }}
-                        contentFit='cover'
+            <View className='mt-3 mx-6'>
+              {selectedType === 'all' ? (
+                <View className='gap-4'>
+                  {allPosts.length > 0 ? (
+                    allPosts.map((post: any) => (
+                      <PostCard
+                        key={post._id}
+                        post={post}
+                        currentUserId={user?.id}
+                        className='mb-4'
                       />
-                    )}
-                    {selectedType === 'video' && (
-                      <View style={{ width: '100%', height: 130, padding: 2 }}>
-                        <VideoGridItem uri={item.mediaUrl} />
-                        <View className='absolute inset-0 items-center justify-center'>
-                          <Feather
-                            name='video'
-                            size={24}
-                            color='white'
-                            opacity={0.7}
-                          />
-                        </View>
-                      </View>
-                    )}
-                    {selectedType === 'music' && (
-                      <View className='p-4 bg-[#292929] items-center justify-center w-full aspect-square'>
-                        <Feather name='music' size={40} color='#F54900' />
-                        <Text className='text-white mt-2 text-center text-xs'>
-                          {item.description || 'Audio File'}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                ))
+                    ))
+                  ) : (
+                    <Text className='text-primary font-roboto-regular text-center mt-8'>
+                      No posts found
+                    </Text>
+                  )}
+                </View>
               ) : (
-                <Text className='text-primary font-roboto-regular mt-1'>
-                  No {selectedType} posts found
-                </Text>
+                <View className='flex-row flex-wrap'>
+                  {displayPosts && displayPosts.length > 0 ? (
+                    displayPosts.map((item: any) => (
+                      <View key={item._id} className='w-1/3 border border-white'>
+                        {selectedType === 'photo' && (
+                          <Image
+                            source={{ uri: item.mediaUrl }}
+                            style={{
+                              width: '100%',
+                              height: 130,
+                              borderWidth: 1,
+                              borderColor: 'white',
+                            }}
+                            contentFit='cover'
+                          />
+                        )}
+                        {selectedType === 'video' && (
+                          <View style={{ width: '100%', height: 130, padding: 2 }}>
+                            <VideoGridItem uri={item.mediaUrl} />
+                            <View className='absolute inset-0 items-center justify-center'>
+                              <Feather
+                                name='video'
+                                size={24}
+                                color='white'
+                                opacity={0.7}
+                              />
+                            </View>
+                          </View>
+                        )}
+                        {selectedType === 'music' && (
+                          <View className='p-4 bg-[#292929] items-center justify-center w-full aspect-square'>
+                            <Feather name='music' size={40} color='#F54900' />
+                            <Text className='text-white mt-2 text-center text-xs'>
+                              {item.description || 'Audio File'}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    ))
+                  ) : (
+                    <Text className='text-primary font-roboto-regular mt-1'>
+                      No {selectedType} posts found
+                    </Text>
+                  )}
+                </View>
               )}
             </View>
           </ScrollView>

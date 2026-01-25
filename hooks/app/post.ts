@@ -81,6 +81,57 @@ export const useUnsavePost = () => {
   });
 };
 
+export const useGetMyPosts = () => {
+  return useQuery({
+    queryKey: ['myPosts'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/api/posts/my-posts');
+        // Handle Axios response properly
+        const data = res?.data || res;
+        if (data === undefined || data === null) {
+          return { posts: [] };
+        }
+        return data;
+      } catch (error: any) {
+        console.error('API Error in useGetMyPosts:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Fetch Failed',
+          text2: 'Could not load your posts.',
+        });
+        return { posts: [] };
+      }
+    },
+  });
+};
+
+export const useDeletePost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const res = await api.delete(`/api/posts/${postId}`);
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['myProfile'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Post Deleted',
+        text2: data?.message || 'Your post has been deleted successfully.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Delete Failed',
+        text2: error?.response?.data?.message || error.message,
+      });
+    },
+  });
+};
+
 export const useGetAllSavePost = () => {
   return useQuery({
     queryKey: ['saved-posts'],
