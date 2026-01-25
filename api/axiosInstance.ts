@@ -4,8 +4,12 @@ import { router } from 'expo-router';
 
 const api = axios.create({
   // baseURL: 'http://10.10.11.18:4000',
+<<<<<<< HEAD
   baseURL: 'https://marlene-unlarcenous-nonmunicipally.ngrok-free.dev',
 
+=======
+  baseURL: 'https://176j23b6-4000.inc1.devtunnels.ms',
+>>>>>>> main
   headers: {
     'Content-Type': 'application/json',
   },
