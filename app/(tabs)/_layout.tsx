@@ -3,6 +3,7 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { View } from 'react-native';
@@ -35,11 +36,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='search'
+        name='trending'
         options={{
-          title: 'Search',
+          title: 'Trending',
           tabBarIcon: ({ color }) => (
-            <Ionicons name='search-outline' size={24} color={color} />
+            <MaterialCommunityIcons name="chart-timeline-variant-shimmer" size={24} color={color} />
           ),
         }}
       />

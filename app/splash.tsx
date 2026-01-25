@@ -11,9 +11,8 @@ const SplashScreen = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (user?.token) {
-        router.replace('/(tabs)/home');
+        router.replace('/(tabs)/trending');
       } else {
-        // router.replace('/(tabs)/home');
         router.replace('/screens/auth/welcome');
       }
     }, 1000);

@@ -1,5 +1,6 @@
 import { getAuth } from '@/store/auth.store';
 import axios from 'axios';
+import { router } from 'expo-router';
 
 const api = axios.create({
   // baseURL: 'http://10.10.11.18:4000',
@@ -30,6 +31,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       console.log('Authentication error - please log in again');
+      router.replace('/(auth)/login')
     }
 
     return Promise.reject(error);
