@@ -69,7 +69,7 @@ const Login = () => {
           id: data?.user.id,
         };
         setUser(user);
-        router.push('/(tabs)/home');
+        router.push('/(tabs)/trending');
       },
       onError: error => {
         Toast.show({

@@ -177,10 +177,11 @@ const PostCard = ({
   };
 
   // Use post data if provided, otherwise use defaults
-  const authorName = post?.profile.displayName || 'Maya Lin';
-  const authorProfession = post?.profile.role || 'Painter';
+  const authorName =
+    post?.profile?.displayName || post?.author?.name || 'Maya Lin';
+  const authorProfession = post?.profile?.role || 'Painter';
   const authorAvatar =
-    post?.profile.profileImageUrl ||
+    post?.profile?.profileImageUrl ||
     'https://thelightcommittee.com/wp-content/uploads/elementor/thumbs/studio-business-headshot-of-a-black-man-in-Los-Angeles-r42uipeyz48g590yz1bhrtos4flfu3q2tuzohhy7f4.jpg';
   const postText =
     post?.description ||

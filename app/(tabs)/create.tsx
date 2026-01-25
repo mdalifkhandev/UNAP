@@ -1,46 +1,50 @@
+import MediaPickers from '@/components/create-post/MediaPickers';
+import MediaPreview from '@/components/create-post/MediaPreview';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useCreatePost } from '@/hooks/app/post';
+import { useCreatePost, useUpdateScheduledPost } from '@/hooks/app/post'; // Import update hook
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
-import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import React, { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router'; // Import useLocalSearchParams
+import { useVideoPlayer } from 'expo-video';
+import React, { useEffect, useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-interface ScheduledPost {
-  id: string;
-  description: string;
-  mediaType: 'image' | 'video' | 'audio';
-  mediaUri: string;
-  scheduledDate: string;
-  shareToFacebook: boolean;
-  shareToInstagram: boolean;
-  status: 'pending' | 'posted' | 'failed';
-}
-
 const CreatePost = () => {
-  const [isFacebook, setIsFacebook] = useState(false);
-  const [isInstagram, setIsInstagram] = useState(false);
-  const [description, setDescription] = useState('');
-  const [isLoadingState, setIsLoadingState] = useState(false);
-  const [isScheduleMode, setIsScheduleMode] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState('');
-  const [scheduledTime, setScheduledTime] = useState('');
-  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
+  const params = useLocalSearchParams();
+  const isEditMode = !!params.postId;
+
+  const [isFacebook, setIsFacebook] = useState(
+    params.shareToFacebook === 'true'
+  );
+  const [isInstagram, setIsInstagram] = useState(
+    params.shareToInstagram === 'true'
+  );
+  const [description, setDescription] = useState(
+    (params.description as string) || ''
+  );
+
+  // Schedule state
+  const [isScheduleMode, setIsScheduleMode] = useState(
+    isEditMode ? true : false
+  ); // Default to schedule mode if editing
+  const [scheduledDate, setScheduledDate] = useState(
+    params.scheduledFor ? new Date(params.scheduledFor as string) : new Date()
+  );
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const [photo, setPhoto] = useState<string | null>(null);
   const [video, setVideo] = useState<string | null>(null);
@@ -53,117 +57,77 @@ const CreatePost = () => {
     player.play();
   });
 
-  const { mutate: createPost, isPending } = useCreatePost();
-  const isLoading = isLoadingState || isPending;
+  const { mutate: createPost, isPending: isCreating } = useCreatePost();
+  const { mutate: updateScheduledPost, isPending: isUpdating } =
+    useUpdateScheduledPost();
 
-  // Load scheduled posts from AsyncStorage
-  React.useEffect(() => {
-    const loadScheduledPosts = async () => {
-      try {
-        const stored = await AsyncStorage.getItem('scheduledPosts');
-        if (stored) {
-          const posts = JSON.parse(stored);
-          setScheduledPosts(posts);
-        }
-      } catch (error) {
-        console.error('Error loading scheduled posts:', error);
+  const isLoading = isCreating || isUpdating;
+
+  useEffect(() => {
+    // Populate media if editing
+    if (isEditMode && params.mediaUrl && params.mediaType) {
+      const type = params.mediaType as string;
+      const url = params.mediaUrl as string;
+      if (type === 'image') {
+        setPhoto(url);
+      } else if (type === 'video') {
+        setVideo(url);
+        setVideoPlayerUri(url);
+      } else if (type === 'audio') {
+        setAudio(url);
       }
-    };
-    loadScheduledPosts();
+    }
+  }, [isEditMode, params]);
 
-    // Check for scheduled posts to post
-    const checkScheduledPosts = () => {
-      const now = new Date();
-      const postsToPost = scheduledPosts.filter(post => {
-        const scheduledTime = new Date(post.scheduledDate);
-        return scheduledTime <= now && post.status === 'pending';
-      });
+  // Handle Date Selection
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
 
-      postsToPost.forEach(post => {
-        // Here you would actually post to your API
-        console.log('Posting scheduled post:', post);
-        // Update post status
-        const updatedPosts = scheduledPosts.map(p =>
-          p.id === post.id ? { ...p, status: 'posted' as const } : p
-        );
-        setScheduledPosts(updatedPosts);
-        saveScheduledPosts(updatedPosts);
-      });
-    };
-
-    // Check every minute
-    const interval = setInterval(checkScheduledPosts, 60000);
-    return () => clearInterval(interval);
-  }, [scheduledPosts]);
-
-  // Save scheduled posts to AsyncStorage
-  const saveScheduledPosts = async (posts: ScheduledPost[]) => {
-    try {
-      await AsyncStorage.setItem('scheduledPosts', JSON.stringify(posts));
-    } catch (error) {
-      console.error('Error saving scheduled posts:', error);
+    if (selectedDate) {
+      // Keep the current time, update the date
+      const newDate = new Date(scheduledDate);
+      newDate.setFullYear(selectedDate.getFullYear());
+      newDate.setMonth(selectedDate.getMonth());
+      newDate.setDate(selectedDate.getDate());
+      setScheduledDate(newDate);
     }
   };
 
-  // Schedule post function
-  const handleSchedulePost = () => {
-    if (!photo && !video && !audio) {
-      alert('Please select a media file (photo, video, or audio)');
-      return;
+  // Handle Time Selection
+  const onTimeChange = (event: any, selectedTime?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
     }
 
-    if (!description.trim()) {
-      alert('Please add a description');
-      return;
+    if (selectedTime) {
+      // Keep the current date, update the time
+      const newDate = new Date(scheduledDate);
+      newDate.setHours(selectedTime.getHours());
+      newDate.setMinutes(selectedTime.getMinutes());
+      setScheduledDate(newDate);
     }
-
-    if (!scheduledDate || !scheduledTime) {
-      alert('Please select schedule date and time');
-      return;
-    }
-
-    const mediaType = photo ? 'image' : video ? 'video' : 'audio';
-    const mediaUri = photo || video || audio || '';
-
-    const newScheduledPost: ScheduledPost = {
-      id: Date.now().toString(),
-      description,
-      mediaType,
-      mediaUri,
-      scheduledDate: `${scheduledDate}T${scheduledTime}:00`,
-      shareToFacebook: isFacebook,
-      shareToInstagram: isInstagram,
-      status: 'pending',
-    };
-
-    const updatedPosts = [...scheduledPosts, newScheduledPost];
-    setScheduledPosts(updatedPosts);
-    saveScheduledPosts(updatedPosts);
-
-    // Reset form
-    setPhoto(null);
-    setVideo(null);
-    setVideoPlayerUri(null);
-    setAudio(null);
-    setDescription('');
-    setIsFacebook(false);
-    setIsInstagram(false);
-    setScheduledDate('');
-    setScheduledTime('');
-    setIsScheduleMode(false);
-
-    alert('Post scheduled successfully!');
   };
 
-  // Delete scheduled post
-  const handleDeleteScheduledPost = (postId: string) => {
-    const updatedPosts = scheduledPosts.filter(post => post.id !== postId);
-    setScheduledPosts(updatedPosts);
-    saveScheduledPosts(updatedPosts);
-  };
+  const handlePost = async () => {
+    // Media check only if creating new post or if we want to enforce media presence on update
+    // (Assuming update also requires media, but if user didn't change it, we send the old one or handle it)
+    // For now, let's assume we send media again if changed,
+    // BUT the API patch might require media.
+    // However, if we preserve the old URL, we can't upload it as a file.
+    // If the valid URL is a remote URL (starts with http), we might need to handle it differently
+    // or the backend supports keeping old media if 'media' field is empty.
 
-  // Post now function (original)
-  const handlePostNow = async () => {
+    // Simplification: Require re-selecting media if editing?
+    // OR: Check if `photo`/`video` starts with `http` -> don't append file?
+    // Let's assume standard behavior: if it's a remote URL, backend shouldn't receive a file for it if not changed.
+    // But FormData usually expects a file.
+    // Let's try sending existing remote URL as string if not changed?
+    // NOTE: React Native FormData usually handles {uri, type, name}.
+    // If it's a string, we might just not append 'media' if we want to keep it?
+    // User requested "update scheduled post", implying changing details.
+
     if (!photo && !video && !audio) {
       alert('Please select a media file (photo, video, or audio)');
       return;
@@ -176,8 +140,14 @@ const CreatePost = () => {
 
     const formData = new FormData();
 
-    // Add media file
-    if (photo) {
+    // Check if media is a remote URL (existing) or local file (new)
+    const isRemote = (uri: string) => uri.startsWith('http');
+
+    // Add media file ONLY if it is a local file (newly selected)
+    // If it is remote, we probably don't need to send it, OR backend handles it.
+    // Assuming backend keeps old media if not provided.
+
+    if (photo && !isRemote(photo)) {
       const filename = photo.split('/').pop() || 'photo.jpg';
       const match = /\.(\w+)$/.exec(filename);
       const ext = match?.[1]?.toLowerCase() || 'jpg';
@@ -187,7 +157,7 @@ const CreatePost = () => {
         type: `image/${ext === 'png' ? 'png' : 'jpeg'}`,
       } as any);
       formData.append('mediaType', 'image');
-    } else if (video) {
+    } else if (video && !isRemote(video)) {
       const filename = video.split('/').pop() || 'video.mp4';
       const match = /\.(\w+)$/.exec(filename);
       const ext = match?.[1]?.toLowerCase() || 'mp4';
@@ -197,7 +167,7 @@ const CreatePost = () => {
         type: `video/${ext === 'mov' ? 'quicktime' : 'mp4'}`,
       } as any);
       formData.append('mediaType', 'video');
-    } else if (audio) {
+    } else if (audio && !isRemote(audio)) {
       const filename = audio.split('/').pop() || 'audio.mp3';
       const match = /\.(\w+)$/.exec(filename);
       const ext = match?.[1]?.toLowerCase() || 'mp3';
@@ -208,30 +178,75 @@ const CreatePost = () => {
       } as any);
       formData.append('mediaType', 'audio');
     }
+    // If remote, we might simply not append 'media'. The backend should likely persist existing media.
 
     // Add other fields
     formData.append('description', description);
     formData.append('shareToFacebook', isFacebook.toString());
     formData.append('shareToInstagram', isInstagram.toString());
 
-    createPost(formData, {
-      onSuccess: () => {
-        // Reset form
-        setPhoto(null);
-        setVideo(null);
-        setVideoPlayerUri(null);
-        setAudio(null);
-        setDescription('');
-        setIsFacebook(false);
-        setIsInstagram(false);
+    // Add schedule if enabled
+    if (isScheduleMode) {
+      // Check if date is in the future
+      if (scheduledDate <= new Date()) {
+        alert('Please select a future date and time for scheduling.');
+        return;
+      }
+      formData.append('scheduledFor', scheduledDate.toISOString());
+    }
 
-        alert('Post created successfully!');
-        router.push('/(tabs)/home');
-      },
-      onError: (error: any) => {
-        alert(error?.response?.data?.message || 'Failed to create post');
-      },
-    });
+    if (isEditMode) {
+      console.log('--- Updating Post ---');
+      console.log('Post ID:', params.postId);
+      // @ts-ignore
+      console.log('FormData:', formData);
+
+      updateScheduledPost(
+        { postId: params.postId as string, formData },
+        {
+          onSuccess: () => {
+            setPhoto(null);
+            setVideo(null);
+            setVideoPlayerUri(null);
+            setAudio(null);
+            setDescription('');
+            setIsFacebook(false);
+            setIsInstagram(false);
+            setIsScheduleMode(false);
+            alert('Post updated successfully!');
+            // Maybe go back or to scheduled posts?
+            router.replace('/screens/profile/scheduled-posts');
+          },
+          onError: (error: any) => {
+            alert(error?.response?.data?.message || 'Failed to update post');
+          },
+        }
+      );
+    } else {
+      createPost(formData, {
+        onSuccess: () => {
+          // Reset form
+          setPhoto(null);
+          setVideo(null);
+          setVideoPlayerUri(null);
+          setAudio(null);
+          setDescription('');
+          setIsFacebook(false);
+          setIsInstagram(false);
+          setIsScheduleMode(false);
+
+          alert(
+            isScheduleMode
+              ? 'Post scheduled successfully!'
+              : 'Post created successfully!'
+          );
+          router.push('/(tabs)/home');
+        },
+        onError: (error: any) => {
+          alert(error?.response?.data?.message || 'Failed to create post');
+        },
+      });
+    }
   };
 
   // Photo pick
@@ -281,78 +296,6 @@ const CreatePost = () => {
     }
   };
 
-  /** ======================= NEW: Prepare all post data ======================= */
-  const handleCreatePost = async () => {
-    if (!photo && !video && !audio) {
-      alert('Please select a media file (photo, video, or audio)');
-      return;
-    }
-
-    if (!description.trim()) {
-      alert('Please add a description');
-      return;
-    }
-
-    const formData = new FormData();
-
-    // Add media file
-    if (photo) {
-      const filename = photo.split('/').pop() || 'photo.jpg';
-      const match = /\.(\w+)$/.exec(filename);
-      const ext = match?.[1]?.toLowerCase() || 'jpg';
-      formData.append('media', {
-        uri: photo,
-        name: filename,
-        type: `image/${ext === 'png' ? 'png' : 'jpeg'}`,
-      } as any);
-      formData.append('mediaType', 'image');
-    } else if (video) {
-      const filename = video.split('/').pop() || 'video.mp4';
-      const match = /\.(\w+)$/.exec(filename);
-      const ext = match?.[1]?.toLowerCase() || 'mp4';
-      formData.append('media', {
-        uri: video,
-        name: filename,
-        type: `video/${ext === 'mov' ? 'quicktime' : 'mp4'}`,
-      } as any);
-      formData.append('mediaType', 'video');
-    } else if (audio) {
-      const filename = audio.split('/').pop() || 'audio.mp3';
-      const match = /\.(\w+)$/.exec(filename);
-      const ext = match?.[1]?.toLowerCase() || 'mp3';
-      formData.append('media', {
-        uri: audio,
-        name: filename,
-        type: `audio/${ext === 'wav' ? 'wav' : 'mpeg'}`,
-      } as any);
-      formData.append('mediaType', 'audio');
-    }
-
-    // Add other fields
-    formData.append('description', description);
-    formData.append('shareToFacebook', isFacebook.toString());
-    formData.append('shareToInstagram', isInstagram.toString());
-
-    createPost(formData, {
-      onSuccess: () => {
-        // Reset form
-        setPhoto(null);
-        setVideo(null);
-        setVideoPlayerUri(null);
-        setAudio(null);
-        setDescription('');
-        setIsFacebook(false);
-        setIsInstagram(false);
-
-        alert('Post created successfully!');
-        router.push('/(tabs)/home');
-      },
-      onError: (error: any) => {
-        alert(error?.response?.data?.message || 'Failed to create post');
-      },
-    });
-  };
-
   return (
     <GradientBackground>
       <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
@@ -367,18 +310,25 @@ const CreatePost = () => {
               <AntDesign name='close' size={22} color='white' />
             </TouchableOpacity>
             <Text className='font-roboto-bold text-white text-2xl'>
-              Create Post
+              {isEditMode ? 'Edit Scheduled Post' : 'Create Post'}
             </Text>
             <TouchableOpacity
-              onPress={isScheduleMode ? handleSchedulePost : handlePostNow}
+              onPress={handlePost}
               disabled={isLoading}
               className={`px-4 py-2 rounded-full ${isLoading ? 'bg-white/40' : 'bg-white'}`}
             >
               <Text className='text-black text-center font-bold'>
                 {isLoading
-                  ? (isScheduleMode ? 'Scheduling...' : 'Posting...')
-                  : (isScheduleMode ? 'Schedule' : 'Post')
-                }
+                  ? isEditMode
+                    ? 'Updating...'
+                    : isScheduleMode
+                      ? 'Scheduling...'
+                      : 'Posting...'
+                  : isEditMode
+                    ? 'Update'
+                    : isScheduleMode
+                      ? 'Schedule'
+                      : 'Post'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -386,7 +336,7 @@ const CreatePost = () => {
           {/* border */}
           <View className='border-b border-[#292929] w-full mt-2'></View>
 
-          {/* Schedule Toggle */}
+          {/* Schedule Toggle - Disable/Hide if Edit Mode is specifically for Scheduled Posts (implied always scheduled) OR allow changing back to post now? Allow flexible */}
           <View className='px-6 mt-4'>
             <View className='flex-row justify-between items-center'>
               <Text className='text-white text-base font-medium'>
@@ -411,65 +361,78 @@ const CreatePost = () => {
                   Schedule Date & Time
                 </Text>
                 <View className='flex-row gap-3'>
-                  <View className='flex-1'>
-                    <Text className='text-gray-400 text-sm mb-2'>Date</Text>
-                    <TextInput
-                      className='bg-white/10 text-white rounded-lg px-3 py-2'
-                      placeholder='YYYY-MM-DD'
-                      placeholderTextColor='#9CA3AF'
-                      value={scheduledDate}
-                      onChangeText={setScheduledDate}
-                    />
-                  </View>
-                  <View className='flex-1'>
-                    <Text className='text-gray-400 text-sm mb-2'>Time</Text>
-                    <TextInput
-                      className='bg-white/10 text-white rounded-lg px-3 py-2'
-                      placeholder='HH:MM'
-                      placeholderTextColor='#9CA3AF'
-                      value={scheduledTime}
-                      onChangeText={setScheduledTime}
-                    />
-                  </View>
-                </View>
-              </View>
-            </View>
-          )}
+                  {/* Date Picker Trigger */}
+                  <TouchableOpacity
+                    className='flex-1 bg-white/10 rounded-lg px-3 py-3'
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <Text className='text-gray-400 text-xs mb-1'>Date</Text>
+                    <Text className='text-white text-base'>
+                      {scheduledDate.toLocaleDateString()}
+                    </Text>
+                  </TouchableOpacity>
 
-          {/* Scheduled Posts List */}
-          {isScheduleMode && scheduledPosts.length > 0 && (
-            <View className='px-6 mt-4'>
-              <Text className='text-white text-base font-medium mb-3'>
-                Scheduled Posts ({scheduledPosts.length})
-              </Text>
-              {scheduledPosts.map((post) => (
-                <View key={post.id} className='bg-[#FFFFFF0D] rounded-lg p-3 mb-3'>
-                  <View className='flex-row justify-between items-start'>
-                    <View className='flex-1'>
-                      <Text className='text-white text-sm font-medium' numberOfLines={2}>
-                        {post.description}
-                      </Text>
-                      <Text className='text-gray-400 text-xs mt-1'>
-                        {new Date(post.scheduledDate).toLocaleString()}
-                      </Text>
-                      <View className='flex-row gap-2 mt-2'>
-                        {post.shareToFacebook && (
-                          <Feather name='facebook' size={16} color='white' />
-                        )}
-                        {post.shareToInstagram && (
-                          <SimpleLineIcons name='social-instagram' size={16} color='white' />
-                        )}
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => handleDeleteScheduledPost(post.id)}
-                      className='ml-3'
-                    >
-                      <AntDesign name='delete' size={20} color='#ef4444' />
-                    </TouchableOpacity>
-                  </View>
+                  {/* Time Picker Trigger */}
+                  <TouchableOpacity
+                    className='flex-1 bg-white/10 rounded-lg px-3 py-3'
+                    onPress={() => setShowTimePicker(true)}
+                  >
+                    <Text className='text-gray-400 text-xs mb-1'>Time</Text>
+                    <Text className='text-white text-base'>
+                      {scheduledDate.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              ))}
+
+                {/* Date Picker Component */}
+                {showDatePicker && (
+                  <View>
+                    {Platform.OS === 'ios' && (
+                      <View className='flex-row justify-end mb-2'>
+                        <TouchableOpacity
+                          onPress={() => setShowDatePicker(false)}
+                          className='bg-white/20 px-3 py-1 rounded-md'
+                        >
+                          <Text className='text-white font-medium'>Done</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                    <DateTimePicker
+                      value={scheduledDate}
+                      mode='date'
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={onDateChange}
+                      minimumDate={new Date()}
+                      // themeVariant="dark" // Optional: if supported for dark mode look
+                    />
+                  </View>
+                )}
+
+                {/* Time Picker Component */}
+                {showTimePicker && (
+                  <View>
+                    {Platform.OS === 'ios' && (
+                      <View className='flex-row justify-end mb-2'>
+                        <TouchableOpacity
+                          onPress={() => setShowTimePicker(false)}
+                          className='bg-white/20 px-3 py-1 rounded-md'
+                        >
+                          <Text className='text-white font-medium'>Done</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                    <DateTimePicker
+                      value={scheduledDate}
+                      mode='time'
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={onTimeChange}
+                    />
+                  </View>
+                )}
+              </View>
             </View>
           )}
 
@@ -481,36 +444,14 @@ const CreatePost = () => {
             {/* Content area */}
             <View className='flex-1'>
               {/* Media preview */}
-              <View className='flex-1 justify-center items-center bg-black/10 rounded-2xl mx-6 my-4'>
-                {photo && (
-                  <Image
-                    source={{ uri: photo }}
-                    style={{ width: '100%', height: 300, borderRadius: 12 }}
-                    contentFit='contain'
-                  />
-                )}
-                {video && (
-                  <VideoView
-                    style={{ width: '100%', height: 300, borderRadius: 12 }}
-                    player={videoPlayer}
-                    nativeControls
-                  />
-                )}
-                {audio && (
-                  <View className='w-full p-4 bg-white/10 rounded-lg'>
-                    <Text className='text-white text-center'>
-                      Audio selected
-                    </Text>
-                    <Text className='text-gray-400 text-center text-xs mt-1'>
-                      {audio.split('/').pop()}
-                    </Text>
-                  </View>
-                )}
-                {!photo && !video && !audio && (
-                  <Text className='text-gray-400 text-center p-8'>
-                    Select a media file to preview
-                  </Text>
-                )}
+              {/* Media preview */}
+              <View className='px-6 pt-4'>
+                <MediaPreview
+                  photo={photo}
+                  video={video}
+                  audio={audio}
+                  videoPlayer={videoPlayer}
+                />
               </View>
 
               {/* Description input */}
@@ -532,35 +473,12 @@ const CreatePost = () => {
               </View>
 
               {/* Media selection buttons */}
-              <View className='flex-row justify-between px-6 mt-6'>
-                <TouchableOpacity
-                  onPress={pickPhoto}
-                  className='bg-[#FFFFFF0D] px-5 py-4 rounded-lg'
-                >
-                  <Feather name='image' size={40} color='#00E6E6' />
-                  <Text className='text-white font-roboto-regular mt-1'>
-                    Photo
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={pickVideo}
-                  className='bg-[#FFFFFF0D] px-5 py-4 rounded-lg'
-                >
-                  <Feather name='video' size={40} color='#E60076' />
-                  <Text className='text-white font-roboto-regular mt-1'>
-                    Video
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={pickAudio}
-                  className='bg-[#FFFFFF0D] px-5 py-4 rounded-lg'
-                >
-                  <Feather name='music' size={40} color='#F54900' />
-                  <Text className='text-white font-roboto-regular mt-1'>
-                    Music
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              {/* Media selection buttons */}
+              <MediaPickers
+                onPickPhoto={pickPhoto}
+                onPickVideo={pickVideo}
+                onPickAudio={pickAudio}
+              />
 
               {/* Share Options */}
               <View className='p-4 bg-[#FFFFFF0D] rounded-lg mt-7 flex-row justify-between items-center'>

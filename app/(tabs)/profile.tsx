@@ -13,10 +13,12 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -45,12 +47,11 @@ const Profiles = () => {
   // @ts-ignore
   const profile = data?.profile;
 
-
   // ... existing state and logic ...
   // Selected post type state
-  const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'music' | 'all'>(
-    'photo'
-  );
+  const [selectedType, setSelectedType] = useState<
+    'photo' | 'video' | 'music' | 'all'
+  >('photo');
 
   // Map API posts to the format used in render
   const displayPosts =
@@ -66,6 +67,8 @@ const Profiles = () => {
   const { data: myPostsData } = useGetMyPosts();
   const allPosts = myPostsData?.posts || [];
   const { mutate: deletePost } = useDeletePost();
+
+  const [showShareModal, setShowShareModal] = useState(false);
 
   return (
     <GradientBackground>
@@ -174,7 +177,7 @@ const Profiles = () => {
                 className='mt-4 border border-[#E6E6E6] flex-1'
               />
               <TouchableOpacity
-                onPress={() => router.push('/(tabs)/home')}
+                onPress={() => setShowShareModal(true)}
                 className='mt-4 bg-[#FFFFFF0D] border border-[#E6E6E6] p-3 rounded-2xl items-center justify-center'
               >
                 <Ionicons name='share-social-outline' size={24} color='white' />
@@ -186,7 +189,7 @@ const Profiles = () => {
 
             {/* post filter buttons */}
             <View className='flex-row justify-between items-center gap-4 mt-3 mx-6'>
-              {['all','photo', 'video', 'music' ].map(type => {
+              {['all', 'photo', 'video', 'music'].map(type => {
                 const Icon = type === 'photo' ? Foundation : Feather;
                 const iconName =
                   type === 'photo'
@@ -200,7 +203,9 @@ const Profiles = () => {
                   <TouchableOpacity
                     key={type}
                     onPress={() =>
-                      setSelectedType(type as 'photo' | 'video' | 'music' | 'all')
+                      setSelectedType(
+                        type as 'photo' | 'video' | 'music' | 'all'
+                      )
                     }
                     className={`px-3 py-3 rounded-lg flex-row gap-2 items-center ${
                       selectedType === type ? 'bg-[#444]' : 'bg-transparent'
@@ -208,7 +213,9 @@ const Profiles = () => {
                   >
                     <Icon name={iconName as any} size={20} color='white' />
                     <Text className='text-primary font-roboto-regular text-sm'>
-                      {type === 'all' ? 'All Posts' : type.charAt(0).toUpperCase() + type.slice(1)}
+                      {type === 'all'
+                        ? 'All Posts'
+                        : type.charAt(0).toUpperCase() + type.slice(1)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -238,7 +245,10 @@ const Profiles = () => {
                 <View className='flex-row flex-wrap'>
                   {displayPosts && displayPosts.length > 0 ? (
                     displayPosts.map((item: any) => (
-                      <View key={item._id} className='w-1/3 border border-white'>
+                      <View
+                        key={item._id}
+                        className='w-1/3 border border-white'
+                      >
                         {selectedType === 'photo' && (
                           <Image
                             source={{ uri: item.mediaUrl }}
@@ -252,7 +262,9 @@ const Profiles = () => {
                           />
                         )}
                         {selectedType === 'video' && (
-                          <View style={{ width: '100%', height: 130, padding: 2 }}>
+                          <View
+                            style={{ width: '100%', height: 130, padding: 2 }}
+                          >
                             <VideoGridItem uri={item.mediaUrl} />
                             <View className='absolute inset-0 items-center justify-center'>
                               <Feather
@@ -284,6 +296,59 @@ const Profiles = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
+
+        {/* Share Modal */}
+        <Modal
+          visible={showShareModal}
+          transparent={true}
+          animationType='fade'
+          onRequestClose={() => setShowShareModal(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setShowShareModal(false)}>
+            <View className='flex-1 bg-black/50 justify-center items-center'>
+              <TouchableWithoutFeedback>
+                <View className='bg-[#1E1E1E] w-[80%] rounded-2xl p-4 border border-[#333]'>
+                  <Text className='text-white text-lg font-roboto-bold text-center mb-4'>
+                    Options
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowShareModal(false);
+                      router.push('/screens/profile/scheduled-posts');
+                    }}
+                    className='flex-row items-center gap-3 p-3 bg-[#FFFFFF0D] rounded-xl mb-3'
+                  >
+                    <Ionicons name='time-outline' size={24} color='white' />
+                    <Text className='text-white font-roboto-medium text-base'>
+                      Scheduled Posts
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowShareModal(false);
+                      // Add share logic here if needed, for now just close
+                    }}
+                    className='flex-row items-center gap-3 p-3 bg-[#FFFFFF0D] rounded-xl'
+                  >
+                    <Ionicons name='share-outline' size={24} color='white' />
+                    <Text className='text-white font-roboto-medium text-base'>
+                      Share Profile
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setShowShareModal(false)}
+                    className='mt-4 p-2 items-center'
+                  >
+                    <Text className='text-gray-400'>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       </SafeAreaView>
     </GradientBackground>
   );

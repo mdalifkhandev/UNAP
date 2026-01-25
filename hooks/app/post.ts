@@ -94,7 +94,7 @@ export const useGetMyPosts = () => {
         }
         return data;
       } catch (error: any) {
-        console.error('API Error in useGetMyPosts:', error);
+        console.warn('API Error in useGetMyPosts:', error);
         Toast.show({
           type: 'error',
           text1: 'Fetch Failed',
@@ -151,6 +151,66 @@ export const useGetAllSavePost = () => {
         });
         return { posts: [] };
       }
+    },
+  });
+};
+
+export const useGetScheduledPosts = () => {
+  return useQuery({
+    queryKey: ['scheduled-posts'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/api/posts/scheduled');
+        // Handle Axios response properly
+        const data = res?.data || res;
+        if (data === undefined || data === null) {
+          return { posts: [] };
+        }
+        return data;
+      } catch (error: any) {
+        console.error('API Error in useGetScheduledPosts:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Fetch Failed',
+          text2: 'Could not load scheduled posts.',
+        });
+        return { posts: [] };
+      }
+    },
+  });
+};
+
+export const useUpdateScheduledPost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      postId,
+      formData,
+    }: {
+      postId: string;
+      formData: FormData;
+    }) => {
+      const res = await api.patch(`/api/posts/${postId}/scheduled`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Post Updated',
+        text2: data?.message || 'Your scheduled post has been updated.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Update Failed',
+        text2: error?.response?.data?.message || error.message,
+      });
     },
   });
 };
