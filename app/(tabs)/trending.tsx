@@ -1,9 +1,10 @@
 import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetTrendingPost } from '@/hooks/app/trending';
+import { useGetUblastEligibility } from '@/hooks/app/ublast';
 import useAuthStore from '@/store/auth.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -21,36 +22,35 @@ const TrendingScreen = () => {
   const { user } = useAuthStore();
   const [selectedTab, setSelectedTab] = useState<TabType>('manual');
 
-  // For demo purposes, assuming user is eligible
-  // You can replace this with actual API call to check eligibility
-  const [isEligible, setIsEligible] = useState(true);
-
-  // Fetch trending posts based on selected tab
   const { data, isLoading, isRefetching, refetch } = useGetTrendingPost(
     selectedTab,
     { enabled: !!user }
   );
 
-  console.log(JSON.stringify(data, null, 2));
+  const { data: eligibilityData, isLoading: isEligibilityLoading } =
+    useGetUblastEligibility();
 
-  // Extract posts from the API response
-  // The API returns data in format: { manual: [...], active: [...], organic: [...] }
-  // Each array contains objects with { placementId, position, post: {...} }
+  const [isEligible, setIsEligible] = useState(true);
+
+  useEffect(() => {
+    if (typeof (eligibilityData as any)?.eligible === 'boolean') {
+      setIsEligible((eligibilityData as any).eligible);
+    }
+  }, [eligibilityData]);
+
+
   const trendingData = data?.[selectedTab] || [];
 
-  // Map the posts and ensure they have the required fields for PostCard
-  // Note: The backend should ideally return author and profile data
+
   const filteredPosts = Array.isArray(trendingData)
     ? trendingData
-        .filter((item: any) => item) // Filter out null/undefined items
+        .filter((item: any) => item)
         .map((item: any) => {
-          // Check if this is a nested structure (manual/active) or direct (organic)
-          const post = item.post || item; // Use item.post if exists, otherwise use item directly
-          // If the post doesn't have author/profile, we need to handle it
-          // For now, we'll pass the post as-is and let PostCard handle missing data
+
+          const post = item.post || item;
+
           return {
             ...post,
-            // Ensure required fields exist (PostCard will use defaults if missing)
             author: post.author || {
               id: post.userId || '',
               email: '',
@@ -72,8 +72,6 @@ const TrendingScreen = () => {
 
   const renderHeader = () => (
     <View>
-      {/* Header */}
-
       <Text className='font-roboto-bold text-primary text-2xl text-center'>
         Trending
       </Text>
@@ -93,20 +91,34 @@ const TrendingScreen = () => {
                 isEligible ? 'bg-green-500/30' : 'bg-red-500/30'
               }`}
             >
-              <Ionicons
-                name={isEligible ? 'checkmark-circle' : 'close-circle'}
-                size={24}
-                color={isEligible ? '#22c55e' : '#ef4444'}
-              />
+              {isEligibilityLoading ? (
+                <ActivityIndicator size='small' color='white' />
+              ) : (
+                <Ionicons
+                  name={isEligible ? 'checkmark-circle' : 'close-circle'}
+                  size={24}
+                  color={isEligible ? '#22c55e' : '#ef4444'}
+                />
+              )}
             </View>
             <View className='flex-1'>
               <Text className='font-roboto-bold text-primary text-base'>
-                {isEligible ? 'Eligible' : 'Not Eligible'}
+                {isEligibilityLoading
+                  ? 'Checking...'
+                  : isEligible
+                    ? 'Eligible'
+                    : 'Not Eligible'}
               </Text>
               <Text className='font-roboto-regular text-secondary text-sm'>
-                {isEligible
-                  ? 'You can participate in trending posts'
-                  : 'Complete your profile to be eligible'}
+                {isEligibilityLoading
+                  ? 'Checking your eligibility status'
+                  : isEligible
+                    ? 'You can participate in trending posts'
+                    : (eligibilityData as any)?.blockedUntil
+                      ? `Blocked until ${new Date(
+                          (eligibilityData as any).blockedUntil
+                        ).toLocaleString()}`
+                      : 'Complete your profile to be eligible'}
               </Text>
             </View>
           </View>

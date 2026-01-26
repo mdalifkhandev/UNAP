@@ -11,7 +11,10 @@ interface Message {
   createdAt: string;
 }
 
-export const useSocketChat = (currentUserId: string, currentConversationId: string) => {
+export const useSocketChat = (
+  currentUserId: string,
+  currentConversationId: string
+) => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<any>(null);
   const queryClient = useQueryClient();
@@ -24,36 +27,39 @@ export const useSocketChat = (currentUserId: string, currentConversationId: stri
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('Socket connected');
+      // console.log('Socket connected');
       setIsConnected(true);
     });
 
     socket.on('disconnect', () => {
-      console.log('Socket disconnected');
+      // console.log('Socket disconnected');
       setIsConnected(false);
     });
 
-    socket.on('message:new', (payload: { message: Message; conversationId: string }) => {
-      console.log('New message received:', payload);
+    socket.on(
+      'message:new',
+      (payload: { message: Message; conversationId: string }) => {
+        // console.log('New message received:', payload);
 
-      // Only update if this message belongs to current conversation
-      if (payload.conversationId === currentConversationId) {
-        // Update messages in current chat
-        queryClient.setQueryData(['chat', currentUserId], (oldData: any) => {
-          if (!oldData?.messages) return oldData;
+        // Only update if this message belongs to current conversation
+        if (payload.conversationId === currentConversationId) {
+          // Update messages in current chat
+          queryClient.setQueryData(['chat', currentUserId], (oldData: any) => {
+            if (!oldData?.messages) return oldData;
 
-          return {
-            ...oldData,
-            messages: [...oldData.messages, payload.message]
-          };
-        });
+            return {
+              ...oldData,
+              messages: [...oldData.messages, payload.message],
+            };
+          });
+        }
+
+        // Always update chat list to show new last message
+        queryClient.invalidateQueries({ queryKey: ['chatlist'] });
       }
+    );
 
-      // Always update chat list to show new last message
-      queryClient.invalidateQueries({ queryKey: ['chatlist'] });
-    });
-
-    socket.on('connect_error', (error) => {
+    socket.on('connect_error', error => {
       console.error('Socket connection error:', error);
       setIsConnected(false);
     });
@@ -70,16 +76,22 @@ export const useSocketChat = (currentUserId: string, currentConversationId: stri
     }
 
     return new Promise((resolve, reject) => {
-      socketRef.current.emit('message:send',
+      socketRef.current.emit(
+        'message:send',
         { recipientId, text },
-        (ack: { ok: boolean; message?: Message; conversationId?: string; error?: string }) => {
+        (ack: {
+          ok: boolean;
+          message?: Message;
+          conversationId?: string;
+          error?: string;
+        }) => {
           if (!ack.ok) {
             console.error('Send message error:', ack.error);
             reject(new Error(ack.error));
             return;
           }
 
-          console.log('Message sent successfully:', ack.message);
+          // console.log('Message sent successfully:', ack.message);
 
           // Don't add message here - let the 'message:new' event handle it
           // This prevents duplicate messages
@@ -94,6 +106,6 @@ export const useSocketChat = (currentUserId: string, currentConversationId: stri
 
   return {
     isConnected,
-    sendMessage
+    sendMessage,
   };
 };

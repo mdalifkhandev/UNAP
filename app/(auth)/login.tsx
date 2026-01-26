@@ -51,9 +51,6 @@ const Login = () => {
           text1: 'Login Successful',
           text2: 'Welcome back to UNAP',
         });
-
-        console.log('success');
-
         const user = {
           //@ts-ignore
           refreshToken: data?.refreshToken,

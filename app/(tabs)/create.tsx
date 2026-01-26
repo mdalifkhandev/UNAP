@@ -203,10 +203,10 @@ const CreatePost = () => {
     }
 
     if (isEditMode) {
-      console.log('--- Updating Post ---');
-      console.log('Post ID:', params.postId);
+      // console.log('--- Updating Post ---');
+      // console.log('Post ID:', params.postId);
       // @ts-ignore
-      console.log('FormData:', formData);
+      // console.log('FormData:', formData);
 
       if (isPublishedConfig) {
         editPost(

@@ -25,7 +25,7 @@ const formatMessageTime = (createdAt: string) => {
     return messageDate.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     });
   } else {
     return messageDate.toLocaleString('en-US', {
@@ -33,7 +33,7 @@ const formatMessageTime = (createdAt: string) => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     });
   }
 };
@@ -41,12 +41,11 @@ const formatMessageTime = (createdAt: string) => {
 const ChatsList = () => {
   const { data, isLoading, isError, error } = useGetAllChatList();
 
-  console.log(
-    JSON.stringify(data,null,2)
-  );
+  // console.log(
+  //   JSON.stringify(data,null,2)
+  // );
 
-
-// @ts-ignore
+  // @ts-ignore
   const chatData = data?.chats ?? [];
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -176,8 +175,9 @@ const ChatsList = () => {
                         className='text-secondary text-center'
                         numberOfLines={1}
                       >
-                        {chat?.lastMessage?.createdAt ? formatMessageTime(chat.lastMessage.createdAt) : ''}
-
+                        {chat?.lastMessage?.createdAt
+                          ? formatMessageTime(chat.lastMessage.createdAt)
+                          : ''}
                       </Text>
                     </View>
                   </TouchableOpacity>
