@@ -11,6 +11,7 @@ import {
   useCancelScheduledPost,
   useDeletePost,
   useSavePost,
+  useSharePost,
   useUnsavePost,
 } from '@/hooks/app/post';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -59,6 +60,7 @@ const PostCard = ({
   currentUserId,
   isSavedScreen = false,
   isScheduled = false,
+  showOwnerActions = false, // Only show Edit/Delete on Profile screen
 }: {
   className?: string;
   img?: any;
@@ -66,6 +68,7 @@ const PostCard = ({
   currentUserId?: string;
   isSavedScreen?: boolean;
   isScheduled?: boolean;
+  showOwnerActions?: boolean;
 }) => {
   const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
@@ -93,6 +96,7 @@ const PostCard = ({
   const { mutate: unsavePost } = useUnsavePost();
   const { mutate: deletePost } = useDeletePost();
   const { mutate: cancelScheduledPost } = useCancelScheduledPost();
+  const { mutate: sharePost } = useSharePost();
 
   const [isBookmarked, setIsBookmarked] = useState(
     // @ts-ignore
@@ -203,6 +207,17 @@ const PostCard = ({
     );
   };
 
+  const handleSharePost = () => {
+    if (!post?._id) return;
+    Alert.alert('Share Post', 'Are you sure you want to share this post?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Share',
+        onPress: () => sharePost(post._id),
+      },
+    ]);
+  };
+
   // Use post data if provided, otherwise use defaults
   const authorName =
     post?.profile?.displayName || post?.author?.name || 'Maya Lin';
@@ -301,21 +316,50 @@ const PostCard = ({
               </Text>
             </TouchableOpacity>
           </View>
-        ) : (
-          !isOwner && (
+        ) : isOwner && showOwnerActions ? (
+          <View className='flex-row gap-2'>
             <TouchableOpacity
-              className={`py-2 px-6 rounded-full items-center justify-center ${isFollowing ? 'bg-transparent border border-secondary/30' : ''}`}
-              onPress={handleFollowToggle}
+              className='py-1.5 px-3 rounded-full bg-white/10 border border-white/20'
+              onPress={() =>
+                router.push({
+                  pathname: '/(tabs)/create',
+                  params: {
+                    postId: post?._id,
+                    description: post?.description,
+                    mediaUrl: post?.mediaUrl,
+                    mediaType: post?.mediaType,
+                    shareToFacebook: post?.shareToFacebook ? 'true' : 'false',
+                    shareToInstagram: post?.shareToInstagram ? 'true' : 'false',
+                    isPublishedConfig: 'true', // Flag to indicate editing a published post
+                  },
+                })
+              }
             >
-              <Text
-                className={`font-roboto-semibold ${isFollowing ? 'text-secondary' : 'text-primary'}`}
-                // numberOfLines={1}
-              >
-                {isFollowing ? 'Unfollow' : 'Follow '}
+              <Text className='font-roboto-medium text-white text-xs'>
+                Edit
               </Text>
             </TouchableOpacity>
-          )
-        )}
+            <TouchableOpacity
+              className='py-1.5 px-3 rounded-full bg-red-500/20 border border-red-500/50'
+              onPress={handleDeletePost}
+            >
+              <Text className='font-roboto-medium text-red-400 text-xs'>
+                Delete
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : !isOwner ? (
+          <TouchableOpacity
+            className={`py-2 px-6 rounded-full items-center justify-center ${isFollowing ? 'bg-transparent border border-secondary/30' : ''}`}
+            onPress={handleFollowToggle}
+          >
+            <Text
+              className={`font-roboto-semibold ${isFollowing ? 'text-secondary' : 'text-primary'}`}
+            >
+              {isFollowing ? 'Unfollow' : 'Follow '}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {/* post media content  */}
@@ -398,7 +442,7 @@ const PostCard = ({
               </Text>
             )}
           </TouchableOpacity>
-          <TouchableOpacity disabled={isScheduled}>
+          <TouchableOpacity disabled={isScheduled} onPress={handleSharePost}>
             <Ionicons
               name='share-social-outline'
               size={24}

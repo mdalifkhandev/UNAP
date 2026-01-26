@@ -1,7 +1,11 @@
 import MediaPickers from '@/components/create-post/MediaPickers';
 import MediaPreview from '@/components/create-post/MediaPreview';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useCreatePost, useUpdateScheduledPost } from '@/hooks/app/post'; // Import update hook
+import {
+  useCreatePost,
+  useEditPost,
+  useUpdateScheduledPost,
+} from '@/hooks/app/post'; // Import update hook
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
@@ -36,10 +40,12 @@ const CreatePost = () => {
     (params.description as string) || ''
   );
 
-  // Schedule state
+  const isPublishedConfig = params.isPublishedConfig === 'true';
+
+  // Schedule state - only if NOT editing a published post
   const [isScheduleMode, setIsScheduleMode] = useState(
-    isEditMode ? true : false
-  ); // Default to schedule mode if editing
+    isEditMode && !isPublishedConfig ? true : false
+  );
   const [scheduledDate, setScheduledDate] = useState(
     params.scheduledFor ? new Date(params.scheduledFor as string) : new Date()
   );
@@ -58,10 +64,11 @@ const CreatePost = () => {
   });
 
   const { mutate: createPost, isPending: isCreating } = useCreatePost();
-  const { mutate: updateScheduledPost, isPending: isUpdating } =
+  const { mutate: updateScheduledPost, isPending: isUpdatingScheduled } =
     useUpdateScheduledPost();
+  const { mutate: editPost, isPending: isEditingPublished } = useEditPost();
 
-  const isLoading = isCreating || isUpdating;
+  const isLoading = isCreating || isUpdatingScheduled || isEditingPublished;
 
   useEffect(() => {
     // Populate media if editing
@@ -201,27 +208,50 @@ const CreatePost = () => {
       // @ts-ignore
       console.log('FormData:', formData);
 
-      updateScheduledPost(
-        { postId: params.postId as string, formData },
-        {
-          onSuccess: () => {
-            setPhoto(null);
-            setVideo(null);
-            setVideoPlayerUri(null);
-            setAudio(null);
-            setDescription('');
-            setIsFacebook(false);
-            setIsInstagram(false);
-            setIsScheduleMode(false);
-            alert('Post updated successfully!');
-            // Maybe go back or to scheduled posts?
-            router.replace('/screens/profile/scheduled-posts');
-          },
-          onError: (error: any) => {
-            alert(error?.response?.data?.message || 'Failed to update post');
-          },
-        }
-      );
+      if (isPublishedConfig) {
+        editPost(
+          { postId: params.postId as string, formData },
+          {
+            onSuccess: () => {
+              setPhoto(null);
+              setVideo(null);
+              setVideoPlayerUri(null);
+              setAudio(null);
+              setDescription('');
+              setIsFacebook(false);
+              setIsInstagram(false);
+              setIsScheduleMode(false);
+              // alert('Post updated successfully!');
+              router.back(); // Go back to profile/previous screen
+            },
+            onError: (error: any) => {
+              // alert(error?.response?.data?.message || 'Failed to update post');
+            },
+          }
+        );
+      } else {
+        updateScheduledPost(
+          { postId: params.postId as string, formData },
+          {
+            onSuccess: () => {
+              setPhoto(null);
+              setVideo(null);
+              setVideoPlayerUri(null);
+              setAudio(null);
+              setDescription('');
+              setIsFacebook(false);
+              setIsInstagram(false);
+              setIsScheduleMode(false);
+              // alert('Post updated successfully!');
+              // Maybe go back or to scheduled posts?
+              router.replace('/screens/profile/scheduled-posts');
+            },
+            onError: (error: any) => {
+              // alert(error?.response?.data?.message || 'Failed to update post');
+            },
+          }
+        );
+      }
     } else {
       createPost(formData, {
         onSuccess: () => {
@@ -243,7 +273,7 @@ const CreatePost = () => {
           router.push('/(tabs)/home');
         },
         onError: (error: any) => {
-          alert(error?.response?.data?.message || 'Failed to create post');
+          // alert(error?.response?.data?.message || 'Failed to create post');
         },
       });
     }
@@ -336,22 +366,25 @@ const CreatePost = () => {
           {/* border */}
           <View className='border-b border-[#292929] w-full mt-2'></View>
 
-          {/* Schedule Toggle - Disable/Hide if Edit Mode is specifically for Scheduled Posts (implied always scheduled) OR allow changing back to post now? Allow flexible */}
-          <View className='px-6 mt-4'>
-            <View className='flex-row justify-between items-center'>
-              <Text className='text-white text-base font-medium'>
-                {isScheduleMode ? 'Schedule Post' : 'Post Now'}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setIsScheduleMode(!isScheduleMode)}
-                className='bg-[#FFFFFF0D] px-4 py-2 rounded-lg'
-              >
-                <Text className='text-white text-sm'>
-                  {isScheduleMode ? 'Post Now' : 'Schedule'}
+          {/* Schedule Toggle - Disable/Hide if Edit Mode is specifically for Scheduled Posts (implied always scheduled) OR allow changing back to post now? Allow flexible */
+          /* Only show toggle if NOT editing a published post */}
+          {!isPublishedConfig && (
+            <View className='px-6 mt-4'>
+              <View className='flex-row justify-between items-center'>
+                <Text className='text-white text-base font-medium'>
+                  {isScheduleMode ? 'Schedule Post' : 'Post Now'}
                 </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setIsScheduleMode(!isScheduleMode)}
+                  className='bg-[#FFFFFF0D] px-4 py-2 rounded-lg'
+                >
+                  <Text className='text-white text-sm'>
+                    {isScheduleMode ? 'Post Now' : 'Schedule'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Schedule Options */}
           {isScheduleMode && (

@@ -233,6 +233,7 @@ const Profiles = () => {
                         post={post}
                         currentUserId={user?.id}
                         className='mb-4'
+                        showOwnerActions={true}
                       />
                     ))
                   ) : (

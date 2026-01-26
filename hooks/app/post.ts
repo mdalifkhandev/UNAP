@@ -239,3 +239,62 @@ export const useCancelScheduledPost = () => {
     },
   });
 };
+
+export const useEditPost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      postId,
+      formData,
+    }: {
+      postId: string;
+      formData: FormData;
+    }) => {
+      const res = await api.patch(`/api/posts/${postId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['myProfile'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Post Updated',
+        text2: data?.message || 'Your post has been updated successfully.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Update Failed',
+        text2: error?.response?.data?.message || error.message,
+      });
+    },
+  });
+};
+
+export const useSharePost = () => {
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const res = await api.post(`/api/posts/${postId}/share`);
+      return res;
+    },
+    onSuccess: (data: any) => {
+      Toast.show({
+        type: 'success',
+        text1: 'Post Shared',
+        text2: data?.message || 'Post shared successfully.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Share Failed',
+        text2: error?.response?.data?.message || error.message,
+      });
+    },
+  });
+};
