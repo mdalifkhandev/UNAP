@@ -7,13 +7,18 @@ import {
   useUserUnFollow,
   useUserUnLike,
 } from '@/hooks/app/home';
-import { useDeletePost, useSavePost, useUnsavePost } from '@/hooks/app/post';
+import {
+  useCancelScheduledPost,
+  useDeletePost,
+  useSavePost,
+  useUnsavePost,
+} from '@/hooks/app/post';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 // Define the Post interface matching the one in home.tsx
@@ -42,6 +47,9 @@ interface Post {
   profile: Profile;
   viewerHasLiked: boolean;
   viewerIsFollowing: boolean;
+  scheduledFor?: string; // Add scheduledFor property
+  shareToFacebook?: boolean;
+  shareToInstagram?: boolean;
 }
 
 const PostCard = ({
@@ -50,12 +58,14 @@ const PostCard = ({
   post,
   currentUserId,
   isSavedScreen = false,
+  isScheduled = false,
 }: {
   className?: string;
   img?: any;
   post?: Post;
   currentUserId?: string;
   isSavedScreen?: boolean;
+  isScheduled?: boolean;
 }) => {
   const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
@@ -82,6 +92,7 @@ const PostCard = ({
   const { mutate: savePost } = useSavePost();
   const { mutate: unsavePost } = useUnsavePost();
   const { mutate: deletePost } = useDeletePost();
+  const { mutate: cancelScheduledPost } = useCancelScheduledPost();
 
   const [isBookmarked, setIsBookmarked] = useState(
     // @ts-ignore
@@ -166,14 +177,30 @@ const PostCard = ({
   const handleDeletePost = () => {
     if (!post?._id) return;
     // Show confirmation dialog before deleting
-    Toast.show({
-      type: 'info',
-      text1: 'Delete Post',
-      text2: 'Are you sure you want to delete this post?',
-      onPress: () => {
-        deletePost(post._id);
+    Alert.alert('Delete Post', 'Are you sure you want to delete this post?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => deletePost(post._id),
       },
-    });
+    ]);
+  };
+
+  const handleCancelScheduled = () => {
+    if (!post?._id) return;
+    Alert.alert(
+      'Cancel Scheduled Post',
+      'Are you sure you want to cancel this scheduled post?',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: () => cancelScheduledPost(post._id),
+        },
+      ]
+    );
   };
 
   // Use post data if provided, otherwise use defaults
@@ -191,6 +218,13 @@ const PostCard = ({
   const timestamp = post?.createdAt
     ? new Date(post.createdAt).toLocaleDateString()
     : '2h ago';
+
+  const scheduledTime = post?.scheduledFor
+    ? new Date(post.scheduledFor).toLocaleString([], {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      })
+    : '';
 
   // Check if current user is the author
   const isOwner = currentUserId && post?.author?.id === currentUserId;
@@ -223,24 +257,64 @@ const PostCard = ({
             <Text className='font-roboto-semibold text-sm text-primary'>
               {authorName}
             </Text>
-            <Text className='font-roboto-regular text-sm text-secondary'>
-              {authorProfession}
-            </Text>
+            {isScheduled ? (
+              <Text className='font-roboto-medium text-xs text-blue-400'>
+                Scheduled: {scheduledTime}
+              </Text>
+            ) : (
+              <Text className='font-roboto-regular text-sm text-secondary'>
+                {authorProfession}
+              </Text>
+            )}
           </View>
         </TouchableOpacity>
 
-        {!isOwner && (
-          <TouchableOpacity
-            className={`py-2 px-6 rounded-full items-center justify-center ${isFollowing ? 'bg-transparent border border-secondary/30' : ''}`}
-            onPress={handleFollowToggle}
-          >
-            <Text
-              className={`font-roboto-semibold ${isFollowing ? 'text-secondary' : 'text-primary'}`}
-              // numberOfLines={1}
+        {isScheduled ? (
+          <View className='flex-row gap-2'>
+            <TouchableOpacity
+              className='py-1.5 px-3 rounded-full bg-white/10 border border-white/20'
+              onPress={() =>
+                router.push({
+                  pathname: '/(tabs)/create',
+                  params: {
+                    postId: post?._id,
+                    description: post?.description,
+                    mediaUrl: post?.mediaUrl,
+                    mediaType: post?.mediaType,
+                    scheduledFor: post?.scheduledFor,
+                    shareToFacebook: post?.shareToFacebook ? 'true' : 'false',
+                    shareToInstagram: post?.shareToInstagram ? 'true' : 'false',
+                  },
+                })
+              }
             >
-              {isFollowing ? 'Unfollow' : 'Follow '}
-            </Text>
-          </TouchableOpacity>
+              <Text className='font-roboto-medium text-white text-xs'>
+                Edit
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className='py-1.5 px-3 rounded-full bg-red-500/20 border border-red-500/50'
+              onPress={handleCancelScheduled}
+            >
+              <Text className='font-roboto-medium text-red-400 text-xs'>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          !isOwner && (
+            <TouchableOpacity
+              className={`py-2 px-6 rounded-full items-center justify-center ${isFollowing ? 'bg-transparent border border-secondary/30' : ''}`}
+              onPress={handleFollowToggle}
+            >
+              <Text
+                className={`font-roboto-semibold ${isFollowing ? 'text-secondary' : 'text-primary'}`}
+                // numberOfLines={1}
+              >
+                {isFollowing ? 'Unfollow' : 'Follow '}
+              </Text>
+            </TouchableOpacity>
+          )
         )}
       </View>
 
@@ -295,11 +369,13 @@ const PostCard = ({
           <TouchableOpacity
             onPress={handleLikeToggle}
             className='flex-row items-center gap-1.5'
+            disabled={isScheduled} // Disable interactions on scheduled posts
           >
             <Ionicons
               name={isLiked ? 'heart' : 'heart-outline'}
               size={26}
               color={`${isLiked ? 'red' : 'white'}`}
+              style={{ opacity: isScheduled ? 0.5 : 1 }}
             />
             {likeCount > 0 && (
               <Text className='text-white font-roboto-medium'>{likeCount}</Text>
@@ -308,20 +384,31 @@ const PostCard = ({
           <TouchableOpacity
             onPress={() => setShowComments(!showComments)}
             className='flex-row items-center gap-1.5'
+            disabled={isScheduled}
           >
-            <Ionicons name='chatbubble-outline' size={24} color='white' />
+            <Ionicons
+              name='chatbubble-outline'
+              size={24}
+              color='white'
+              style={{ opacity: isScheduled ? 0.5 : 1 }}
+            />
             {post?.commentCount !== undefined && post.commentCount > 0 && (
               <Text className='text-white font-roboto-medium'>
                 {post.commentCount}
               </Text>
             )}
           </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name='share-social-outline' size={24} color='white' />
+          <TouchableOpacity disabled={isScheduled}>
+            <Ionicons
+              name='share-social-outline'
+              size={24}
+              color='white'
+              style={{ opacity: isScheduled ? 0.5 : 1 }}
+            />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={handleBookmarkToggle}>
+        <TouchableOpacity onPress={handleBookmarkToggle} disabled={isScheduled}>
           <Ionicons
             name={
               isSavedScreen
@@ -332,6 +419,7 @@ const PostCard = ({
             }
             size={24}
             color={isSavedScreen ? '#FF4B4B' : 'white'}
+            style={{ opacity: isScheduled ? 0.5 : 1 }}
           />
         </TouchableOpacity>
       </View>
@@ -345,7 +433,7 @@ const PostCard = ({
       </View>
 
       {/* expandable comment section */}
-      {showComments && (
+      {showComments && !isScheduled && (
         <View className='px-3 pb-4 border-t border-white/10 pt-3'>
           {/* Comment Input */}
           <View className='flex-row items-center gap-2 mb-4'>

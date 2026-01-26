@@ -86,7 +86,7 @@ export const useGetMyPosts = () => {
     queryKey: ['myPosts'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/posts/my-posts');
+        const res = await api.get('/api/posts/mine');
         // Handle Axios response properly
         const data = res?.data || res;
         if (data === undefined || data === null) {
@@ -209,6 +209,31 @@ export const useUpdateScheduledPost = () => {
       Toast.show({
         type: 'error',
         text1: 'Update Failed',
+        text2: error?.response?.data?.message || error.message,
+      });
+    },
+  });
+};
+
+export const useCancelScheduledPost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const res = await api.post(`/api/posts/${postId}/cancel`);
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Post Cancelled',
+        text2: data?.message || 'Your scheduled post has been cancelled.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Cancel Failed',
         text2: error?.response?.data?.message || error.message,
       });
     },

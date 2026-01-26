@@ -47,34 +47,12 @@ const ScheduledPosts = () => {
           <FlatList
             data={posts}
             renderItem={({ item }) => (
-              <View>
-                <PostCard
-                  post={item}
-                  className='mt-0 mb-6 mx-4'
-                  currentUserId={user?.id}
-                />
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: '/(tabs)/create',
-                      params: {
-                        postId: item._id,
-                        description: item.description,
-                        mediaUrl: item.mediaUrl,
-                        mediaType: item.mediaType,
-                        scheduledFor: item.scheduledFor,
-                        shareToFacebook: item.shareToFacebook,
-                        shareToInstagram: item.shareToInstagram,
-                      },
-                    })
-                  }
-                  className='mx-4 mb-6 bg-white py-3 rounded-xl items-center'
-                >
-                  <Text className='font-roboto-bold text-black'>
-                    Edit Scheduled Post
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <PostCard
+                post={item}
+                className='mt-0 mb-6 mx-4'
+                currentUserId={user?.id}
+                isScheduled={true}
+              />
             )}
             keyExtractor={item => item?._id || Math.random().toString()}
             ListHeaderComponent={renderHeader}

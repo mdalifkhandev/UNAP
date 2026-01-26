@@ -2,7 +2,10 @@ import api from '@/api/axiosInstance';
 import { useQuery } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
-export const useGetTrendingPost = (selectedTab: string) => {
+export const useGetTrendingPost = (
+  selectedTab: string,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: ['trendingPost', selectedTab],
     queryFn: async () => {
@@ -23,5 +26,6 @@ export const useGetTrendingPost = (selectedTab: string) => {
         return { [selectedTab]: [] };
       }
     },
+    enabled: options?.enabled,
   });
 };

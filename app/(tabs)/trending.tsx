@@ -26,8 +26,10 @@ const TrendingScreen = () => {
   const [isEligible, setIsEligible] = useState(true);
 
   // Fetch trending posts based on selected tab
-  const { data, isLoading, isRefetching, refetch } =
-    useGetTrendingPost(selectedTab);
+  const { data, isLoading, isRefetching, refetch } = useGetTrendingPost(
+    selectedTab,
+    { enabled: !!user }
+  );
 
   console.log(JSON.stringify(data, null, 2));
 
