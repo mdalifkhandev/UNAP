@@ -43,7 +43,7 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
 
   if (!photo && !video && !audio) {
     return (
-      <View className='w-full h-[300px] justify-center items-center bg-black/10 rounded-2xl mb-4 border border-dashed border-white/20'>
+      <View className='w-full h-[100px] justify-center items-center bg-black/10 rounded-2xl mb-4 border border-dashed border-white/20'>
         <Feather name='image' size={40} color='#666' style={{ opacity: 0.5 }} />
         <Text className='text-gray-400 text-center mt-4 font-roboto-regular'>
           Select media to preview
