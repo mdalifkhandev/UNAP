@@ -1,18 +1,18 @@
 import {
-  useDeleteComment,
-  useUserCreateComment,
-  useUserFollow,
-  useUserGetComment,
-  useUserLike,
-  useUserUnFollow,
-  useUserUnLike,
+    useDeleteComment,
+    useUserCreateComment,
+    useUserFollow,
+    useUserGetComment,
+    useUserLike,
+    useUserUnFollow,
+    useUserUnLike,
 } from '@/hooks/app/home';
 import {
-  useCancelScheduledPost,
-  useDeletePost,
-  useSavePost,
-  useSharePost,
-  useUnsavePost,
+    useCancelScheduledPost,
+    useDeletePost,
+    useSavePost,
+    useSharePost,
+    useUnsavePost,
 } from '@/hooks/app/post';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -61,6 +61,7 @@ const PostCard = ({
   isSavedScreen = false,
   isScheduled = false,
   showOwnerActions = false, // Only show Edit/Delete on Profile screen
+  hideFollowButton = false, // Hide follow button for UBlast submissions
 }: {
   className?: string;
   img?: any;
@@ -69,6 +70,7 @@ const PostCard = ({
   isSavedScreen?: boolean;
   isScheduled?: boolean;
   showOwnerActions?: boolean;
+  hideFollowButton?: boolean;
 }) => {
   const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
@@ -348,7 +350,7 @@ const PostCard = ({
               </Text>
             </TouchableOpacity>
           </View>
-        ) : !isOwner ? (
+        ) : !isOwner && !hideFollowButton ? (
           <TouchableOpacity
             className={`py-2 px-6 rounded-full items-center justify-center ${isFollowing ? 'bg-transparent border border-secondary/30' : ''}`}
             onPress={handleFollowToggle}

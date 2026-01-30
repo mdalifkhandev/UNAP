@@ -65,7 +65,7 @@ export const useGetUBlastPosts = () => {
         const res = await api.get('/api/ublasts/submissions');
         const data = res?.data || res;
         if (data === undefined || data === null) {
-          return { posts: [] };
+          return { submissions: [] };
         }
         return data;
       } catch (error: any) {
@@ -75,7 +75,7 @@ export const useGetUBlastPosts = () => {
           text1: 'Fetch Failed',
           text2: 'Could not load UBlast posts.',
         });
-        return { posts: [] };
+        return { submissions: [] };
       }
     },
   });

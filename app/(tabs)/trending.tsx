@@ -20,7 +20,7 @@ type TabType = 'manual' | 'active' | 'organic';
 
 const TrendingScreen = () => {
   const { user } = useAuthStore();
-  const [selectedTab, setSelectedTab] = useState<TabType>('manual');
+  const [selectedTab, setSelectedTab] = useState<TabType>('active');
 
   const { data, isLoading, isRefetching, refetch } = useGetTrendingPost(
     selectedTab,

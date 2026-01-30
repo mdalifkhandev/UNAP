@@ -51,7 +51,7 @@ const Profiles = () => {
   // Selected post type state
   const [selectedType, setSelectedType] = useState<
     'photo' | 'video' | 'music' | 'all'
-  >('photo');
+  >('all');
 
   // Map API posts to the format used in render
   const displayPosts =
@@ -126,7 +126,7 @@ const Profiles = () => {
             </View>
 
             {/* border */}
-            <View className='border-b border-[#292929] w-full my-3 mx-6'></View>
+            <View className='border-b border-[#292929] w-[90%] my-3 mx-6'></View>
 
             {/* post stats */}
             <View className='flex-row justify-between items-center mt-3 py-3 mx-6'>
@@ -157,7 +157,7 @@ const Profiles = () => {
             </View>
 
             {/* border */}
-            <View className='border-b border-[#292929] w-full my-3 mx-6'></View>
+            <View className='border-b border-[#292929] w-[90%] my-3 mx-6'></View>
 
             {/* edit/share buttons */}
             {/* edit/share/saved buttons */}
@@ -180,15 +180,15 @@ const Profiles = () => {
                 onPress={() => setShowShareModal(true)}
                 className='mt-4 bg-[#FFFFFF0D] border border-[#E6E6E6] p-3 rounded-2xl items-center justify-center'
               >
-                <Ionicons name='share-social-outline' size={24} color='white' />
+                <Ionicons name="menu" size={24} color="white" />
               </TouchableOpacity>
             </View>
 
             {/* border */}
-            <View className='border-b border-[#292929] w-full mt-24 mx-6'></View>
+            <View className='border-b border-[#292929] w-[90%] mt-24 mx-6'></View>
 
             {/* post filter buttons */}
-            <View className='flex-row justify-between items-center gap-4 mt-3 mx-6'>
+            <View className='flex-row justify-between items-center gap-2 mt-3 mx-4'>
               {['all', 'photo', 'video', 'music'].map(type => {
                 const Icon = type === 'photo' ? Foundation : Feather;
                 const iconName =
@@ -207,7 +207,7 @@ const Profiles = () => {
                         type as 'photo' | 'video' | 'music' | 'all'
                       )
                     }
-                    className={`px-3 py-3 rounded-lg flex-row gap-2 items-center ${
+                    className={`px-2 py-3 rounded-lg flex-row gap-2 items-center ${
                       selectedType === type ? 'bg-[#444]' : 'bg-transparent'
                     }`}
                   >

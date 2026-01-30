@@ -60,6 +60,8 @@ const UBlastSubmission = () => {
 
   const { data: ublastData, refetch: refetchUBlast } = useGetUBlastPosts();
 
+  console.log(JSON.stringify(ublastData, null, 2));
+
   const isLoading = isSubmitting || isUpdating;
 
 
@@ -461,15 +463,15 @@ const UBlastSubmission = () => {
           </View>
 
           {/* UBlast Posts List */}
-          {ublastData?.posts && ublastData.posts.length > 0 && (
+          {ublastData?.submissions && ublastData.submissions.length > 0 && (
             <View className='mt-6'>
               <Text className='text-white font-roboto-bold text-xl mb-4'>
                 Your UBlast Submissions
               </Text>
               <View className='space-y-4'>
-                {ublastData.posts.map((post: any) => (
+                {ublastData.submissions.map((post: any) => (
                   <View key={post._id} className='relative'>
-                    <PostCard post={post} showOwnerActions={true} />
+                    <PostCard post={post} showOwnerActions={true} hideFollowButton={true} />
                     {/* Edit Button in Top Right */}
                     <TouchableOpacity
                       className='absolute top-4 right-4 bg-white/20 px-3 py-1.5 rounded-full border border-white/30'

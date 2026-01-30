@@ -24,9 +24,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const CreatePost = () => {
   const params = useLocalSearchParams();
@@ -96,10 +97,10 @@ const CreatePost = () => {
     }
 
     if (selectedDate) {
-      const newDate = new Date(scheduledDate);
-      newDate.setFullYear(selectedDate.getFullYear());
-      newDate.setMonth(selectedDate.getMonth());
-      newDate.setDate(selectedDate.getDate());
+      const now = new Date();
+      const newDate = new Date(selectedDate);
+      newDate.setHours(now.getHours());
+      newDate.setMinutes(now.getMinutes());
       setScheduledDate(newDate);
     }
   };
@@ -173,7 +174,7 @@ const CreatePost = () => {
         alert('Please select a future date and time for scheduling.');
         return;
       }
-      formData.append('scheduledFor', scheduledDate.toISOString());
+      formData.append('scheduledFor', scheduledDate.toISOString() );
     }
 
     if (isEditMode) {
@@ -193,7 +194,11 @@ const CreatePost = () => {
               router.back();
             },
             onError: (error: any) => {
-              // alert(error?.response?.data?.message || 'Failed to update post');
+              Toast.show({
+                type: 'error',
+                text1: 'Post Update Failed',
+                text2: error?.response?.data?.message || error.message,
+              });
             },
           }
         );
@@ -214,7 +219,11 @@ const CreatePost = () => {
               router.replace('/screens/profile/scheduled-posts');
             },
             onError: (error: any) => {
-              // alert(error?.response?.data?.message || 'Failed to update post');
+              Toast.show({
+                type: 'error',
+                text1: 'Post Update Failed',
+                text2: error?.response?.data?.message || error.message,
+              });
             },
           }
         );
@@ -239,7 +248,11 @@ const CreatePost = () => {
           setMode('selection');
         },
         onError: (error: any) => {
-          // Removed error alert
+          Toast.show({
+            type: 'error',
+            text1: 'Post Creation Failed',
+            text2: error?.response?.data?.message || error.message,
+          });
         },
       });
     }

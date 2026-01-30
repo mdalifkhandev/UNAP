@@ -6,6 +6,8 @@ export const useCreatePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (formData: FormData) => {
+      console.log(JSON.stringify(formData, null, 2));
+
       const res = await api.post('/api/posts', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -279,7 +281,9 @@ export const useEditPost = () => {
 export const useSharePost = () => {
   return useMutation({
     mutationFn: async (postId: string) => {
-      const res = await api.post(`/api/posts/${postId}/share`);
+      const res = await api.post(`/api/share`, {
+        id: postId
+      });
       return res;
     },
     onSuccess: (data: any) => {
