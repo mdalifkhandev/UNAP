@@ -2,20 +2,19 @@ import ShadowButton from '@/components/button/ShadowButton';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useCompleteProfile, useGetMyProfile } from '@/hooks/app/profile';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -257,8 +256,13 @@ const CompleteProfile = () => {
               <Text className='text-primary mb-2 mt-3 text-base'>
                 Select Your Role
               </Text>
-
-              <View className='w-full'>
+              <Input
+                className='mt-2'
+                placeholder='Rokey Mahmud'
+                value={selectedRole}
+                onChangeText={setSelectedRole}
+              />
+              {/* <View className='w-full'>
                 <TouchableOpacity
                   onPress={() => setRoleOpen(!roleOpen)}
                   className='w-full bg-primary/5 border border-gray-700 rounded-xl p-4 flex-row justify-between items-center'
@@ -289,7 +293,7 @@ const CompleteProfile = () => {
                     ))}
                   </View>
                 )}
-              </View>
+              </View> */}
 
               {/* Bio */}
               <Text className='text-primary mt-3 mb-2 text-base'>Bio</Text>
@@ -305,43 +309,58 @@ const CompleteProfile = () => {
               />
 
               {/* Instagram */}
-              <Text className='text-primary mt-3'>Instagram</Text>
-              <View className='rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2'>
-                <AntDesign name='instagram' size={20} color='#fff' />
-                <TextInput
-                  placeholder='@username'
-                  placeholderTextColor='white'
-                  className='flex-1 text-primary'
-                  value={instagram}
-                  onChangeText={setInstagram}
-                />
-              </View>
+              <ShadowButton
+                text='Connect Instagram'
+                textColor='black'
+                backGroundColor='gray'
+                onPress={() => {}}
+                className='mt-8 mx-6'
+              />
 
               {/* YouTube */}
-              <Text className='text-primary mt-3'>YouTube</Text>
-              <View className='rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2'>
-                <AntDesign name='youtube' size={20} color='white' />
-                <TextInput
-                  placeholder='Channel URL'
-                  placeholderTextColor='white'
-                  className='flex-1 text-primary'
-                  value={youtube}
-                  onChangeText={setYoutube}
-                />
-              </View>
+              <ShadowButton
+                text='Connect YouTube'
+                textColor='black'
+                backGroundColor='gray'
+                onPress={() => {}}
+                className='mt-8 mx-6'
+              />
+
+              {/* TikTok */}
+              <ShadowButton
+                text='Connect TikTok'
+                textColor='black'
+                backGroundColor='gray'
+                onPress={() => {}}
+                className='mt-8 mx-6'
+              />
+
+              {/* Facebook */}
+              <ShadowButton
+                text='Connect Facebook'
+                textColor='black'
+                backGroundColor='gray'
+                onPress={() => {}}
+                className='mt-8 mx-6'
+              />
+
+              {/* Twitter */}
+              <ShadowButton
+                text='Connect Twitter'
+                textColor='black'
+                backGroundColor='gray'
+                onPress={() => {}}
+                className='mt-8 mx-6'
+              />
 
               {/* Spotify */}
-              <Text className='text-primary mt-3'>Spotify</Text>
-              <View className='rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2'>
-                <Feather name='music' size={20} color='white' />
-                <TextInput
-                  placeholder='Artist URL'
-                  placeholderTextColor='white'
-                  className='flex-1 text-primary'
-                  value={spotify}
-                  onChangeText={setSpotify}
-                />
-              </View>
+              <ShadowButton
+                text='Connect Spotify'
+                textColor='black'
+                backGroundColor='gray'
+                onPress={() => {}}
+                className='mt-8 mx-6'
+              />
             </View>
 
             <View className='pb-8'>

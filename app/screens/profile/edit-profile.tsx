@@ -246,7 +246,7 @@ const EditProfile = () => {
                 Select Your Role
               </Text>
 
-              <View className='w-full'>
+              {/* <View className='w-full'>
                 <TouchableOpacity
                   onPress={() => setRoleOpen(!roleOpen)}
                   className='w-full bg-primary/5 border border-gray-700 rounded-xl p-4 flex-row justify-between items-center'
@@ -277,7 +277,13 @@ const EditProfile = () => {
                     ))}
                   </View>
                 )}
-              </View>
+              </View> */}
+              <Input
+                className='mt-2'
+                placeholder='Singer'
+                value={selectedRole}
+                onChangeText={setSelectedRole}
+              />
 
               {/* Bio */}
               <Text className='text-primary mt-3 mb-2 text-base'>Bio</Text>

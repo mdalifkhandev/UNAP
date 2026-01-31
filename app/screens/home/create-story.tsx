@@ -6,11 +6,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Dimensions,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -27,7 +27,7 @@ const CreateStory = () => {
       Toast.show({
         type: 'error',
         text1: 'Permission Required',
-        text2: 'Camera roll permissions are needed to select a story.',
+        text2: 'Camera roll permissions are needed to select a UCuts.',
       });
       return;
     }
@@ -50,13 +50,13 @@ const CreateStory = () => {
 
     Toast.show({
       type: 'success',
-      text1: 'Story Created',
-      text2: 'Your story has been shared successfully!',
+      text1: 'UCuts Created',
+      text2: 'Your UCuts has been shared successfully!',
     });
 
     // Simulate API call delay
     setTimeout(() => {
-        router.back();
+      router.back();
     }, 1500);
   };
 
@@ -64,10 +64,13 @@ const CreateStory = () => {
     <GradientBackground>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-            <Ionicons name="close" size={28} color="white" />
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.closeButton}
+          >
+            <Ionicons name='close' size={28} color='white' />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Story</Text>
+          <Text style={styles.headerTitle}>Create UCuts</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -77,19 +80,22 @@ const CreateStory = () => {
               <Image
                 source={{ uri: selectedImage }}
                 style={styles.previewImage}
-                contentFit="cover"
+                contentFit='cover'
               />
               <TouchableOpacity
                 onPress={() => setSelectedImage(null)}
                 style={styles.removeButton}
               >
-                <Ionicons name="trash-outline" size={24} color="white" />
+                <Ionicons name='trash-outline' size={24} color='white' />
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity onPress={pickImage} style={styles.placeholderContainer}>
+            <TouchableOpacity
+              onPress={pickImage}
+              style={styles.placeholderContainer}
+            >
               <View style={styles.iconCircle}>
-                <Ionicons name="image-outline" size={40} color="white" />
+                <Ionicons name='image-outline' size={40} color='white' />
               </View>
               <Text style={styles.placeholderText}>Tap to select a photo</Text>
             </TouchableOpacity>
@@ -98,13 +104,13 @@ const CreateStory = () => {
 
         {selectedImage && (
           <View style={styles.footer}>
-             <ShadowButton
-                text="Share to Story"
-                textColor='#2B2B2B'
-                backGroundColor='#E8EBEE'
-                onPress={handlePostStory}
-                className='w-full'
-              />
+            <ShadowButton
+              text='Share to UCuts'
+              textColor='#2B2B2B'
+              backGroundColor='#E8EBEE'
+              onPress={handlePostStory}
+              className='w-full'
+            />
           </View>
         )}
       </SafeAreaView>
@@ -167,7 +173,7 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     overflow: 'hidden',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   previewImage: {
     width: '100%',

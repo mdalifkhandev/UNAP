@@ -24,7 +24,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -174,7 +174,7 @@ const CreatePost = () => {
         alert('Please select a future date and time for scheduling.');
         return;
       }
-      formData.append('scheduledFor', scheduledDate.toISOString() );
+      formData.append('scheduledFor', scheduledDate.toISOString());
     }
 
     if (isEditMode) {
@@ -324,7 +324,7 @@ const CreatePost = () => {
           >
             <SelectionCard
               icon='camera'
-              title='Post Create'
+              title='UPost Create'
               description='Share photos, videos, and audio with your followers'
               onPress={() => setMode('post-create')}
               gradientColors={['#667eea', '#764ba2']}
@@ -378,13 +378,13 @@ const CreatePost = () => {
                   ? isEditMode
                     ? 'Updating...'
                     : isScheduleMode
-                      ? 'Scheduling...'
-                      : 'Posting...'
+                      ? 'UScheduling...'
+                      : 'UPosting...'
                   : isEditMode
                     ? 'Update'
                     : isScheduleMode
-                      ? 'Schedule'
-                      : 'Post'}
+                      ? 'USchedule'
+                      : 'UPost'}
               </Text>
             </TouchableOpacity>
           </View>

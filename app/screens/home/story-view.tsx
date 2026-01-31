@@ -4,13 +4,13 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,15 +20,15 @@ const StoryItem = ({ item }: { item: any }) => {
   const [comment, setComment] = useState('');
   const reactions = ['❤️', '🔥', '😂', '😮', '😢', '👏'];
 
-  if (item.isMe) return null; // Or handle "Create Story" view differently
+  if (item.isMe) return null; // Or handle "Create UCuts" view differently
 
   return (
     <View style={styles.storyContainer}>
-      {/* Background Story Image */}
+      {/* Background UCuts Image */}
       <Image
         source={{ uri: item.storyImage }}
         style={styles.storyImage}
-        contentFit="cover"
+        contentFit='cover'
       />
 
       {/* Gradient Overlay for better visibility */}
@@ -41,15 +41,18 @@ const StoryItem = ({ item }: { item: any }) => {
             <Image
               source={{ uri: item.avatar }}
               style={styles.avatar}
-              contentFit="cover"
+              contentFit='cover'
             />
             <View>
               <Text style={styles.userName}>{item.user}</Text>
               <Text style={styles.timeText}>Just now</Text>
             </View>
           </View>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-            <Ionicons name="close" size={28} color="white" />
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.closeButton}
+          >
+            <Ionicons name='close' size={28} color='white' />
           </TouchableOpacity>
         </View>
 
@@ -68,13 +71,13 @@ const StoryItem = ({ item }: { item: any }) => {
           <View style={styles.commentInputContainer}>
             <TextInput
               style={styles.input}
-              placeholder="Send message"
-              placeholderTextColor="#BBBBBB"
+              placeholder='Send message'
+              placeholderTextColor='#BBBBBB'
               value={comment}
               onChangeText={setComment}
             />
             <TouchableOpacity style={styles.sendButton}>
-              <Ionicons name="send" size={20} color="white" />
+              <Ionicons name='send' size={20} color='white' />
             </TouchableOpacity>
           </View>
         </View>
@@ -91,14 +94,19 @@ const StoryView = () => {
   const activeStories = stories.filter(s => !s.isMe);
   const startIndex = parseInt(initialIndex || '0');
   // Adjust index if needed (since we filter out 'isMe')
-  const adjustedIndex = Math.max(0, stories[startIndex]?.isMe ? 0 : activeStories.findIndex(s => s.id === stories[startIndex]?.id));
+  const adjustedIndex = Math.max(
+    0,
+    stories[startIndex]?.isMe
+      ? 0
+      : activeStories.findIndex(s => s.id === stories[startIndex]?.id)
+  );
 
   return (
     <View style={styles.container}>
       <FlatList
         data={activeStories}
         renderItem={({ item }) => <StoryItem item={item} />}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
