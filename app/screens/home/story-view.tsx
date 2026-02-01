@@ -1,4 +1,5 @@
 import { stories } from '@/components/main/StorySection';
+import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -17,8 +18,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const { width, height } = Dimensions.get('window');
 
 const StoryItem = ({ item }: { item: any }) => {
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
   const [comment, setComment] = useState('');
-  const reactions = ['❤️', '🔥', '😂', '😮', '😢', '👏'];
+  const reaction = '❤️';
 
   if (item.isMe) return null; // Or handle "Create UCuts" view differently
 
@@ -52,20 +55,19 @@ const StoryItem = ({ item }: { item: any }) => {
             onPress={() => router.back()}
             style={styles.closeButton}
           >
-            <Ionicons name='close' size={28} color='white' />
+            <Ionicons
+              name='close'
+              size={28}
+              color={isLight ? 'black/50' : 'white/50'}
+            />
           </TouchableOpacity>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
-          {/* Reaction Bar */}
-          <View style={styles.reactionContainer}>
-            {reactions.map((emoji, index) => (
-              <TouchableOpacity key={index} style={styles.reactionItem}>
-                <Text style={styles.emoji}>{emoji}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <TouchableOpacity style={styles.reactionItem}>
+            <Text style={styles.emoji}>{reaction}</Text>
+          </TouchableOpacity>
 
           {/* Comment input */}
           <View style={styles.commentInputContainer}>
@@ -77,7 +79,11 @@ const StoryItem = ({ item }: { item: any }) => {
               onChangeText={setComment}
             />
             <TouchableOpacity style={styles.sendButton}>
-              <Ionicons name='send' size={20} color='white' />
+              <Ionicons
+                name='send'
+                size={20}
+                color={isLight ? 'black' : 'white'}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -180,17 +186,15 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 16,
-  },
-  reactionContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
+    alignItems: 'center',
+    gap: 12,
   },
   reactionItem: {
     backgroundColor: 'rgba(255,255,255,0.15)',
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -204,6 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingHorizontal: 20,
     height: 50,
+    flex: 1,
   },
   input: {
     flex: 1,

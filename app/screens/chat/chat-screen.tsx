@@ -3,6 +3,7 @@ import GradientBackground from '@/components/main/GradientBackground';
 import ChatSettings from '@/components/modal/ChatSettings';
 import { useChattingSendMessage, useGetAllMessages, useMarkMessagesAsRead } from '@/hooks/app/chat';
 import { useSocketChat } from '@/hooks/app/useSocketChat';
+import useThemeStore from '@/store/theme.store';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import { useQueryClient } from '@tanstack/react-query';
@@ -28,6 +29,9 @@ const ChatScreen = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [message, setMessage] = useState('');
   const queryClient = useQueryClient();
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
+  const iconColor = isLight ? 'black' : 'white';
 
   const userName = (params.userName as string) || 'Unknown User';
   const userImage = params.userImage as string | undefined;
@@ -106,11 +110,11 @@ const ChatScreen = () => {
     if (isCurrentUser) {
       return (
         <View className='flex-row justify-end mb-4 px-4 mt-8'>
-          <View className='bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-[10px] w-[75%] py-2.5 px-3'>
-            <Text className='font-roboto-semibold text-primary'>
+          <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-[10px] w-[75%] py-2.5 px-3'>
+            <Text className='font-roboto-semibold text-primary dark:text-white'>
               {item.text}
             </Text>
-            <Text className='text-sm font-roboto-regular text-primary mt-3'>
+            <Text className='text-sm font-roboto-regular text-primary dark:text-white mt-3'>
               {new Date(item.createdAt).toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -138,11 +142,11 @@ const ChatScreen = () => {
           <View className='h-3 w-3 rounded-full bg-[#00B56C] absolute right-0 bottom-0' />
         </TouchableOpacity>
 
-        <View className='bg-primary border border-[#EEEEEE] rounded-[10px] w-[75%] py-2.5 px-3'>
-          <Text className='font-roboto-semibold text-[#434343]'>
+        <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] rounded-[10px] w-[75%] py-2.5 px-3'>
+          <Text className='font-roboto-semibold text-[#434343] dark:text-white'>
             {item.text}
           </Text>
-          <Text className='text-sm font-roboto-regular text-[#434343] mt-3'>
+          <Text className='text-sm font-roboto-regular text-[#434343] dark:text-white mt-3'>
             {new Date(item.createdAt).toLocaleTimeString('en-US', {
               hour: '2-digit',
               minute: '2-digit',
@@ -158,7 +162,7 @@ const ChatScreen = () => {
     return (
       <GradientBackground>
         <SafeAreaView className='flex-1 items-center justify-center'>
-          <Text className='text-white'>Loading messages...</Text>
+          <Text className='text-black dark:text-white'>Loading messages...</Text>
         </SafeAreaView>
       </GradientBackground>
     );
@@ -169,7 +173,7 @@ const ChatScreen = () => {
       <GradientBackground>
         <SafeAreaView className='flex-1 items-center justify-center'>
           <Text className='text-red-500'>Failed to load messages</Text>
-          <Text className='text-white mt-2'>{error?.message || 'Unknown error'}</Text>
+          <Text className='text-black dark:text-white mt-2'>{error?.message || 'Unknown error'}</Text>
         </SafeAreaView>
       </GradientBackground>
     );
@@ -199,19 +203,19 @@ const ChatScreen = () => {
                 <View className='h-3 w-3 rounded-full bg-[#00B56C] absolute right-0 bottom-0' />
               </TouchableOpacity>
               <View>
-                <Text className='text-primary font-roboto-semibold text-xl'>
+                <Text className='text-primary dark:text-white font-roboto-semibold text-xl'>
                   {userName}
                 </Text>
                 <View className='flex-row items-center gap-2'>
                   <View className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <Text className='text-xs text-secondary'>
+                  <Text className='text-xs text-secondary dark:text-white/80'>
                     {isConnected ? 'Online' : 'Offline'}
                   </Text>
                 </View>
               </View>
             </View>
             <TouchableOpacity onPress={() => setShowMenu(true)}>
-              <Entypo name='dots-three-horizontal' size={24} color='white' />
+              <Entypo name='dots-three-horizontal' size={24} color={iconColor} />
             </TouchableOpacity>
           </View>
 
@@ -229,18 +233,18 @@ const ChatScreen = () => {
 
           {/* Input */}
           <View className='flex-row items-center py-8 mx-6 gap-3'>
-            <TouchableOpacity className='bg-[#ffffff0d] h-12 w-12 rounded-full items-center justify-center border border-[#ffffff1a]'>
-              <Feather name='plus' size={25} color='white' />
+            <TouchableOpacity className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] h-12 w-12 rounded-full items-center justify-center border border-black/20 dark:border-[#FFFFFF0D]'>
+              <Feather name='plus' size={25} color={iconColor} />
             </TouchableOpacity>
 
             <View className='flex-1 rounded-3xl flex-row items-center px-4 h-12'>
               <TextInput
                 placeholder='Type a message...'
-                placeholderTextColor='#9ca3af'
+                placeholderTextColor={isLight ? '#9ca3af' : 'rgba(255,255,255,0.6)'}
                 multiline
                 value={message}
                 onChangeText={setMessage}
-                className='flex-1 text-white text-[15px] border border-[#5E5E5E] rounded-[10px] px-3'
+                className='flex-1 text-black dark:text-white text-[15px] border border-black/20 dark:border-[#FFFFFF0D] rounded-[10px] px-3'
               />
             </View>
 
@@ -249,14 +253,14 @@ const ChatScreen = () => {
               disabled={isSendingMessage || !message.trim()}
               className={`h-12 w-12 rounded-full items-center justify-center border ${
                 isSendingMessage || !message.trim()
-                  ? 'border-[#5E5E5E] bg-[#ffffff0a]'
-                  : 'border-[#ffffff1a] bg-[#ffffff0d]'
+                  ? 'border-black/20 dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
+                  : 'border-black/20 dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
               }`}
             >
               <Feather
                 name='send'
                 size={24}
-                color={(isSendingMessage || !message.trim()) ? '#9ca3af' : 'white'}
+                color={(isSendingMessage || !message.trim()) ? (isLight ? '#9ca3af' : 'rgba(255,255,255,0.6)') : 'white'}
               />
             </TouchableOpacity>
           </View>

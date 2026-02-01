@@ -181,12 +181,12 @@ const EditProfile = () => {
           {/* headers */}
           <View className='mt-3 flex-row items-center mx-6 justify-between'>
             <BackButton />
-            <Text className='font-roboto-bold text-primary text-2xl text-center flex-1'>
+            <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1'>
               Edit profile
             </Text>
           </View>
           {/* border */}
-          <View className='border-b border-[#292929] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
 
           {/* photo */}
           <ScrollView
@@ -219,13 +219,13 @@ const EditProfile = () => {
                 </View> */}
               </View>
             </View>
-            <Text className='text-primary text-xl font-roboto-semibold text-center mt-3'>
+            <Text className='text-primary dark:text-white text-xl font-roboto-semibold text-center mt-3'>
               Upload Photo
             </Text>
 
             {/* input fields */}
             <View className='mx-6 mt-6'>
-              <Text className='text-primary'>Username</Text>
+              <Text className='text-primary dark:text-white'>Username</Text>
               <Input
                 className='mt-2'
                 placeholder='@yourhandle'
@@ -233,7 +233,7 @@ const EditProfile = () => {
                 onChangeText={setUsername}
               />
 
-              <Text className='text-primary mt-3'>Display Name</Text>
+              <Text className='text-primary dark:text-white mt-3'>Display Name</Text>
               <Input
                 className='mt-2'
                 placeholder='Rokey Mahmud'
@@ -242,14 +242,14 @@ const EditProfile = () => {
               />
 
               {/* Select Your Role */}
-              <Text className='text-primary mb-2 mt-3 text-base'>
+              <Text className='text-primary dark:text-white mb-2 mt-3 text-base'>
                 Select Your Role
               </Text>
 
               {/* <View className='w-full'>
                 <TouchableOpacity
                   onPress={() => setRoleOpen(!roleOpen)}
-                  className='w-full bg-primary/5 border border-gray-700 rounded-xl p-4 flex-row justify-between items-center'
+                  className='w-full bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl p-4 flex-row justify-between items-center'
                 >
                   <Text className='text-gray-200 text-base'>
                     {selectedRole}
@@ -286,52 +286,52 @@ const EditProfile = () => {
               />
 
               {/* Bio */}
-              <Text className='text-primary mt-3 mb-2 text-base'>Bio</Text>
+              <Text className='text-primary dark:text-white mt-3 mb-2 text-base'>Bio</Text>
               <TextInput
                 placeholder='Tell us about yourself and your music...'
-                placeholderTextColor='#ffffff98'
+                placeholderTextColor='rgba(0,0,0,0.5)'
                 multiline
                 numberOfLines={4}
-                className='bg-primary/5 border border-[#FFFFFF30] rounded-xl p-4 text-primary'
+                className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl p-4 text-primary dark:text-white'
                 style={{ textAlignVertical: 'top' }}
                 value={bio}
                 onChangeText={setBio}
               />
 
               {/* Instagram */}
-              <Text className='text-primary mt-3'>Instagram</Text>
-              <View className='rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2'>
+              <Text className='text-primary dark:text-white mt-3'>Instagram</Text>
+              <View className='rounded-xl px-4 py-1 flex-row items-center border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D] mt-1.5 gap-2'>
                 <AntDesign name='instagram' size={20} color='#fff' />
                 <TextInput
                   placeholder='@username'
                   placeholderTextColor='white'
-                  className='flex-1 text-primary'
+                  className='flex-1 text-primary dark:text-white'
                   value={instagram}
                   onChangeText={setInstagram}
                 />
               </View>
 
               {/* YouTube */}
-              <Text className='text-primary mt-3'>YouTube</Text>
-              <View className='rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2'>
-                <AntDesign name='youtube' size={20} color='white' />
+              <Text className='text-primary dark:text-white mt-3'>YouTube</Text>
+              <View className='rounded-xl px-4 py-1 flex-row items-center border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D] mt-1.5 gap-2'>
+                <AntDesign name='youtube' size={20} color='black' />
                 <TextInput
                   placeholder='Channel URL'
                   placeholderTextColor='white'
-                  className='flex-1 text-primary'
+                  className='flex-1 text-primary dark:text-white'
                   value={youtube}
                   onChangeText={setYoutube}
                 />
               </View>
 
               {/* Spotify */}
-              <Text className='text-primary mt-3'>Spotify</Text>
-              <View className='rounded-xl px-4 py-1 flex-row items-center border border-[#FFFFFF1A] bg-[#FFFFFF0D] mt-1.5 gap-2'>
-                <Feather name='music' size={20} color='white' />
+              <Text className='text-primary dark:text-white mt-3'>Spotify</Text>
+              <View className='rounded-xl px-4 py-1 flex-row items-center border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D] mt-1.5 gap-2'>
+                <Feather name='music' size={20} color='black' />
                 <TextInput
                   placeholder='Artist URL'
                   placeholderTextColor='white'
-                  className='flex-1 text-primary'
+                  className='flex-1 text-primary dark:text-white'
                   value={spotify}
                   onChangeText={setSpotify}
                 />

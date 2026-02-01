@@ -55,7 +55,7 @@ const StoryCard = ({ story, index }: { story: Story; index: number }) => {
     return (
       <TouchableOpacity
         onPress={() => router.push('/screens/home/create-story')}
-        className='w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#FFFFFF1A] border border-white/10'
+        className='w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
       >
         <Image
           source={story.storyImage}
@@ -66,7 +66,7 @@ const StoryCard = ({ story, index }: { story: Story; index: number }) => {
           <View className='bg-white p-1 rounded-full border-2 border-black'>
             <Ionicons name='add' size={20} color='black' />
           </View>
-          <Text className='text-white text-[9px] font-roboto-medium mt-1'>
+          <Text className='text-black dark:text-white text-[9px] font-roboto-medium mt-1'>
             Create UCuts
           </Text>
         </View>
@@ -84,14 +84,14 @@ const StoryCard = ({ story, index }: { story: Story; index: number }) => {
           },
         })
       }
-      className='w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#FFFFFF1A] border border-white/10'
+      className='w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
     >
       <Image
         source={story.storyImage}
         style={{ width: '100%', height: '100%', position: 'absolute' }}
         contentFit='cover'
       />
-      <View className='absolute inset-0 bg-black/20' />
+      <View className='absolute inset-0 bg-black/20 dark:bg-black/20' />
 
       {/* Profile Avatar */}
       <View className='p-2'>
@@ -105,7 +105,7 @@ const StoryCard = ({ story, index }: { story: Story; index: number }) => {
       </View>
 
       <Text
-        className='absolute bottom-2 left-2 right-2 text-white text-[10px] font-roboto-medium'
+        className='absolute bottom-2 left-2 right-2 text-black dark:text-white text-[10px] font-roboto-medium'
         numberOfLines={1}
       >
         {story.user}

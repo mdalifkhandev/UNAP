@@ -43,7 +43,7 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
 
   if (!photo && !video && !audio) {
     return (
-      <View className='w-full h-[100px] justify-center items-center bg-black/10 rounded-2xl mb-4 border border-dashed border-white/20'>
+      <View className='w-full h-[100px] justify-center items-center bg-black/10 dark:bg-[#FFFFFF0D] dark:bg-white/10 rounded-2xl mb-4 border border-dashed border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'>
         <Feather name='image' size={40} color='#666' style={{ opacity: 0.5 }} />
         <Text className='text-gray-400 text-center mt-4 font-roboto-regular'>
           Select media to preview
@@ -53,7 +53,7 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
   }
 
   return (
-    <View className='w-full h-[300px] justify-center items-center bg-black/10 rounded-2xl mb-4 overflow-hidden relative'>
+    <View className='w-full h-[300px] justify-center items-center bg-black/10 dark:bg-[#FFFFFF0D] dark:bg-white/10 rounded-2xl mb-4 overflow-hidden relative'>
       {/* Photo Preview */}
       {photo && (
         <Image
@@ -76,12 +76,12 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
       {/* Audio Preview */}
       {audio && (
         <View className='w-full h-full justify-center items-center bg-gray-900/50 p-6'>
-          <View className='w-16 h-16 rounded-full bg-primary/20 items-center justify-center mb-4'>
+          <View className='w-16 h-16 rounded-full bg-[#F0F2F5] dark:bg-[#FFFFFF0D] items-center justify-center mb-4'>
             <Feather name='music' size={32} color='#F54900' />
           </View>
 
           <Text
-            className='text-white font-roboto-medium text-lg mb-1'
+            className='text-black dark:text-white font-roboto-medium text-lg mb-1'
             numberOfLines={1}
           >
             {audio.split('/').pop()}

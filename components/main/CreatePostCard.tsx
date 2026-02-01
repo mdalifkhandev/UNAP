@@ -101,7 +101,7 @@ const CreatePostCard = () => {
   });
 
   return (
-    <View className='p-6 bg-[#FFFFFF0D] rounded-3xl mt-6 flex-row gap-5'>
+    <View className='p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mt-6 flex-row gap-5'>
       <TouchableOpacity
         onPress={() => router.push('/(tabs)/profile')}
         className='mt-2'
@@ -148,7 +148,7 @@ const CreatePostCard = () => {
               onPress={() => setSelectedImage(null)}
               className='absolute top-2 right-2 bg-black/50 p-1 rounded-full'
             >
-              <Ionicons name='close' size={20} color='white' />
+              <Ionicons name='close' size={20} color='black' />
             </TouchableOpacity>
           </View>
         )}
@@ -159,19 +159,19 @@ const CreatePostCard = () => {
               onPress={handleImagePicker}
               className='flex-row items-center gap-2'
             >
-              <Feather name='image' size={18} color='white' />
-              <Text className='text-white'>Photo</Text>
+              <Feather name='image' size={18} color='black' />
+              <Text className='text-black dark:text-white'>Photo</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/create')}
               className='flex-row items-center gap-2'
             >
-              <Feather name='maximize' size={18} color='white' />
-              <Text className='text-white'>Full</Text>
+              <Feather name='maximize' size={18} color='black' />
+              <Text className='text-black dark:text-white'>Full</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity
-            className={`px-4 py-2 bg-primary rounded-xl ${isPosting ? 'opacity-50' : ''}`}
+            className={`px-4 py-2 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-xl ${isPosting ? 'opacity-50' : ''}`}
             onPress={handlePost}
             disabled={isPosting}
           >

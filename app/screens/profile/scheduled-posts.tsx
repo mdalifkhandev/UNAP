@@ -2,6 +2,7 @@ import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetScheduledPosts } from '@/hooks/app/post';
 import useAuthStore from '@/store/auth.store';
+import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import React from 'react';
@@ -16,6 +17,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ScheduledPosts = () => {
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
+
   const { data, isLoading, refetch, isRefetching } = useGetScheduledPosts();
   const { user } = useAuthStore();
 
@@ -27,11 +31,15 @@ const ScheduledPosts = () => {
     <View className='flex-row items-center mx-6 mt-3 mb-6'>
       <TouchableOpacity
         onPress={() => router.back()}
-        className='p-2 mr-2 bg-[#FFFFFF0D] rounded-full'
+        className='p-2 mr-2 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-full'
       >
-        <Ionicons name='chevron-back' size={24} color='white' />
+        <Ionicons
+          name='chevron-back'
+          size={24}
+          color={isLight ? 'black' : 'white'}
+        />
       </TouchableOpacity>
-      <Text className='font-roboto-bold text-primary text-2xl flex-1 text-center pr-10'>
+      <Text className='font-roboto-bold text-primary dark:text-white text-2xl flex-1 text-center pr-10'>
         Scheduled Posts
       </Text>
     </View>
@@ -63,14 +71,14 @@ const ScheduledPosts = () => {
               !isLoading ? (
                 <View className='mt-20 items-center'>
                   <Ionicons name='time-outline' size={64} color='#666' />
-                  <Text className='text-secondary text-lg font-roboto-medium mt-4'>
+                  <Text className='text-secondary dark:text-white/80 text-lg font-roboto-medium mt-4'>
                     No scheduled posts
                   </Text>
                   <TouchableOpacity
                     onPress={() => router.push('/(tabs)/create')}
-                    className='mt-6 px-8 py-3 bg-white rounded-full'
+                    className='mt-6 px-8 py-3 bg-white dark:bg-[#FFFFFF0D] rounded-full'
                   >
-                    <Text className='text-black font-roboto-bold'>
+                    <Text className='text-black dark:text-white font-roboto-bold'>
                       Create Post
                     </Text>
                   </TouchableOpacity>
@@ -80,7 +88,7 @@ const ScheduledPosts = () => {
           />
           {isLoading && (
             <View className='absolute inset-0 justify-center items-center'>
-              <Text className='text-white font-roboto-medium'>
+              <Text className='text-black dark:text-white font-roboto-medium'>
                 Loading scheduled posts...
               </Text>
             </View>

@@ -2,6 +2,7 @@
 module.exports = {
   // NOTE: Update this to include the paths to all files that contain Nativewind classes.
   content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
+  darkMode: "class",
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
@@ -13,9 +14,11 @@ module.exports = {
         "roboto-thin": ["Roboto-Thin"],
       },
       colors: {
-        primary: "#FFFFFF",
-        secondary: "#9CA3AF",
-        secondary_second: "#C8CACC",
+        primary: "#000000",
+        secondary: "#6B7280",
+        secondary_second: "#6B7280",
+        card: "#F0F2F5",
+        border: "rgba(0,0,0,0.2)",
       },
     },
   },

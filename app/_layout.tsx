@@ -11,15 +11,21 @@ import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import './global.css';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useState } from 'react';
+import useThemeStore from '@/store/theme.store';
+import { useColorScheme as useNWColorScheme } from 'nativewind';
+import { useEffect, useState } from 'react';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 const RootLayout = () => {
-  const colorScheme = useColorScheme();
+  const { mode } = useThemeStore();
+  const { setColorScheme } = useNWColorScheme();
+
+  useEffect(() => {
+    setColorScheme(mode);
+  }, [mode, setColorScheme]);
 
   const [fontsLoaded] = useFonts({
     'Roboto-Bold': require('@/assets/fonts/Roboto-Bold.ttf'),
@@ -41,8 +47,32 @@ const RootLayout = () => {
       })
   );
 
+  const lightTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: '#FFFFFF',
+      card: '#FFFFFF',
+      text: '#000000',
+      border: 'rgba(0,0,0,0.2)',
+      primary: '#000000',
+    },
+  };
+
+  const darkTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      background: '#0B0F15',
+      card: '#0B0F15',
+      text: '#FFFFFF',
+      border: '#292929',
+      primary: '#FFFFFF',
+    },
+  };
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={mode === 'light' ? lightTheme : darkTheme}>
       <QueryClientProvider client={queryClient}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name='splash' options={{ headerShown: false }} />
@@ -50,7 +80,7 @@ const RootLayout = () => {
           <Stack.Screen name='(tabs)' />
         </Stack>
       </QueryClientProvider>
-      <StatusBar style='auto' />
+      <StatusBar style={mode === 'light' ? 'dark' : 'light'} />
       <Toast />
     </ThemeProvider>
   );

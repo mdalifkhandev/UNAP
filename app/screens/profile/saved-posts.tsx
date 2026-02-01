@@ -25,10 +25,10 @@ const SavedPosts = () => {
 
   const renderHeader = () => (
     <View className='flex-row items-center mx-6 mt-3 mb-6'>
-      <TouchableOpacity onPress={() => router.back()} className='p-2 mr-2 bg-[#FFFFFF0D] rounded-full'>
-        <Ionicons name='chevron-back' size={24} color='white' />
+      <TouchableOpacity onPress={() => router.back()} className='p-2 mr-2 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-full'>
+        <Ionicons name='chevron-back' size={24} color='black' />
       </TouchableOpacity>
-      <Text className='font-roboto-bold text-primary text-2xl flex-1 text-center pr-10'>
+      <Text className='font-roboto-bold text-primary dark:text-white text-2xl flex-1 text-center pr-10'>
         Saved Posts
       </Text>
     </View>
@@ -55,14 +55,14 @@ const SavedPosts = () => {
               !isLoading ? (
                 <View className='mt-20 items-center'>
                   <Ionicons name='bookmark-outline' size={64} color='#666' />
-                  <Text className='text-secondary text-lg font-roboto-medium mt-4'>
+                  <Text className='text-secondary dark:text-white/80 text-lg font-roboto-medium mt-4'>
                     No saved posts yet
                   </Text>
                   <TouchableOpacity
                     onPress={() => router.push('/(tabs)/home')}
                     className='mt-6 px-8 py-3 bg-white rounded-full'
                   >
-                    <Text className='text-black font-roboto-bold'>Explore Posts</Text>
+                    <Text className='text-black dark:text-white font-roboto-bold'>Explore Posts</Text>
                   </TouchableOpacity>
                 </View>
               ) : null
@@ -70,7 +70,7 @@ const SavedPosts = () => {
           />
           {isLoading && (
             <View className='absolute inset-0 justify-center items-center'>
-              <Text className='text-white font-roboto-medium'>Loading your collection...</Text>
+              <Text className='text-black dark:text-white font-roboto-medium'>Loading your collection...</Text>
             </View>
           )}
         </KeyboardAvoidingView>

@@ -1,19 +1,20 @@
 import {
-    useDeleteComment,
-    useUserCreateComment,
-    useUserFollow,
-    useUserGetComment,
-    useUserLike,
-    useUserUnFollow,
-    useUserUnLike,
+  useDeleteComment,
+  useUserCreateComment,
+  useUserFollow,
+  useUserGetComment,
+  useUserLike,
+  useUserUnFollow,
+  useUserUnLike,
 } from '@/hooks/app/home';
 import {
-    useCancelScheduledPost,
-    useDeletePost,
-    useSavePost,
-    useSharePost,
-    useUnsavePost,
+  useCancelScheduledPost,
+  useDeletePost,
+  useSavePost,
+  useSharePost,
+  useUnsavePost,
 } from '@/hooks/app/post';
+import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -104,6 +105,8 @@ const PostCard = ({
     // @ts-ignore
     post?.viewerHasBookmarked || false
   );
+  const { mode } = useThemeStore();
+  const iconColor = mode === 'light' ? 'black' : 'white';
 
   useEffect(() => {
     if (post) {
@@ -249,7 +252,9 @@ const PostCard = ({
   const comments = (commentData as any)?.comments || [];
 
   return (
-    <View className={`bg-[#FFFFFF0D] rounded-3xl ${className}`}>
+    <View
+      className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl ${className}`}
+    >
       {/* post header */}
       <View className='p-4 flex-row justify-between items-center'>
         <TouchableOpacity
@@ -271,7 +276,7 @@ const PostCard = ({
             contentFit='cover'
           />
           <View>
-            <Text className='font-roboto-semibold text-sm text-primary'>
+            <Text className='font-roboto-semibold text-sm text-primary dark:text-white'>
               {authorName}
             </Text>
             {isScheduled ? (
@@ -279,7 +284,7 @@ const PostCard = ({
                 Scheduled: {scheduledTime}
               </Text>
             ) : (
-              <Text className='font-roboto-regular text-sm text-secondary'>
+              <Text className='font-roboto-regular text-sm text-secondary dark:text-white/80'>
                 {authorProfession}
               </Text>
             )}
@@ -289,7 +294,7 @@ const PostCard = ({
         {isScheduled ? (
           <View className='flex-row gap-2'>
             <TouchableOpacity
-              className='py-1.5 px-3 rounded-full bg-white/10 border border-white/20'
+              className='py-1.5 px-3 rounded-full bg-[#F0F2F5] dark:bg-white/10 border border-black/20 dark:border-[#FFFFFF0D] dark:border-white/20'
               onPress={() =>
                 router.push({
                   pathname: '/(tabs)/create',
@@ -305,7 +310,7 @@ const PostCard = ({
                 })
               }
             >
-              <Text className='font-roboto-medium text-white text-xs'>
+              <Text className='font-roboto-medium text-black dark:text-white text-xs'>
                 Edit
               </Text>
             </TouchableOpacity>
@@ -321,7 +326,7 @@ const PostCard = ({
         ) : isOwner && showOwnerActions ? (
           <View className='flex-row gap-2'>
             <TouchableOpacity
-              className='py-1.5 px-3 rounded-full bg-white/10 border border-white/20'
+              className='py-1.5 px-3 rounded-full bg-[#F0F2F5] dark:bg-white/10 border border-black/20 dark:border-[#FFFFFF0D] dark:border-white/20'
               onPress={() =>
                 router.push({
                   pathname: '/(tabs)/create',
@@ -337,7 +342,7 @@ const PostCard = ({
                 })
               }
             >
-              <Text className='font-roboto-medium text-white text-xs'>
+              <Text className='font-roboto-medium text-black dark:text-white text-xs'>
                 Edit
               </Text>
             </TouchableOpacity>
@@ -356,7 +361,7 @@ const PostCard = ({
             onPress={handleFollowToggle}
           >
             <Text
-              className={`font-roboto-semibold ${isFollowing ? 'text-secondary' : 'text-primary'}`}
+              className={`font-roboto-semibold ${isFollowing ? 'text-secondary dark:text-white/80' : 'text-primary dark:text-white'}`}
             >
               {isFollowing ? 'Unfollow' : 'Follow '}
             </Text>
@@ -384,7 +389,7 @@ const PostCard = ({
         )}
 
         {post?.mediaType === 'audio' && post?.mediaUrl && (
-          <View className='bg-white/5 p-6 rounded-2xl mx-3 items-center flex-row gap-4'>
+          <View className='bg-[#F0F2F5] dark:bg-white/5 p-6 rounded-2xl mx-3 items-center flex-row gap-4'>
             <TouchableOpacity
               className='bg-primary/20 p-3 rounded-full'
               onPress={() => {
@@ -395,16 +400,18 @@ const PostCard = ({
               <Ionicons
                 name={player.playing ? 'pause' : 'play'}
                 size={24}
-                color='white'
+                color={iconColor}
               />
             </TouchableOpacity>
             <View className='flex-1'>
-              <Text className='text-white font-roboto-medium'>Audio Post</Text>
-              <Text className='text-secondary text-xs'>
+              <Text className='text-black dark:text-white font-roboto-medium'>
+                Audio Post
+              </Text>
+              <Text className='text-secondary dark:text-white/80 text-xs'>
                 Click to play/pause
               </Text>
             </View>
-            <Ionicons name='musical-note' size={24} color='white' />
+            <Ionicons name='musical-note' size={24} color={iconColor} />
           </View>
         )}
       </View>
@@ -420,11 +427,13 @@ const PostCard = ({
             <Ionicons
               name={isLiked ? 'heart' : 'heart-outline'}
               size={26}
-              color={`${isLiked ? 'red' : 'white'}`}
+              color={isLiked ? 'red' : iconColor}
               style={{ opacity: isScheduled ? 0.5 : 1 }}
             />
             {likeCount > 0 && (
-              <Text className='text-white font-roboto-medium'>{likeCount}</Text>
+              <Text className='text-black dark:text-white font-roboto-medium'>
+                {likeCount}
+              </Text>
             )}
           </TouchableOpacity>
           <TouchableOpacity
@@ -435,11 +444,11 @@ const PostCard = ({
             <Ionicons
               name='chatbubble-outline'
               size={24}
-              color='white'
+              color={iconColor}
               style={{ opacity: isScheduled ? 0.5 : 1 }}
             />
             {post?.commentCount !== undefined && post.commentCount > 0 && (
-              <Text className='text-white font-roboto-medium'>
+              <Text className='text-black dark:text-white font-roboto-medium'>
                 {post.commentCount}
               </Text>
             )}
@@ -448,7 +457,7 @@ const PostCard = ({
             <Ionicons
               name='share-social-outline'
               size={24}
-              color='white'
+              color={iconColor}
               style={{ opacity: isScheduled ? 0.5 : 1 }}
             />
           </TouchableOpacity>
@@ -464,7 +473,7 @@ const PostCard = ({
                   : 'bookmark-outline'
             }
             size={24}
-            color={isSavedScreen ? '#FF4B4B' : 'white'}
+            color={isSavedScreen ? '#FF4B4B' : iconColor}
             style={{ opacity: isScheduled ? 0.5 : 1 }}
           />
         </TouchableOpacity>
@@ -472,19 +481,21 @@ const PostCard = ({
 
       {/* post description */}
       <View className='px-3 pb-3'>
-        <Text className='font-roboto-regular text-primary'>{postText}</Text>
-        <Text className='font-roboto-semibold text-sm text-secondary mt-2.5'>
+        <Text className='font-roboto-regular text-primary dark:text-white'>
+          {postText}
+        </Text>
+        <Text className='font-roboto-semibold text-sm text-secondary dark:text-white/80 mt-2.5'>
           {timestamp}
         </Text>
       </View>
 
       {/* expandable comment section */}
       {showComments && !isScheduled && (
-        <View className='px-3 pb-4 border-t border-white/10 pt-3'>
+        <View className='px-3 pb-4 border-t border-black/20 dark:border-[#FFFFFF0D] dark:border-white/10 pt-3'>
           {/* Comment Input */}
           <View className='flex-row items-center gap-2 mb-4'>
             <TextInput
-              className='flex-1 bg-white/10 text-white p-3 rounded-2xl font-roboto-regular'
+              className='flex-1 bg-[#F0F2F5] dark:bg-white/10 text-black dark:text-white p-3 rounded-2xl font-roboto-regular'
               placeholder='Write a comment...'
               placeholderTextColor='#999'
               value={commentText}
@@ -514,24 +525,24 @@ const PostCard = ({
                     style={{ width: 32, height: 32, borderRadius: 100 }}
                   />
                   <View className='flex-1'>
-                    <View className='bg-white/5 p-3 rounded-2xl'>
-                      <Text className='text-primary text-sm font-roboto-semibold mb-1'>
+                    <View className='bg-[#F0F2F5] dark:bg-white/5 p-3 rounded-2xl'>
+                      <Text className='text-primary dark:text-white text-sm font-roboto-semibold mb-1'>
                         {comment.profile?.displayName ||
                           comment.user?.name ||
                           'Anonymous'}
                       </Text>
-                      <Text className='text-primary text-sm font-roboto-regular'>
+                      <Text className='text-primary dark:text-white text-sm font-roboto-regular'>
                         {comment.text}
                       </Text>
                     </View>
                     <View className='flex-row gap-4 mt-1 px-2'>
                       <TouchableOpacity>
-                        <Text className='text-secondary text-xs font-roboto-medium'>
+                        <Text className='text-secondary dark:text-white/80 text-xs font-roboto-medium'>
                           Like
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity>
-                        <Text className='text-secondary text-xs font-roboto-medium'>
+                        <Text className='text-secondary dark:text-white/80 text-xs font-roboto-medium'>
                           Reply
                         </Text>
                       </TouchableOpacity>
@@ -546,7 +557,7 @@ const PostCard = ({
                           </Text>
                         </TouchableOpacity>
                       )}
-                      <Text className='text-secondary/50 text-xs font-roboto-regular ml-auto'>
+                      <Text className='text-secondary dark:text-white/80/50 text-xs font-roboto-regular ml-auto'>
                         {new Date(comment.createdAt).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -558,8 +569,8 @@ const PostCard = ({
               </View>
             ))
           ) : (
-            <View className='bg-white/5 p-4 rounded-2xl items-center'>
-              <Text className='text-secondary text-sm font-roboto-regular italic'>
+            <View className='bg-[#F0F2F5] dark:bg-white/5 p-4 rounded-2xl items-center'>
+              <Text className='text-secondary dark:text-white/80 text-sm font-roboto-regular italic'>
                 No comments yet. Be the first to comment!
               </Text>
             </View>

@@ -3,6 +3,7 @@ import GradientBackground from '@/components/main/GradientBackground';
 import { useGetTrendingPost } from '@/hooks/app/trending';
 import { useGetUblastEligibility } from '@/hooks/app/ublast';
 import useAuthStore from '@/store/auth.store';
+import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useEffect, useState } from 'react';
 import {
@@ -19,6 +20,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 type TabType = 'manual' | 'active' | 'organic';
 
 const TrendingScreen = () => {
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
   const { user } = useAuthStore();
   const [selectedTab, setSelectedTab] = useState<TabType>('active');
 
@@ -38,15 +41,12 @@ const TrendingScreen = () => {
     }
   }, [eligibilityData]);
 
-
   const trendingData = data?.[selectedTab] || [];
-
 
   const filteredPosts = Array.isArray(trendingData)
     ? trendingData
         .filter((item: any) => item)
         .map((item: any) => {
-
           const post = item.post || item;
 
           return {
@@ -72,7 +72,7 @@ const TrendingScreen = () => {
 
   const renderHeader = () => (
     <View>
-      <Text className='font-roboto-bold text-primary text-2xl text-center'>
+      <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center'>
         Trending
       </Text>
 
@@ -92,7 +92,10 @@ const TrendingScreen = () => {
               }`}
             >
               {isEligibilityLoading ? (
-                <ActivityIndicator size='small' color='white' />
+                <ActivityIndicator
+                  size='small'
+                  color={isLight ? 'black' : 'white'}
+                />
               ) : (
                 <Ionicons
                   name={isEligible ? 'checkmark-circle' : 'close-circle'}
@@ -102,14 +105,14 @@ const TrendingScreen = () => {
               )}
             </View>
             <View className='flex-1'>
-              <Text className='font-roboto-bold text-primary text-base'>
+              <Text className='font-roboto-bold text-primary dark:text-white text-base'>
                 {isEligibilityLoading
                   ? 'Checking...'
                   : isEligible
                     ? 'Eligible'
                     : 'Not Eligible'}
               </Text>
-              <Text className='font-roboto-regular text-secondary text-sm'>
+              <Text className='font-roboto-regular text-secondary dark:text-white/80 text-sm'>
                 {isEligibilityLoading
                   ? 'Checking your eligibility status'
                   : isEligible
@@ -132,7 +135,9 @@ const TrendingScreen = () => {
             key={tab}
             onPress={() => setSelectedTab(tab)}
             className={`flex-1 py-3 rounded-xl flex-row gap-2 items-center justify-center ${
-              selectedTab === tab ? 'bg-white/20' : 'bg-white/5'
+              selectedTab === tab
+                ? 'bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
+                : 'bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
             }`}
           >
             <Ionicons
@@ -144,9 +149,9 @@ const TrendingScreen = () => {
                     : 'leaf'
               }
               size={20}
-              color='white'
+              color={isLight ? 'black' : 'white'}
             />
-            <Text className='text-primary font-roboto-semibold text-sm'>
+            <Text className='text-primary dark:text-white font-roboto-semibold text-sm'>
               {tab === 'active'
                 ? 'Active'
                 : tab === 'manual'
@@ -168,7 +173,10 @@ const TrendingScreen = () => {
         >
           {renderHeader()}
           <View className='flex-1 justify-center items-center'>
-            <ActivityIndicator size='large' color='white' />
+            <ActivityIndicator
+              size='large'
+              color={isLight ? 'black' : 'white'}
+            />
           </View>
         </SafeAreaView>
       </GradientBackground>
@@ -200,10 +208,10 @@ const TrendingScreen = () => {
             ListEmptyComponent={
               <View className='mt-10 items-center mx-6'>
                 <Ionicons name='file-tray-outline' size={48} color='#666' />
-                <Text className='text-secondary text-center mt-4 font-roboto-regular'>
+                <Text className='text-secondary dark:text-white/80 text-center mt-4 font-roboto-regular'>
                   No {selectedTab} posts found
                 </Text>
-                <Text className='text-secondary/60 text-center mt-2 font-roboto-regular text-sm'>
+                <Text className='text-secondary dark:text-white/80/60 text-center mt-2 font-roboto-regular text-sm'>
                   Check back later for new content
                 </Text>
               </View>

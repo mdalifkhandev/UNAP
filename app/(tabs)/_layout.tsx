@@ -2,24 +2,24 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import useThemeStore from '@/store/theme.store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { View } from 'react-native';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#FFFFFF',
-        // tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: isLight ? '#000000' : '#FFFFFF',
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: '#000000',
+          backgroundColor: isLight ? '#FFFFFF' : '#000000',
           paddingBottom: 30,
           height: 90,
           paddingTop: 4,
@@ -53,7 +53,11 @@ export default function TabLayout() {
             height: 60,
           },
           tabBarIcon: ({ color }) => (
-            <View className='h-14 w-14 bg-[#1E293B] rounded-full flex-row justify-center items-center'>
+            <View
+              className={`h-14 w-14 rounded-full flex-row justify-center items-center ${
+                isLight ? 'bg-[#F0F2F5]' : 'bg-[#1E293B]'
+              }`}
+            >
               <Feather name='plus-square' size={22} color={color} />
             </View>
           ),

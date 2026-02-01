@@ -34,18 +34,18 @@ const Inpute = ({
   return (
     <View className={className}>
       {title && (
-        <Text className="text-sm text-secondary mb-1.5">
+        <Text className="text-sm text-secondary dark:text-white/80 mb-1.5">
           {title}
           {required && <Text className="text-red-600">*</Text>}
         </Text>
       )}
 
       <View
-        className={`flex-row items-center bg-[#FFFFFF0D] rounded-xl ${inputeStyle}`}
+        className={`flex-row items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-xl ${inputeStyle}`}
       >
         <TextInput
           keyboardType={type}
-          className="flex-1 p-4 text-primary"
+          className="flex-1 p-4 text-primary dark:text-white"
           placeholder={placeholder}
           placeholderTextColor="#9CA3AF"
           secureTextEntry={isPassword ? !showPassword : secureTextEntry}

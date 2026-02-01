@@ -32,18 +32,18 @@ const SelectionCard = ({
         }}
       >
         <View className='flex-row items-center gap-4'>
-          <View className='bg-white/20 p-4 rounded-2xl'>
-            <Ionicons name={icon} size={40} color='white' />
+          <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-4 rounded-2xl'>
+            <Ionicons name={icon} size={40} color='black' />
           </View>
           <View className='flex-1'>
-            <Text className='text-white font-roboto-bold text-xl mb-1'>
+            <Text className='text-black dark:text-white font-roboto-bold text-xl mb-1'>
               {title}
             </Text>
-            <Text className='text-white/80 font-roboto-regular text-sm'>
+            <Text className='text-black dark:text-white/80 font-roboto-regular text-sm'>
               {description}
             </Text>
           </View>
-          <Ionicons name='chevron-forward' size={24} color='white' />
+          <Ionicons name='chevron-forward' size={24} color='black' />
         </View>
       </LinearGradient>
     </TouchableOpacity>

@@ -296,20 +296,20 @@ const UBlastSubmission = () => {
         >
         <View className='mt-3 flex-row items-center mx-6 justify-between'>
           <BackButton />
-          <Text className='font-roboto-bold text-white text-2xl'>
+          <Text className='font-roboto-bold text-black dark:text-white text-2xl'>
             UBlast Submission
           </Text>
           <View style={{ width: 24 }} />
         </View>
 
-        <View className='border-b border-[#292929] w-full mt-2'></View>
+        <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
 
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24 }}
           showsVerticalScrollIndicator={false}
         >
           {/* UBlast Submission Form */}
-          <View className='bg-[#FFFFFF0D] rounded-3xl p-6 border border-white/10 mb-6'>
+          <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl p-6 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] mb-6'>
             {/* Media Preview */}
             <MediaPreview
               photo={photo}
@@ -320,12 +320,12 @@ const UBlastSubmission = () => {
 
             {/* Description */}
             <View className='mt-4'>
-              <Text className='text-white text-base font-medium mb-2'>
+              <Text className='text-black dark:text-white text-base font-medium mb-2'>
                 Description
               </Text>
-              <View className='bg-white/10 rounded-2xl px-3  min-h-[50px]'>
+              <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl px-3  min-h-[50px]'>
                 <TextInput
-                  className='text-white text-base '
+                  className='text-black dark:text-white text-base '
                   placeholder="What's on your mind?"
                   placeholderTextColor='#9CA3AF'
                   multiline
@@ -347,7 +347,7 @@ const UBlastSubmission = () => {
             {/* Scheduling Options */}
             <View className='mt-4'>
               <View className='flex-row justify-between items-center mb-3'>
-                <Text className='text-white text-base font-medium'>
+                <Text className='text-black dark:text-white text-base font-medium'>
                   Schedule Post
                 </Text>
                 <TouchableOpacity
@@ -363,27 +363,27 @@ const UBlastSubmission = () => {
               </View>
 
               {isScheduled && (
-                <View className='bg-[#FFFFFF0D] rounded-lg p-4'>
-                  <Text className='text-white text-base font-medium mb-3'>
+                <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg p-4'>
+                  <Text className='text-black dark:text-white text-base font-medium mb-3'>
                     Schedule Date & Time
                   </Text>
                   <View className='flex-row gap-3'>
                     <TouchableOpacity
-                      className='flex-1 bg-white/10 rounded-lg px-3 py-3'
+                      className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
                       onPress={() => setShowDatePicker(true)}
                     >
                       <Text className='text-gray-400 text-xs mb-1'>Date</Text>
-                      <Text className='text-white text-base'>
+                      <Text className='text-black dark:text-white text-base'>
                         {scheduledDateTime.toLocaleDateString()}
                       </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      className='flex-1 bg-white/10 rounded-lg px-3 py-3'
+                      className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
                       onPress={() => setShowTimePicker(true)}
                     >
                       <Text className='text-gray-400 text-xs mb-1'>Time</Text>
-                      <Text className='text-white text-base'>
+                      <Text className='text-black dark:text-white text-base'>
                         {scheduledDateTime.toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -398,9 +398,9 @@ const UBlastSubmission = () => {
                         <View className='flex-row justify-end mb-2'>
                           <TouchableOpacity
                             onPress={() => setShowDatePicker(false)}
-                            className='bg-white/20 px-3 py-1 rounded-md'
+                            className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1 rounded-md'
                           >
-                            <Text className='text-white font-medium'>Done</Text>
+                            <Text className='text-black dark:text-white font-medium'>Done</Text>
                           </TouchableOpacity>
                         </View>
                       )}
@@ -420,9 +420,9 @@ const UBlastSubmission = () => {
                         <View className='flex-row justify-end mb-2'>
                           <TouchableOpacity
                             onPress={() => setShowTimePicker(false)}
-                            className='bg-white/20 px-3 py-1 rounded-md'
+                            className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1 rounded-md'
                           >
-                            <Text className='text-white font-medium'>Done</Text>
+                            <Text className='text-black dark:text-white font-medium'>Done</Text>
                           </TouchableOpacity>
                         </View>
                       )}
@@ -446,7 +446,7 @@ const UBlastSubmission = () => {
               onPress={handleSubmit}
               disabled={isLoading}
             >
-              <Text className='text-white font-roboto-bold text-lg'>
+              <Text className='text-black dark:text-white font-roboto-bold text-lg'>
                 {isLoading
                   ? isEditMode
                     ? 'Updating...'
@@ -465,7 +465,7 @@ const UBlastSubmission = () => {
           {/* UBlast Posts List */}
           {ublastData?.submissions && ublastData.submissions.length > 0 && (
             <View className='mt-6'>
-              <Text className='text-white font-roboto-bold text-xl mb-4'>
+              <Text className='text-black dark:text-white font-roboto-bold text-xl mb-4'>
                 Your UBlast Submissions
               </Text>
               <View className='space-y-4'>
@@ -474,10 +474,10 @@ const UBlastSubmission = () => {
                     <PostCard post={post} showOwnerActions={true} hideFollowButton={true} />
                     {/* Edit Button in Top Right */}
                     <TouchableOpacity
-                      className='absolute top-4 right-4 bg-white/20 px-3 py-1.5 rounded-full border border-white/30'
+                      className='absolute top-4 right-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1.5 rounded-full border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
                       onPress={() => handleEditPost(post)}
                     >
-                      <Text className='text-white font-roboto-medium text-xs'>
+                      <Text className='text-black dark:text-white font-roboto-medium text-xs'>
                         Edit
                       </Text>
                     </TouchableOpacity>

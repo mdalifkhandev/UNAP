@@ -74,16 +74,16 @@ const OTPVerification = () => {
 
         {/* welcome text */}
         <View>
-          <Text className='text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center'>
+          <Text className='text-[#000000] text-2xl font-roboto-semibold mt-6 text-center'>
             OTP Verification
           </Text>
-          <Text className='font-roboto-medium text-secondary text-sm text-center mt-1.5 '>
+          <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5 '>
             Enter the otp sent to your email address
           </Text>
         </View>
 
         {/* emain input */}
-        <View className=' p-6 bg-[#FFFFFF0D] rounded-3xl mt-6'>
+        <View className=' p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mt-6'>
           <View className='flex-row justify-between px-2'>
             {otp.map((digit, index) => (
               <TextInput
@@ -93,7 +93,7 @@ const OTPVerification = () => {
                 className={`w-10 h-10 border rounded-[10px] text-sm pb-2 ${
                   digit
                     ? 'border-gray-300 bg-white'
-                    : 'border-[#EEEEEE] bg-white'
+                    : 'border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-white'
                 }`}
                 style={{ textAlign: 'center' }}
                 value={digit}
@@ -119,12 +119,12 @@ const OTPVerification = () => {
           />
 
           <TouchableOpacity onPress={() => {}}>
-            <Text className='text-center text-primary font-roboto-regular text-sm mt-4'>
+            <Text className='text-center text-primary dark:text-white font-roboto-regular text-sm mt-4'>
               Resend OTP
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-            <Text className='text-center text-primary font-roboto-regular text-sm mt-4'>
+            <Text className='text-center text-primary dark:text-white font-roboto-regular text-sm mt-4'>
               Back to Login
             </Text>
           </TouchableOpacity>

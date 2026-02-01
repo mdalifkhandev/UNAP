@@ -99,15 +99,15 @@ const Signup = () => {
             contentContainerStyle={{ paddingBottom: 100 }}
           >
             <View>
-              <Text className='text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center'>
+              <Text className='text-[#000000] text-2xl font-roboto-semibold mt-6 text-center'>
                 Welcome Back!
               </Text>
-              <Text className='font-roboto-medium text-secondary text-sm text-center mt-1.5'>
+              <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5'>
                 Create your account
               </Text>
             </View>
 
-            <View className='p-6 bg-[#FFFFFF0D] rounded-3xl mt-6'>
+            <View className='p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mt-6'>
               <Inpute
                 title='Name'
                 placeholder='Rokey Mahmud'
@@ -164,7 +164,7 @@ const Signup = () => {
                   {isTerm && <Feather name='check' size={16} color='#ffffff' />}
                 </TouchableOpacity>
 
-                <Text className='text-secondary text-sm pr-5'>
+                <Text className='text-secondary dark:text-white/80 text-sm pr-5'>
                   You agree to the{' '}
                   <Text className='font-roboto-semibold underline'>
                     Terms of service
@@ -185,11 +185,11 @@ const Signup = () => {
               />
 
               <View className='mt-4 flex-row justify-center'>
-                <Text className='text-secondary_second text-sm'>
+                <Text className='text-secondary dark:text-white/80 text-sm'>
                   Already have an account?
                 </Text>
                 <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-                  <Text className='font-roboto-bold text-secondary_second text-sm'>
+                  <Text className='font-roboto-bold text-secondary dark:text-white/80 text-sm'>
                     {' '}
                     Log In
                   </Text>
@@ -198,7 +198,7 @@ const Signup = () => {
             </View>
 
             <View className='mt-6'>
-              <Text className='text-secondary_second text-center'>
+              <Text className='text-secondary dark:text-white/80 text-center'>
                 Or continue with
               </Text>
 
@@ -207,7 +207,7 @@ const Signup = () => {
                 {Object.keys(socialIcons).map(item => (
                   <TouchableOpacity
                     key={item}
-                    className='flex-1 p-3 border border-[#FFFFFF1A] rounded-xl items-center'
+                    className='flex-1 p-3 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl items-center'
                   >
                     <Image
                       source={socialIcons[item as keyof typeof socialIcons]}

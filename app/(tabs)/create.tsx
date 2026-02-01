@@ -7,6 +7,7 @@ import {
   useEditPost,
   useUpdateScheduledPost,
 } from '@/hooks/app/post';
+import useThemeStore from '@/store/theme.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
@@ -30,6 +31,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 const CreatePost = () => {
+  const { mode: colorMode } = useThemeStore();
+  const isLight = colorMode === 'light';
   const params = useLocalSearchParams();
   const isEditMode = !!params.postId;
   const router = useRouter();
@@ -305,18 +308,18 @@ const CreatePost = () => {
   if (mode === 'selection') {
     return (
       <GradientBackground>
-        <StatusBar style='light' />
+        <StatusBar style='dark' />
         <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
           <View className='mt-3 mx-6'>
-            <Text className='font-roboto-bold text-primary text-3xl text-center mb-2'>
+            <Text className='font-roboto-bold text-primary dark:text-white text-3xl text-center mb-2'>
               Create
             </Text>
-            <Text className='font-roboto-regular text-secondary text-center mb-8'>
+            <Text className='font-roboto-regular text-secondary dark:text-white/80 text-center mb-8'>
               Choose what you want to create
             </Text>
           </View>
 
-          <View className='border-b border-[#292929] w-full'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full'></View>
 
           <ScrollView
             contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 40 }}
@@ -345,7 +348,7 @@ const CreatePost = () => {
 
   return (
     <GradientBackground>
-      <StatusBar style='light' />
+      <StatusBar style='dark' />
       <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -363,17 +366,25 @@ const CreatePost = () => {
                 }
               }}
             >
-              <AntDesign name='close' size={22} color='white' />
+              <AntDesign
+                name='close'
+                size={22}
+                color={isLight ? 'black' : 'white'}
+              />
             </TouchableOpacity>
-            <Text className='font-roboto-bold text-white text-2xl'>
+            <Text className='font-roboto-bold text-black dark:text-white text-2xl'>
               {isEditMode ? 'Edit Post' : 'Create Post'}
             </Text>
             <TouchableOpacity
               onPress={handlePost}
               disabled={isLoading}
-              className={`px-4 py-2 rounded-full ${isLoading ? 'bg-white/40' : 'bg-white'}`}
+              className={`px-4 py-2 rounded-full ${
+                isLoading
+                  ? 'bg-white/40 dark:bg-white/20'
+                  : 'bg-white dark:bg-[#FFFFFF0D]'
+              }`}
             >
-              <Text className='text-black text-center font-bold'>
+              <Text className='text-black dark:text-white text-center font-bold'>
                 {isLoading
                   ? isEditMode
                     ? 'Updating...'
@@ -390,20 +401,20 @@ const CreatePost = () => {
           </View>
 
           {/* border */}
-          <View className='border-b border-[#292929] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
 
           {/* Schedule Toggle */}
           {!isPublishedConfig && (
             <View className='px-6 mt-4'>
               <View className='flex-row justify-between items-center'>
-                <Text className='text-white text-base font-medium'>
+                <Text className='text-black dark:text-white text-base font-medium'>
                   {isScheduleMode ? 'Schedule Post' : 'Post Now'}
                 </Text>
                 <TouchableOpacity
                   onPress={() => setIsScheduleMode(!isScheduleMode)}
-                  className='bg-[#FFFFFF0D] px-4 py-2 rounded-lg'
+                  className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-4 py-2 rounded-lg'
                 >
-                  <Text className='text-white text-sm'>
+                  <Text className='text-black dark:text-white text-sm'>
                     {isScheduleMode ? 'Post Now' : 'Schedule'}
                   </Text>
                 </TouchableOpacity>
@@ -414,27 +425,27 @@ const CreatePost = () => {
           {/* Schedule Options */}
           {isScheduleMode && (
             <View className='px-6 mt-4'>
-              <View className='bg-[#FFFFFF0D] rounded-lg p-4'>
-                <Text className='text-white text-base font-medium mb-3'>
+              <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg p-4'>
+                <Text className='text-black dark:text-white text-base font-medium mb-3'>
                   Schedule Date & Time
                 </Text>
                 <View className='flex-row gap-3'>
                   <TouchableOpacity
-                    className='flex-1 bg-white/10 rounded-lg px-3 py-3'
+                    className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
                     onPress={() => setShowDatePicker(true)}
                   >
                     <Text className='text-gray-400 text-xs mb-1'>Date</Text>
-                    <Text className='text-white text-base'>
+                    <Text className='text-black dark:text-white text-base'>
                       {scheduledDate.toLocaleDateString()}
                     </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    className='flex-1 bg-white/10 rounded-lg px-3 py-3'
+                    className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
                     onPress={() => setShowTimePicker(true)}
                   >
                     <Text className='text-gray-400 text-xs mb-1'>Time</Text>
-                    <Text className='text-white text-base'>
+                    <Text className='text-black dark:text-white text-base'>
                       {scheduledDate.toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -449,9 +460,11 @@ const CreatePost = () => {
                       <View className='flex-row justify-end mb-2'>
                         <TouchableOpacity
                           onPress={() => setShowDatePicker(false)}
-                          className='bg-white/20 px-3 py-1 rounded-md'
+                          className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1 rounded-md'
                         >
-                          <Text className='text-white font-medium'>Done</Text>
+                          <Text className='text-black dark:text-white font-medium'>
+                            Done
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -471,9 +484,11 @@ const CreatePost = () => {
                       <View className='flex-row justify-end mb-2'>
                         <TouchableOpacity
                           onPress={() => setShowTimePicker(false)}
-                          className='bg-white/20 px-3 py-1 rounded-md'
+                          className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1 rounded-md'
                         >
-                          <Text className='text-white font-medium'>Done</Text>
+                          <Text className='text-black dark:text-white font-medium'>
+                            Done
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -505,12 +520,12 @@ const CreatePost = () => {
               </View>
 
               <View className='px-6 pt-4'>
-                <Text className='text-white text-base font-medium mb-2'>
+                <Text className='text-black dark:text-white text-base font-medium mb-2'>
                   Description
                 </Text>
-                <View className='bg-white/10 rounded-2xl p-4 min-h-[100px]'>
+                <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl p-4 min-h-[100px]'>
                   <TextInput
-                    className='text-white text-base flex-1'
+                    className='text-black dark:text-white text-base flex-1'
                     placeholder="What's on your mind?"
                     placeholderTextColor='#9CA3AF'
                     multiline
@@ -527,10 +542,16 @@ const CreatePost = () => {
                 onPickAudio={pickAudio}
               />
 
-              <View className='mx-5 p-4 bg-[#FFFFFF0D] rounded-lg mt-7 flex-row justify-between items-center'>
+              <View className='mx-5 p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg mt-7 flex-row justify-between items-center'>
                 <View className='flex-row gap-3 items-center'>
-                  <Feather name='facebook' size={24} color='white' />
-                  <Text className='text-white'>Share with Facebook</Text>
+                  <Feather
+                    name='facebook'
+                    size={24}
+                    color={isLight ? 'black' : 'white'}
+                  />
+                  <Text className='text-black dark:text-white'>
+                    Share with Facebook
+                  </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => setIsFacebook(!isFacebook)}
@@ -544,14 +565,16 @@ const CreatePost = () => {
                 </TouchableOpacity>
               </View>
 
-              <View className='mx-5 p-4 bg-[#FFFFFF0D] rounded-lg mt-7 flex-row justify-between items-center mb-8'>
+              <View className='mx-5 p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg mt-7 flex-row justify-between items-center mb-8'>
                 <View className='flex-row gap-3 items-center'>
                   <SimpleLineIcons
                     name='social-instagram'
                     size={24}
-                    color='white'
+                    color={isLight ? 'black' : 'white'}
                   />
-                  <Text className='text-white'>Share with Instagram</Text>
+                  <Text className='text-black dark:text-white'>
+                    Share with Instagram
+                  </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => setIsInstagram(!isInstagram)}

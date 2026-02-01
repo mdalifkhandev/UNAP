@@ -80,7 +80,7 @@ const OtherProfile = () => {
     return (
       <GradientBackground>
         <SafeAreaView className='flex-1 justify-center items-center'>
-          <Text className='text-primary'>Loading...</Text>
+          <Text className='text-primary dark:text-white'>Loading...</Text>
         </SafeAreaView>
       </GradientBackground>
     );
@@ -96,14 +96,14 @@ const OtherProfile = () => {
           {/* header */}
           <View className='mt-3 flex-row items-center mx-6'>
             <TouchableOpacity onPress={() => router.back()} className='p-2 -ml-2'>
-              <Ionicons name='chevron-back' size={28} color='white' />
+              <Ionicons name='chevron-back' size={28} color='black' />
             </TouchableOpacity>
-            <Text className='font-roboto-bold text-primary text-2xl text-center flex-1 mr-8'>
+            <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1 mr-8'>
               Profile
             </Text>
           </View>
 
-          <View className='border-b border-[#292929] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
 
           <ScrollView
             contentContainerStyle={{ paddingBottom: 40 }}
@@ -123,10 +123,10 @@ const OtherProfile = () => {
                 />
               </View>
               <View>
-                <Text className='text-primary font-roboto-bold text-2xl'>
+                <Text className='text-primary dark:text-white font-roboto-bold text-2xl'>
                   {profile?.displayName || 'User'}
                 </Text>
-                <Text className='text-primary font-roboto-regular text-lg'>
+                <Text className='text-primary dark:text-white font-roboto-regular text-lg'>
                   {profile?.role || 'User'}
                 </Text>
               </View>
@@ -134,57 +134,57 @@ const OtherProfile = () => {
 
             {/* details */}
             <View className='mt-3 mx-6'>
-              <Text className='font-roboto-medium text-primary'>
+              <Text className='font-roboto-medium text-primary dark:text-white'>
                 {profile?.bio || 'No bio yet'}
               </Text>
             </View>
 
             {/* border */}
-            <View className='border-b border-[#292929] w-full my-3 mx-6'></View>
+            <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full my-3 mx-6'></View>
 
             {/* post stats */}
             <View className='flex-row justify-between items-center mt-3 py-3 mx-6'>
               <View>
-                <Text className='text-primary text-center font-roboto-semibold text-2xl'>
+                <Text className='text-primary dark:text-white text-center font-roboto-semibold text-2xl'>
                   {profile?.postsCount || 0}
                 </Text>
-                <Text className='text-secondary text-center font-roboto-regular text-lg'>
+                <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
                   Posts
                 </Text>
               </View>
               <View>
-                <Text className='text-primary text-center font-roboto-semibold text-2xl'>
+                <Text className='text-primary dark:text-white text-center font-roboto-semibold text-2xl'>
                   {profile?.followersCount || 0}
                 </Text>
-                <Text className='text-secondary text-center font-roboto-regular text-lg'>
+                <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
                   Followers
                 </Text>
               </View>
               <View>
-                <Text className='text-primary text-center font-roboto-semibold text-2xl'>
+                <Text className='text-primary dark:text-white text-center font-roboto-semibold text-2xl'>
                   {profile?.followingCount || 0}
                 </Text>
-                <Text className='text-secondary text-center font-roboto-regular text-lg'>
+                <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
                   Following
                 </Text>
               </View>
             </View>
 
             {/* border */}
-            <View className='border-b border-[#292929] w-full my-3 mx-6'></View>
+            <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full my-3 mx-6'></View>
 
             {/* follow/message buttons */}
             <View className='flex-row justify-center items-center gap-5 mx-6'>
               <ShadowButton
                 text={isFollowing ? 'Unfollow' : 'Follow'}
-                textColor={isFollowing ? '#E6E6E6' : '#2B2B2B'}
+                textColor={isFollowing ? '#000000' : '#2B2B2B'}
                 backGroundColor={isFollowing ? '#000000' : '#E8EBEE'}
                 onPress={handleFollowToggle}
-                className={`mt-4 ${isFollowing ? 'border border-[#E6E6E6]' : ''}`}
+                className={`mt-4 ${isFollowing ? 'border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]' : ''}`}
               />
               <ShadowButton
                 text='Message'
-                textColor='#E6E6E6'
+                textColor='#000000'
                 backGroundColor='#000000'
                 onPress={() => {
                    // Navigate to chat if implemented
@@ -195,12 +195,12 @@ const OtherProfile = () => {
                      });
                    }
                 }}
-                className='mt-4 border border-[#E6E6E6]'
+                className='mt-4 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
               />
             </View>
 
             {/* border */}
-            <View className='border-b border-[#292929] w-full mt-24 mx-6'></View>
+            <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-24 mx-6'></View>
 
             {/* post filter buttons */}
             <View className='flex-row justify-between items-center gap-6 mt-3 mx-6'>
@@ -222,8 +222,8 @@ const OtherProfile = () => {
                       selectedType === type ? 'bg-[#444]' : 'bg-transparent'
                     }`}
                   >
-                    <Icon name={iconName as any} size={24} color='white' />
-                    <Text className='text-primary font-roboto-regular mt-1'>
+                    <Icon name={iconName as any} size={24} color='black' />
+                    <Text className='text-primary dark:text-white font-roboto-regular mt-1'>
                       {type.charAt(0).toUpperCase() + type.slice(1)}
                     </Text>
                   </TouchableOpacity>
@@ -255,16 +255,16 @@ const OtherProfile = () => {
                           <Feather
                             name='video'
                             size={24}
-                            color='white'
+                            color='black'
                             opacity={0.7}
                           />
                         </View>
                       </View>
                     )}
                     {selectedType === 'music' && (
-                      <View className='p-4 bg-[#292929] items-center justify-center w-full aspect-square'>
+                      <View className='p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] items-center justify-center w-full aspect-square'>
                         <Feather name='music' size={40} color='#F54900' />
-                        <Text className='text-white mt-2 text-center text-xs'>
+                        <Text className='text-black dark:text-white mt-2 text-center text-xs'>
                           {item.description || 'Audio File'}
                         </Text>
                       </View>
@@ -272,7 +272,7 @@ const OtherProfile = () => {
                   </View>
                 ))
               ) : (
-                <Text className='text-primary font-roboto-regular mt-1'>
+                <Text className='text-primary dark:text-white font-roboto-regular mt-1'>
                   No {selectedType} posts found
                 </Text>
               )}

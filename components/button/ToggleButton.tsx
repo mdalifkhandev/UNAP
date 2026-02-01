@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Text, TouchableOpacity, View } from "react-native";
+import useThemeStore from "@/store/theme.store";
 
 export const ToggleButton = ({ isOn, setIsOn, title, className }: any) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
+  const { mode } = useThemeStore();
+  const isLight = mode === "light";
 
   useEffect(() => {
     Animated.timing(animatedValue, {
@@ -19,12 +22,18 @@ export const ToggleButton = ({ isOn, setIsOn, title, className }: any) => {
 
   const backgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#6A717E", "#F3F8F4"],
+    outputRange: isLight
+      ? ["rgba(0,0,0,0.2)", "#000000"]
+      : ["#6A717E", "#F3F8F4"],
   });
+
+  const knobColor = isLight ? "#FFFFFF" : "#100E0E";
 
   return (
     <View className={`flex-row items-center gap-4 mb-2 ${className} `}>
-      <Text className="text-sm text-[#7A7A7A]">{title ? title : ""}</Text>
+      <Text className="text-sm text-black dark:text-[#7A7A7A]">
+        {title ? title : ""}
+      </Text>
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => setIsOn(!isOn)}
@@ -45,7 +54,7 @@ export const ToggleButton = ({ isOn, setIsOn, title, className }: any) => {
               width: 24,
               height: 24,
               borderRadius: 14,
-              backgroundColor: "#100E0E",
+              backgroundColor: knobColor,
               transform: [{ translateX }],
               elevation: 2,
             }}

@@ -81,9 +81,9 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
 
   return (
     <View
-      className={`bg-[#FFFFFF0D] rounded-3xl ${className} border border-[#FFFFFF0D]`}
+      className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl ${className} border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]`}
     >
-      <Text className="text-primary font-roboto-bold text-xl px-4 pt-4">
+      <Text className="text-primary dark:text-white font-roboto-bold text-xl px-4 pt-4">
         Suggested Artists
       </Text>
       <ScrollView
@@ -118,13 +118,13 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
               contentFit="cover"
             />
             <Text
-              className="font-roboto-semibold text-sm text-primary mt-2 text-center"
+              className="font-roboto-semibold text-sm text-primary dark:text-white mt-2 text-center"
               numberOfLines={1}
             >
               {item.name}
             </Text>
             <Text
-              className="font-roboto-regular text-xs text-secondary mt-0.5 text-center"
+              className="font-roboto-regular text-xs text-secondary dark:text-white/80 mt-0.5 text-center"
               numberOfLines={1}
             >
               {item.profession}

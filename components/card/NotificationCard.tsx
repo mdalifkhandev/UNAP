@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import useThemeStore from "@/store/theme.store";
 
 type NotificationCardProps = {
   img: any;
@@ -33,102 +34,93 @@ const NotificationCard = ({
 }: NotificationCardProps) => {
   const [isRead, setIsRead] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  const { mode } = useThemeStore();
+  const isLight = mode === "light";
 
-  // Handle mark as read
   const handleMarkAsRead = () => {
     setIsRead(true);
     onMenuClose?.();
   };
 
-  // Handle delete
   const handleDelete = () => {
     setIsDeleted(true);
     onMenuClose?.();
   };
 
-  // Don't render if deleted
   if (isDeleted) {
     return null;
   }
 
   return (
-    <TouchableOpacity onPress={onMenuClose} activeOpacity={1}>
-      <View
-        className={`bg-[#FFFFFF0D] py-5 px-4 rounded-xl flex-row justify-between gap-5 ${className} ${isRead ? 'opacity-60' : ''}`}
+    <View
+      className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] py-5 px-4 rounded-xl flex-row justify-between gap-5 ${className} ${
+        isRead ? "opacity-60" : ""
+      }`}
+    >
+      <TouchableOpacity
+        onPress={() => {
+          if (userId) {
+            router.push({
+              pathname: "/screens/profile/other-profile",
+              params: { id: userId },
+            });
+          } else {
+            router.push("/(tabs)/profile");
+          }
+        }}
+        className="relative"
       >
-        <TouchableOpacity
-          onPress={() => {
-            if (userId) {
-              router.push({
-                pathname: "/screens/profile/other-profile",
-                params: { id: userId },
-              });
-            } else {
-              router.push("/(tabs)/profile");
-            }
-          }}
-          className="relative"
-        >
-          <Image
-            source={img}
-            style={{ width: 40, height: 40 }}
-            contentFit="contain"
-          />
+        <Image source={img} style={{ width: 40, height: 40 }} contentFit="contain" />
 
-          {type === "like" && (
-            <View className="absolute right-0 bottom-5">
-              <MaterialCommunityIcons
-                name="cards-heart"
-                size={24}
-                color="#F6339A"
-              />
-            </View>
-          )}
-
-          {type === "follow" && (
-            <View className="absolute -right-2 bottom-3 bg-white rounded-full p-1">
-              <Octicons name="person-add" size={19} color="#2B7FFF" />
-            </View>
-          )}
-        </TouchableOpacity>
-
-        <View className="flex-1">
-          <Text className="font-roboto-semibold text-primary text-lg capitalize">
-            {name}
-          </Text>
-          <Text className="font-roboto-regular text-sm text-primary mt-1 capitalize">
-            {reson}
-          </Text>
-          <Text className="font-roboto-regular text-sm text-primary mt-1 capitalize">
-            {time}
-          </Text>
-        </View>
-
-        <TouchableOpacity onPress={() => onMenuToggle?.(id)}>
-          <MaterialCommunityIcons name="dots-vertical" size={24} color="white" />
-        </TouchableOpacity>
-
-        {/* Dropdown Menu */}
-        {showMenu && (
-          <View className="absolute right-[35px] top-[20px] bg-[#1c1c1d] rounded-lg shadow-lg z-10 min-w-[200px]">
-            <TouchableOpacity
-              onPress={handleMarkAsRead}
-              className="px-4 py-3 flex-row items-center border-b border-gray-600"
-            >
-              <MaterialCommunityIcons name="check" size={16} color="#10B981" />
-              <Text className="text-white ml-2 text-sm">Mark as read</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleDelete}
-              className="px-4 py-3 flex-row items-center"
-            >
-              <MaterialCommunityIcons name="delete" size={16} color="#EF4444" />
-              <Text className="text-white ml-2 text-sm">Delete</Text>
-            </TouchableOpacity>
+        {type === "like" && (
+          <View className="absolute right-0 bottom-5">
+            <MaterialCommunityIcons name="cards-heart" size={24} color="#F6339A" />
           </View>
         )}
+
+        {type === "follow" && (
+          <View className="absolute -right-2 bottom-3 bg-white rounded-full p-1">
+            <Octicons name="person-add" size={19} color="#2B7FFF" />
+          </View>
+        )}
+      </TouchableOpacity>
+
+      <View className="flex-1">
+        <Text className="font-roboto-semibold text-primary dark:text-white text-lg capitalize">
+          {name}
+        </Text>
+        <Text className="font-roboto-regular text-sm text-primary dark:text-white mt-1 capitalize">
+          {reson}
+        </Text>
+        <Text className="font-roboto-regular text-sm text-primary dark:text-white mt-1 capitalize">
+          {time}
+        </Text>
       </View>
-    </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => onMenuToggle?.(id)}>
+        <MaterialCommunityIcons name="dots-vertical" size={24} color={isLight ? "#9CA3AF" : "white"} />
+      </TouchableOpacity>
+
+      {showMenu && (
+        <View
+          className={`absolute right-[35px] top-[20px] rounded-lg shadow-lg z-10 min-w-[200px] ${
+            isLight ? "bg-white" : "bg-[#1c1c1d]"
+          }`}
+        >
+          <TouchableOpacity
+            onPress={handleMarkAsRead}
+            className="px-4 py-3 flex-row items-center border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-gray-600"
+          >
+            <MaterialCommunityIcons name="check" size={16} color="#10B981" />
+            <Text className="text-black dark:text-white ml-2 text-sm">Mark as read</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleDelete} className="px-4 py-3 flex-row items-center">
+            <MaterialCommunityIcons name="delete" size={16} color="#EF4444" />
+            <Text className="text-black dark:text-white ml-2 text-sm">Delete</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
   );
 };
 

@@ -1,6 +1,7 @@
 import BackButton from '@/components/button/BackButton';
 import GradientBackground from '@/components/main/GradientBackground';
 import useAuthStore from '@/store/auth.store';
+import useThemeStore from '@/store/theme.store';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -12,6 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Settings = () => {
   const { clearAuth } = useAuthStore();
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
+  const iconColor = isLight ? 'black' : 'white';
   const hendleLogout = () => {
     clearAuth();
     router.push('/(auth)/login');
@@ -22,15 +26,15 @@ const Settings = () => {
       <SafeAreaView className='flex-1 mt-2.5' edges={['top', 'left', 'right']}>
         <View className='flex-row mt-4 mx-6'>
           <BackButton />
-          <Text className='text-primary font-roboto-bold text-2xl text-center flex-1'>
+          <Text className='text-primary dark:text-white font-roboto-bold text-2xl text-center flex-1'>
             Setting
           </Text>
         </View>
-        <View className='border-b border-[#292929] w-full mt-2'></View>
+        <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#292929] w-full mt-2'></View>
         <ScrollView className='mx-6 mt-10' showsVerticalScrollIndicator={false}>
           {/* account info */}
-          <View className='bg-[#FFFFFF0D] p-3 rounded-xl'>
-            <Text className='mx-3 mt-3 text-primary font-roboto-semibold text-xl'>
+          <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-3 rounded-xl'>
+            <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-semibold text-xl'>
               Account Information
             </Text>
             <TouchableOpacity
@@ -38,14 +42,12 @@ const Settings = () => {
               className='flex-row justify-between items-center mt-6'
             >
               <View className='flex-row gap-2'>
-                {/* <View> */}
                 <Image
                   source={require('@/assets/images/edit-user.svg')}
                   contentFit='contain'
-                  style={{ height: 24, width: 24, marginTop: 10 }}
+                  style={{ height: 24, width: 24, marginTop: 10, tintColor: iconColor }}
                 />
-                {/* </View> */}
-                <Text className='mx-3 mt-3 text-primary font-roboto-regular text-lg'>
+                <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
                   Edit Profile
                 </Text>
               </View>
@@ -53,7 +55,7 @@ const Settings = () => {
                 name='chevron-small-right'
                 className='mt-3.5'
                 size={26}
-                color='white'
+                color={iconColor}
               />
             </TouchableOpacity>
 
@@ -67,9 +69,9 @@ const Settings = () => {
                   name='person-add-outline'
                   size={24}
                   className='mt-3'
-                  color='white'
+                  color={iconColor}
                 />
-                <Text className='mx-3 mt-3 text-primary font-roboto-regular text-lg'>
+                <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
                   Complete Profile
                 </Text>
               </View>
@@ -77,14 +79,14 @@ const Settings = () => {
                 name='chevron-small-right'
                 className='mt-3.5'
                 size={26}
-                color='white'
+                color={iconColor}
               />
             </TouchableOpacity>
           </View>
 
           {/* Policy Center */}
-          <View className='bg-[#FFFFFF0D] p-3 rounded-xl mt-4'>
-            <Text className='mx-3 mt-3 text-primary font-roboto-semibold text-xl'>
+          <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-3 rounded-xl mt-4'>
+            <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-semibold text-xl'>
               Policy Center
             </Text>
 
@@ -96,15 +98,13 @@ const Settings = () => {
               className='flex-row justify-between items-center mt-6'
             >
               <View className='flex-row gap-2'>
-                {/* <View> */}
                 <Ionicons
                   name='shield-checkmark-outline'
                   size={24}
                   className='mt-3'
-                  color='white'
+                  color={iconColor}
                 />
-                {/* </View> */}
-                <Text className='mx-3 mt-3 text-primary font-roboto-regular text-lg'>
+                <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
                   Privacy Policy
                 </Text>
               </View>
@@ -112,7 +112,7 @@ const Settings = () => {
                 name='chevron-small-right'
                 className='mt-3.5'
                 size={26}
-                color='white'
+                color={iconColor}
               />
             </TouchableOpacity>
 
@@ -124,14 +124,12 @@ const Settings = () => {
               className='flex-row justify-between items-center mt-4'
             >
               <View className='flex-row gap-2'>
-                {/* <View> */}
                 <Image
                   source={require('@/assets/images/term.svg')}
                   contentFit='contain'
-                  style={{ height: 24, width: 24, marginTop: 8 }}
+                  style={{ height: 24, width: 24, marginTop: 8, tintColor: iconColor }}
                 />
-                {/* </View> */}
-                <Text className='mx-3 mt-3 text-primary font-roboto-regular text-lg'>
+                <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
                   Terms & Condition
                 </Text>
               </View>
@@ -139,7 +137,7 @@ const Settings = () => {
                 name='chevron-small-right'
                 className='mt-3.5'
                 size={26}
-                color='white'
+                color={iconColor}
               />
             </TouchableOpacity>
 
@@ -149,15 +147,13 @@ const Settings = () => {
               className='flex-row justify-between items-center mt-4'
             >
               <View className='flex-row gap-2'>
-                {/* <View> */}
                 <Feather
                   name='help-circle'
                   size={24}
-                  color='white'
+                  color={iconColor}
                   className='mt-3'
                 />
-                {/* </View> */}
-                <Text className='mx-3 mt-3 text-primary font-roboto-regular text-lg'>
+                <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
                   Faq
                 </Text>
               </View>
@@ -165,13 +161,13 @@ const Settings = () => {
                 name='chevron-small-right'
                 className='mt-3.5'
                 size={26}
-                color='white'
+                color={iconColor}
               />
             </TouchableOpacity>
           </View>
           {/* Settings */}
-          <View className='bg-[#FFFFFF0D] p-3 rounded-xl mt-4'>
-            <Text className='mx-3 mt-3 text-primary font-roboto-semibold text-xl'>
+          <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-3 rounded-xl mt-4'>
+            <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-semibold text-xl'>
               Settings
             </Text>
 
@@ -183,15 +179,13 @@ const Settings = () => {
               className='flex-row justify-between items-center mt-6'
             >
               <View className='flex-row gap-2'>
-                {/* <View> */}
                 <Ionicons
                   name='notifications-outline'
                   size={24}
                   className='mt-3'
-                  color='white'
+                  color={iconColor}
                 />
-                {/* </View> */}
-                <Text className='mx-3 mt-3 text-primary font-roboto-regular text-lg'>
+                <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
                   Notification
                 </Text>
               </View>
@@ -199,25 +193,22 @@ const Settings = () => {
                 name='chevron-small-right'
                 className='mt-3.5'
                 size={26}
-                color='white'
+                color={iconColor}
               />
             </TouchableOpacity>
 
-            {/* Terms & Condition */}
             {/* Log Out */}
             <TouchableOpacity
               onPress={hendleLogout}
               className='flex-row justify-between items-center mt-4'
             >
               <View className='flex-row gap-2'>
-                {/* <View> */}
                 <Image
                   source={require('@/assets/images/logout.svg')}
                   contentFit='contain'
-                  style={{ height: 24, width: 24, marginTop: 8 }}
+                  style={{ height: 24, width: 24, marginTop: 8, tintColor: iconColor }}
                 />
-                {/* </View> */}
-                <Text className='mx-3 mt-3 text-primary font-roboto-regular text-lg'>
+                <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
                   Log Out
                 </Text>
               </View>
@@ -225,20 +216,18 @@ const Settings = () => {
                 name='chevron-small-right'
                 className='mt-3.5'
                 size={26}
-                color='white'
+                color={iconColor}
               />
             </TouchableOpacity>
             {/* Delete Account */}
             <TouchableOpacity className='flex-row justify-between items-center mt-4'>
               <View className='flex-row gap-2'>
-                {/* <View> */}
                 <Ionicons
                   name='trash-outline'
                   size={24}
                   color='red'
                   className='mt-3'
                 />
-                {/* </View> */}
                 <Text className='mx-3 mt-3 text-[#FF0000] font-roboto-regular text-lg'>
                   Delete Account
                 </Text>
@@ -247,7 +236,7 @@ const Settings = () => {
                 name='chevron-small-right'
                 className='mt-3.5'
                 size={26}
-                color='white'
+                color={iconColor}
               />
             </TouchableOpacity>
           </View>

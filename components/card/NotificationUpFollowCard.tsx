@@ -22,7 +22,7 @@ const NotificationUpFollowCard = ({
 }: NotificationUpFollowCardProps) => {
   return (
     <View
-      className={`bg-[#FFFFFF0D] py-5 px-4 rounded-xl flex-row justify-between gap-5 ${className} `}
+      className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] py-5 px-4 rounded-xl flex-row justify-between gap-5 ${className} `}
     >
       <TouchableOpacity
         onPress={() => router.push("/(tabs)/profile")}
@@ -33,18 +33,18 @@ const NotificationUpFollowCard = ({
         </View>
       </TouchableOpacity>
       <View className="flex-1 ">
-        <Text className="font-roboto-semibold text-primary text-lg capitalize">
+        <Text className="font-roboto-semibold text-primary dark:text-white text-lg capitalize">
           {name}
         </Text>
-        <Text className="font-roboto-regular text-sm text-primary mt-1 capitalize">
+        <Text className="font-roboto-regular text-sm text-primary dark:text-white mt-1 capitalize">
           {reson}
         </Text>
-        <Text className="font-roboto-regular text-sm text-primary mt-1 capitalize">
+        <Text className="font-roboto-regular text-sm text-primary dark:text-white mt-1 capitalize">
           {time}
         </Text>
       </View>
       <TouchableOpacity>
-        <MaterialCommunityIcons name="dots-vertical" size={24} color="white" />
+        <MaterialCommunityIcons name="dots-vertical" size={24} color="black" />
       </TouchableOpacity>
     </View>
   );

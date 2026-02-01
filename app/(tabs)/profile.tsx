@@ -4,6 +4,7 @@ import GradientBackground from '@/components/main/GradientBackground';
 import { useDeletePost, useGetMyPosts } from '@/hooks/app/post';
 import { useGetMyProfile } from '@/hooks/app/profile';
 import useAuthStore from '@/store/auth.store';
+import useThemeStore from '@/store/theme.store';
 import Feather from '@expo/vector-icons/Feather';
 import Foundation from '@expo/vector-icons/Foundation';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -42,6 +43,9 @@ const VideoGridItem = ({ uri }: { uri: string }) => {
 
 const Profiles = () => {
   const { user } = useAuthStore();
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
+  const iconColor = isLight ? 'black' : 'white';
 
   const { data } = useGetMyProfile();
   // @ts-ignore
@@ -79,17 +83,17 @@ const Profiles = () => {
         >
           {/* headers */}
           <View className='mt-3 flex-row items-center mx-6 justify-between'>
-            <Text className='font-roboto-bold text-primary text-2xl text-center flex-1'>
+            <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1'>
               Profile
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/screens/profile/settings/settings')}
             >
-              <Ionicons name='settings-outline' size={24} color='white' />
+              <Ionicons name='settings-outline' size={24} color={iconColor} />
             </TouchableOpacity>
           </View>
 
-          <View className='border-b border-[#292929] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#292929] w-full mt-2'></View>
 
           <ScrollView
             contentContainerStyle={{ paddingBottom: 40 }}
@@ -109,10 +113,10 @@ const Profiles = () => {
                 />
               </TouchableOpacity>
               <View>
-                <Text className='text-primary font-roboto-bold text-2xl'>
+                <Text className='text-primary dark:text-white font-roboto-bold text-2xl'>
                   {profile?.displayName || user?.name || 'User'}
                 </Text>
-                <Text className='text-primary font-roboto-regular text-lg'>
+                <Text className='text-primary dark:text-white font-roboto-regular text-lg'>
                   {profile?.role || 'User'}
                 </Text>
               </View>
@@ -120,44 +124,44 @@ const Profiles = () => {
 
             {/* details */}
             <View className='mt-3 mx-6'>
-              <Text className='font-roboto-medium text-primary'>
+              <Text className='font-roboto-medium text-primary dark:text-white'>
                 {profile?.bio || 'No bio yet'}
               </Text>
             </View>
 
             {/* border */}
-            <View className='border-b border-[#292929] w-[90%] my-3 mx-6'></View>
+            <View className='border-b border-black/20 dark:border-[#292929] w-[90%] my-3 mx-6'></View>
 
             {/* post stats */}
             <View className='flex-row justify-between items-center mt-3 py-3 mx-6'>
               <View>
-                <Text className='text-primary text-center font-roboto-semibold text-2xl'>
+                <Text className='text-primary dark:text-white text-center font-roboto-semibold text-2xl'>
                   {profile?.postsCount || 0}
                 </Text>
-                <Text className='text-secondary text-center font-roboto-regular text-lg'>
+                <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
                   Posts
                 </Text>
               </View>
               <View>
-                <Text className='text-primary text-center font-roboto-semibold text-2xl'>
+                <Text className='text-primary dark:text-white text-center font-roboto-semibold text-2xl'>
                   {profile?.followersCount || 0}
                 </Text>
-                <Text className='text-secondary text-center font-roboto-regular text-lg'>
+                <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
                   Followers
                 </Text>
               </View>
               <View>
-                <Text className='text-primary text-center font-roboto-semibold text-2xl'>
+                <Text className='text-primary dark:text-white text-center font-roboto-semibold text-2xl'>
                   {profile?.followingCount || 0}
                 </Text>
-                <Text className='text-secondary text-center font-roboto-regular text-lg'>
+                <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
                   Following
                 </Text>
               </View>
             </View>
 
             {/* border */}
-            <View className='border-b border-[#292929] w-[90%] my-3 mx-6'></View>
+            <View className='border-b border-black/20 dark:border-[#292929] w-[90%] my-3 mx-6'></View>
 
             {/* edit/share buttons */}
             {/* edit/share/saved buttons */}
@@ -171,21 +175,25 @@ const Profiles = () => {
               />
               <ShadowButton
                 text='Saved Posts'
-                textColor='#E6E6E6'
-                backGroundColor='#000000'
+                textColor={isLight ? '#000000' : '#E6E6E6'}
+                backGroundColor={isLight ? '#F0F2F5' : '#000000'}
                 onPress={() => router.push('/screens/profile/saved-posts')}
-                className='mt-4 border border-[#E6E6E6] flex-1'
+                className={`mt-4 border flex-1 ${isLight ? 'border-black/20' : 'border-[#E6E6E6]'}`}
               />
               <TouchableOpacity
                 onPress={() => setShowShareModal(true)}
-                className='mt-4 bg-[#FFFFFF0D] border border-[#E6E6E6] p-3 rounded-2xl items-center justify-center'
+                className={`mt-4 p-3 rounded-2xl items-center justify-center ${
+                  isLight
+                    ? 'bg-[#F0F2F5] border border-black/20'
+                    : 'bg-[#FFFFFF0D] border border-[#E6E6E6]'
+                }`}
               >
-                <Ionicons name="menu" size={24} color="white" />
+                <Ionicons name='menu' size={24} color={iconColor} />
               </TouchableOpacity>
             </View>
 
             {/* border */}
-            <View className='border-b border-[#292929] w-[90%] mt-24 mx-6'></View>
+            <View className='border-b border-black/20 dark:border-[#292929] w-[90%] mt-24 mx-6'></View>
 
             {/* post filter buttons */}
             <View className='flex-row justify-between items-center gap-2 mt-3 mx-4'>
@@ -208,11 +216,15 @@ const Profiles = () => {
                       )
                     }
                     className={`px-2 py-3 rounded-lg flex-row gap-2 items-center ${
-                      selectedType === type ? 'bg-[#444]' : 'bg-transparent'
+                      selectedType === type
+                        ? isLight
+                          ? 'bg-[#F0F2F5]'
+                          : 'bg-[#444]'
+                        : 'bg-transparent'
                     }`}
                   >
-                    <Icon name={iconName as any} size={20} color='white' />
-                    <Text className='text-primary font-roboto-regular text-sm'>
+                    <Icon name={iconName as any} size={20} color={iconColor} />
+                    <Text className='text-primary dark:text-white font-roboto-regular text-sm'>
                       {type === 'all'
                         ? 'All Posts'
                         : type.charAt(0).toUpperCase() + type.slice(1)}
@@ -237,7 +249,7 @@ const Profiles = () => {
                       />
                     ))
                   ) : (
-                    <Text className='text-primary font-roboto-regular text-center mt-8'>
+                    <Text className='text-primary dark:text-white font-roboto-regular text-center mt-8'>
                       No posts found
                     </Text>
                   )}
@@ -248,7 +260,7 @@ const Profiles = () => {
                     displayPosts.map((item: any) => (
                       <View
                         key={item._id}
-                        className='w-1/3 border border-white'
+                        className='w-1/3 border border-black/20 dark:border-white'
                       >
                         {selectedType === 'photo' && (
                           <Image
@@ -257,7 +269,9 @@ const Profiles = () => {
                               width: '100%',
                               height: 130,
                               borderWidth: 1,
-                              borderColor: 'white',
+                              borderColor: isLight
+                                ? 'rgba(0,0,0,0.2)'
+                                : 'white',
                             }}
                             contentFit='cover'
                           />
@@ -271,16 +285,16 @@ const Profiles = () => {
                               <Feather
                                 name='video'
                                 size={24}
-                                color='white'
+                                color={iconColor}
                                 opacity={0.7}
                               />
                             </View>
                           </View>
                         )}
                         {selectedType === 'music' && (
-                          <View className='p-4 bg-[#292929] items-center justify-center w-full aspect-square'>
+                          <View className='p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] items-center justify-center w-full aspect-square'>
                             <Feather name='music' size={40} color='#F54900' />
-                            <Text className='text-white mt-2 text-center text-xs'>
+                            <Text className='text-black dark:text-white mt-2 text-center text-xs'>
                               {item.description || 'Audio File'}
                             </Text>
                           </View>
@@ -288,7 +302,7 @@ const Profiles = () => {
                       </View>
                     ))
                   ) : (
-                    <Text className='text-primary font-roboto-regular mt-1'>
+                    <Text className='text-primary dark:text-white font-roboto-regular mt-1'>
                       No {selectedType} posts found
                     </Text>
                   )}
@@ -308,8 +322,14 @@ const Profiles = () => {
           <TouchableWithoutFeedback onPress={() => setShowShareModal(false)}>
             <View className='flex-1 bg-black/50 justify-center items-center'>
               <TouchableWithoutFeedback>
-                <View className='bg-[#1E1E1E] w-[80%] rounded-2xl p-4 border border-[#333]'>
-                  <Text className='text-white text-lg font-roboto-bold text-center mb-4'>
+                <View
+                  className={`w-[80%] rounded-2xl p-4 border ${
+                    isLight
+                      ? 'bg-[#F0F2F5] border-black/20'
+                      : 'bg-[#00000090] border-[#ffffff7a]'
+                  }`}
+                >
+                  <Text className='text-black dark:text-white text-lg font-roboto-bold text-center mb-4'>
                     Options
                   </Text>
 
@@ -318,10 +338,12 @@ const Profiles = () => {
                       setShowShareModal(false);
                       router.push('/screens/profile/scheduled-posts');
                     }}
-                    className='flex-row items-center gap-3 p-3 bg-[#FFFFFF0D] rounded-xl mb-3'
+                    className={`flex-row items-center gap-3 p-3 rounded-xl mb-3 ${
+                      isLight ? 'bg-[#F0F2F5]' : 'bg-[#FFFFFF50]'
+                    }`}
                   >
-                    <Ionicons name='time-outline' size={24} color='white' />
-                    <Text className='text-white font-roboto-medium text-base'>
+                    <Ionicons name='time-outline' size={24} color={iconColor} />
+                    <Text className='text-black dark:text-white font-roboto-medium text-base'>
                       Scheduled Posts
                     </Text>
                   </TouchableOpacity>
@@ -331,10 +353,16 @@ const Profiles = () => {
                       setShowShareModal(false);
                       // Add share logic here if needed, for now just close
                     }}
-                    className='flex-row items-center gap-3 p-3 bg-[#FFFFFF0D] rounded-xl'
+                    className={`flex-row items-center gap-3 p-3 rounded-xl ${
+                      isLight ? 'bg-[#F0F2F5]' : 'bg-[#FFFFFF50]'
+                    }`}
                   >
-                    <Ionicons name='share-outline' size={24} color='white' />
-                    <Text className='text-white font-roboto-medium text-base'>
+                    <Ionicons
+                      name='share-outline'
+                      size={24}
+                      color={iconColor}
+                    />
+                    <Text className='text-black dark:text-white font-roboto-medium text-base'>
                       Share Profile
                     </Text>
                   </TouchableOpacity>

@@ -5,6 +5,7 @@ import GradientBackground from '@/components/main/GradientBackground';
 import StorySection from '@/components/main/StorySection';
 import { useGetAllPost } from '@/hooks/app/home';
 import useAuthStore from '@/store/auth.store';
+import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -58,6 +59,8 @@ const Home = () => {
     refetch,
   } = useGetAllPost();
   const { user } = useAuthStore();
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
 
   const posts = data?.pages.flatMap((page: any) => page.posts || []) || [];
 
@@ -66,17 +69,27 @@ const Home = () => {
       {/* home header */}
       <View className='flex-row justify-between items-center mx-4 mt-3'>
         <TouchableOpacity>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={{ width: 60, height: 26 }}
-            contentFit='contain'
-          />
+          <View
+            className={`px-2 py-1 rounded-lg ${
+              isLight ? 'bg-black' : 'bg-transparent'
+            }`}
+          >
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={{ width: 60, height: 26 }}
+              contentFit='contain'
+            />
+          </View>
         </TouchableOpacity>
         <View className='flex-row gap-3 items-center'>
           <TouchableOpacity
             onPress={() => router.push('/screens/home/notification')}
           >
-            <Ionicons name='notifications-outline' size={24} color='white' />
+            <Ionicons
+              name='notifications-outline'
+              size={24}
+              color={isLight ? 'black' : 'white'}
+            />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
             <Image
@@ -97,7 +110,7 @@ const Home = () => {
       {/* <CreatePostCard /> */}
       <TouchableOpacity
         onPress={() => router.push('/(tabs)/create')}
-        className='bg-white/10 rounded-2xl px-4 py-2 mt-4 h-11'
+        className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl px-4 py-2 mt-4 h-11'
       >
         <Text className='text-[#9CA3AF] text-base flex-1'>
           What's on your mind?
@@ -124,7 +137,7 @@ const Home = () => {
     if (!isFetchingNextPage) return <View className='h-20' />;
     return (
       <View className='py-4 items-center'>
-        <ActivityIndicator size='small' color='white' />
+        <ActivityIndicator size='small' color='black' />
       </View>
     );
   };
@@ -138,7 +151,7 @@ const Home = () => {
         >
           {renderHeader()}
           <View className='flex-1 justify-center items-center'>
-            <ActivityIndicator size='large' color='white' />
+            <ActivityIndicator size='large' color='black' />
           </View>
         </SafeAreaView>
       </GradientBackground>
@@ -172,7 +185,9 @@ const Home = () => {
             onRefresh={refetch}
             ListEmptyComponent={
               <View className='mt-10'>
-                <Text className='text-white text-center'>No posts found</Text>
+                <Text className='text-black dark:text-white text-center'>
+                  No posts found
+                </Text>
               </View>
             }
           />

@@ -191,10 +191,10 @@ const CompleteProfile = () => {
           >
             {/* headers */}
             <View className='mx-6 mt-10'>
-              <Text className='font-roboto-bold text-primary text-2xl text-center flex-1'>
+              <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1'>
                 Complete Your Profile
               </Text>
-              <Text className='font-roboto-regular text-secondary text-center flex-1'>
+              <Text className='font-roboto-regular text-secondary dark:text-white/80 text-center flex-1'>
                 Let other artists know more about you
               </Text>
             </View>
@@ -215,27 +215,27 @@ const CompleteProfile = () => {
                         width: 100,
                         height: 100,
                         borderRadius: 100,
-                        backgroundColor: '#FFFFFF1A',
+                        backgroundColor: '#F0F2F5',
                         justifyContent: 'center',
                         alignItems: 'center',
                         borderWidth: 1,
-                        borderColor: '#FFFFFF30',
+                        borderColor: 'rgba(0,0,0,0.2)',
                       }}
                     >
-                      <Feather name='camera' size={30} color='#FFFFFF98' />
+                      <Feather name='camera' size={30} color='rgba(0,0,0,0.5)' />
                     </View>
                   )}
                 </TouchableOpacity>
               </View>
             </View>
-            <Text className='text-primary text-xl font-roboto-semibold text-center mt-3'>
+            <Text className='text-primary dark:text-white text-xl font-roboto-semibold text-center mt-3'>
               Upload Photo
             </Text>
 
             {/* input fields */}
             <View className='mx-6 mt-6'>
               {/* Username */}
-              <Text className='text-primary'>Username</Text>
+              <Text className='text-primary dark:text-white'>Username</Text>
               <Input
                 className='mt-2'
                 placeholder='@yourhandle'
@@ -244,7 +244,7 @@ const CompleteProfile = () => {
               />
 
               {/* Display Name */}
-              <Text className='text-primary mt-3'>Display Name</Text>
+              <Text className='text-primary dark:text-white mt-3'>Display Name</Text>
               <Input
                 className='mt-2'
                 placeholder='Rokey Mahmud'
@@ -253,7 +253,7 @@ const CompleteProfile = () => {
               />
 
               {/* Select Your Role */}
-              <Text className='text-primary mb-2 mt-3 text-base'>
+              <Text className='text-primary dark:text-white mb-2 mt-3 text-base'>
                 Select Your Role
               </Text>
               <Input
@@ -265,7 +265,7 @@ const CompleteProfile = () => {
               {/* <View className='w-full'>
                 <TouchableOpacity
                   onPress={() => setRoleOpen(!roleOpen)}
-                  className='w-full bg-primary/5 border border-gray-700 rounded-xl p-4 flex-row justify-between items-center'
+                  className='w-full bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl p-4 flex-row justify-between items-center'
                 >
                   <Text className='text-gray-200 text-base'>
                     {selectedRole}
@@ -296,13 +296,13 @@ const CompleteProfile = () => {
               </View> */}
 
               {/* Bio */}
-              <Text className='text-primary mt-3 mb-2 text-base'>Bio</Text>
+              <Text className='text-primary dark:text-white mt-3 mb-2 text-base'>Bio</Text>
               <TextInput
                 placeholder='Tell us about yourself and your music...'
-                placeholderTextColor='#ffffff98'
+                placeholderTextColor='rgba(0,0,0,0.5)'
                 multiline
                 numberOfLines={4}
-                className='bg-primary/5 border border-[#FFFFFF30] rounded-xl p-4 text-primary'
+                className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl p-4 text-primary dark:text-white'
                 style={{ textAlignVertical: 'top' }}
                 value={bio}
                 onChangeText={setBio}

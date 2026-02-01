@@ -19,20 +19,20 @@ const Notice = () => {
         <View className='flex-1 mt-32 items-center'>
           {/* welcome text */}
           <View>
-            <Text className='text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center'>
+            <Text className='text-[#000000] text-2xl font-roboto-semibold mt-6 text-center'>
               Important Notice!
             </Text>
           </View>
 
           {/* emain input */}
 
-          <View className=' p-6 bg-[#FFFFFF0D] rounded-3xl mt-6'>
+          <View className=' p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mt-6'>
             <View className='mx-4'>
-              <Text className='font-roboto-regular text-sm text-primary'>
+              <Text className='font-roboto-regular text-sm text-primary dark:text-white'>
                 To stay active in the UNAP community, you must share and promote
                 any officially selected release within 72 hours!
               </Text>
-              <Text className='font-roboto-regular text-sm text-primary mt-3'>
+              <Text className='font-roboto-regular text-sm text-primary dark:text-white mt-3'>
                 If you fail to promote within this time:
               </Text>
               <View className=' flex-row mt-6 gap-2'>

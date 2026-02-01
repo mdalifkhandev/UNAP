@@ -55,13 +55,13 @@ const FAQItem: React.FC<FAQItemProps> = ({
   });
 
   return (
-    <View className='bg-[#FFFFFF0D] rounded-2xl mb-3 overflow-hidden border border-[#FFFFFF0D]'>
+    <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl mb-3 overflow-hidden border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'>
       <TouchableOpacity
         onPress={onToggle}
         activeOpacity={0.7}
         className='px-5 py-4 flex-row items-start justify-between'
       >
-        <Text className='text-primary text-lg font-roboto-regular pr-4 flex-1'>
+        <Text className='text-primary dark:text-white text-lg font-roboto-regular pr-4 flex-1'>
           {question}
         </Text>
         <Animated.View style={{ transform: [{ rotate: rotation }] }}>
@@ -76,7 +76,7 @@ const FAQItem: React.FC<FAQItemProps> = ({
 
       <Animated.View style={{ maxHeight, overflow: 'hidden' }}>
         <View className='px-5 pb-4'>
-          <Text className='text-secondary leading-relaxed'>{answer}</Text>
+          <Text className='text-secondary dark:text-white/80 leading-relaxed'>{answer}</Text>
         </View>
       </Animated.View>
     </View>
@@ -127,11 +127,11 @@ const Faq = () => {
         >
           <View className='flex-row mt-4 mx-6'>
             <BackButton />
-            <Text className='text-primary font-roboto-bold text-2xl text-center flex-1'>
+            <Text className='text-primary dark:text-white font-roboto-bold text-2xl text-center flex-1'>
               Faq
             </Text>
           </View>
-          <View className='border-b border-[#292929] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 72, marginHorizontal: 24 }}

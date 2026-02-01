@@ -59,16 +59,16 @@ const ResetPassword = () => {
 
         {/* welcome text */}
         <View>
-          <Text className='text-[#E6E6E6] text-2xl font-roboto-semibold mt-6 text-center'>
+          <Text className='text-[#000000] text-2xl font-roboto-semibold mt-6 text-center'>
             Set a new password
           </Text>
-          <Text className='font-roboto-medium text-secondary text-sm text-center mt-1.5 '>
+          <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5 '>
             Enter & confirm your new password
           </Text>
         </View>
 
         {/* emain input */}
-        <View className=' p-6 bg-[#FFFFFF0D] rounded-3xl mt-6'>
+        <View className=' p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mt-6'>
           <Input
             title='New Password'
             placeholder='Enter new password'
