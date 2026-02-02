@@ -20,6 +20,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Author {
   email: string;
@@ -61,6 +62,7 @@ const Home = () => {
   const { user } = useAuthStore();
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
+  const queryClient = useQueryClient();
 
   const posts = data?.pages.flatMap((page: any) => page.posts || []) || [];
 
@@ -182,7 +184,10 @@ const Home = () => {
             onEndReachedThreshold={0.5}
             showsVerticalScrollIndicator={false}
             refreshing={isRefetching}
-            onRefresh={refetch}
+            onRefresh={() => {
+              refetch();
+              queryClient.invalidateQueries({ queryKey: ['ucuts-feed'] });
+            }}
             ListEmptyComponent={
               <View className='mt-10'>
                 <Text className='text-black dark:text-white text-center'>

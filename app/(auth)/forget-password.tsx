@@ -4,6 +4,7 @@ import Inpute from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useUserForgatePasswordSendMail } from '@/hooks/app/auth';
 import useAuthStore from '@/store/auth.store';
+import useThemeStore from '@/store/theme.store';
 import { router } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -35,6 +36,9 @@ const ForgetPassword = () => {
     );
   };
 
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
+
   return (
     <GradientBackground>
       <SafeAreaView
@@ -46,17 +50,17 @@ const ForgetPassword = () => {
 
         {/* welcome text */}
         <View>
-          <Text className='text-[#000000] text-2xl font-roboto-semibold mt-6 text-center'>
+          <Text className='text-[#000000] dark:text-white text-2xl font-roboto-semibold mt-6 text-center'>
             Forget Password
           </Text>
-          <Text className='font-roboto-medium text-secondary dark:text-white/80 dark:text-white/80 text-sm text-center mt-1.5 '>
+          <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5 '>
             Enter your email address and we’ll send you a code to {'\n'} reset
             your password
           </Text>
         </View>
 
         {/* emain input */}
-        <View className=' p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] dark:bg-[#FFFFFF0D] rounded-3xl mt-6'>
+        <View className=' p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mt-6'>
           <Inpute
             title='Email'
             placeholder='example@example.com'
@@ -69,14 +73,14 @@ const ForgetPassword = () => {
           {/* Back to Login button */}
           <ShadowButton
             text='Send Reset Code'
-            textColor='#2B2B2B'
-            backGroundColor='#E8EBEE'
+            textColor={isLight ? 'white' : '#2B2B2B'}
+            backGroundColor={isLight ? 'black' : '#E8EBEE'}
             onPress={hendleForgatePasswordSendMail}
             className='mt-4'
           />
 
           <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-            <Text className='text-center text-primary dark:text-white dark:text-white font-roboto-regular text-sm mt-4'>
+            <Text className='text-center text-primary dark:text-white font-roboto-regular text-sm mt-4'>
               Back to Login
             </Text>
           </TouchableOpacity>

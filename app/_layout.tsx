@@ -23,6 +23,8 @@ const RootLayout = () => {
   const { mode } = useThemeStore();
   const { setColorScheme } = useNWColorScheme();
 
+  const islight = mode === 'light';
+
   useEffect(() => {
     setColorScheme(mode);
   }, [mode, setColorScheme]);
@@ -80,7 +82,10 @@ const RootLayout = () => {
           <Stack.Screen name='(tabs)' />
         </Stack>
       </QueryClientProvider>
-      <StatusBar style={mode === 'light' ? 'dark' : 'light'} />
+      <StatusBar
+        style={islight ? 'dark' : 'light'}
+        backgroundColor={islight ? '#FFFFFF' : '#000000'}
+      />
       <Toast />
     </ThemeProvider>
   );

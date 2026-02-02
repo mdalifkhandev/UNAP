@@ -2,7 +2,7 @@ import api from '@/api/axiosInstance';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
-export const useGetUblastEligibility = () => {
+export const useGetUblastEligibility = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['ublast-eligibility'],
     queryFn: async () => {
@@ -19,6 +19,7 @@ export const useGetUblastEligibility = () => {
         return null;
       }
     },
+    enabled: options?.enabled,
   });
 };
 

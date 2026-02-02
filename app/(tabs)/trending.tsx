@@ -31,7 +31,7 @@ const TrendingScreen = () => {
   );
 
   const { data: eligibilityData, isLoading: isEligibilityLoading } =
-    useGetUblastEligibility();
+    useGetUblastEligibility({ enabled: !!user });
 
   const [isEligible, setIsEligible] = useState(true);
 

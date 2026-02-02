@@ -1,4 +1,4 @@
-import { getAuth } from '@/store/auth.store';
+import useAuthStore, { getAuth } from '@/store/auth.store';
 import axios from 'axios';
 import { router } from 'expo-router';
 
@@ -31,6 +31,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       console.log('Authentication error - please log in again');
+      useAuthStore.getState().clearAuth();
       router.replace('/(auth)/login');
     }
 

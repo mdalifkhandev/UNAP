@@ -1,7 +1,9 @@
+import { useGetUCutsFeed } from '@/hooks/app/ucuts';
+import useAuthStore from '@/store/auth.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 
 export interface Story {
@@ -12,50 +14,12 @@ export interface Story {
   isMe?: boolean;
 }
 
-export const stories: Story[] = [
-  {
-    id: '0',
-    user: 'Add to UCuts',
-    avatar: 'https://randomuser.me/api/portraits/men/44.jpg',
-    storyImage: 'https://randomuser.me/api/portraits/men/44.jpg',
-    isMe: true,
-  },
-  {
-    id: '1',
-    user: 'Maya Lin',
-    avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
-    storyImage:
-      'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1000&auto=format&fit=crop',
-  },
-  {
-    id: '2',
-    user: 'Alex Rivers',
-    avatar: 'https://randomuser.me/api/portraits/men/2.jpg',
-    storyImage:
-      'https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=1000&auto=format&fit=crop',
-  },
-  {
-    id: '3',
-    user: 'Sarah Chen',
-    avatar: 'https://randomuser.me/api/portraits/women/3.jpg',
-    storyImage:
-      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000&auto=format&fit=crop',
-  },
-  {
-    id: '4',
-    user: 'James Bond',
-    avatar: 'https://randomuser.me/api/portraits/men/4.jpg',
-    storyImage:
-      'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1000&auto=format&fit=crop',
-  },
-];
-
-const StoryCard = ({ story, index }: { story: Story; index: number }) => {
+const StoryCard = ({ story }: { story: Story }) => {
   if (story.isMe) {
     return (
       <TouchableOpacity
-        onPress={() => router.push('/screens/home/create-story')}
-        className='w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
+        onPress={() => router.push('/screens/home/create-ucuts')}
+        className='w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D]'
       >
         <Image
           source={story.storyImage}
@@ -78,13 +42,13 @@ const StoryCard = ({ story, index }: { story: Story; index: number }) => {
     <TouchableOpacity
       onPress={() =>
         router.push({
-          pathname: '/screens/home/story-view',
+          pathname: '/screens/home/ucuts-view',
           params: {
-            initialIndex: index.toString(),
+            ownerId: story.id,
           },
         })
       }
-      className='w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
+      className='w-28 h-40 mr-3 rounded-2xl overflow-hidden bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D]'
     >
       <Image
         source={story.storyImage}
@@ -115,13 +79,89 @@ const StoryCard = ({ story, index }: { story: Story; index: number }) => {
 };
 
 const StorySection = () => {
+  const { user } = useAuthStore();
+  const { data } = useGetUCutsFeed();
+  const ucuts = data?.ucuts ?? [];
+
+  const stories: Story[] = useMemo(() => {
+    const groups = new Map<
+      string,
+      {
+        ownerId: string;
+        ownerName: string;
+        ownerAvatar: string;
+        latestAt: number;
+        items: any[];
+      }
+    >();
+
+    ucuts.forEach((ucut: any) => {
+      const owner = ucut?.owner || {};
+      const ownerId = owner?.id || ucut?.userId;
+      if (!ownerId) return;
+      const createdAt = new Date(ucut?.createdAt || 0).getTime();
+      const existing = groups.get(ownerId);
+      const ownerName = owner?.name || 'User';
+      const ownerAvatar =
+        owner?.profileImageUrl || 'https://via.placeholder.com/150';
+
+      if (!existing) {
+        groups.set(ownerId, {
+          ownerId,
+          ownerName,
+          ownerAvatar,
+          latestAt: createdAt,
+          items: [ucut],
+        });
+      } else {
+        existing.items.push(ucut);
+        if (createdAt > existing.latestAt) {
+          existing.latestAt = createdAt;
+        }
+      }
+    });
+
+    const groupedStories = Array.from(groups.values())
+      .sort((a, b) => b.latestAt - a.latestAt)
+      .map(group => {
+        const latest = [...group.items].sort((a: any, b: any) => {
+          const aTime = new Date(a?.createdAt || 0).getTime();
+          const bTime = new Date(b?.createdAt || 0).getTime();
+          return bTime - aTime;
+        })[0];
+        const firstSegment = [...(latest?.segments || [])].sort(
+          (a: any, b: any) => (a.order || 0) - (b.order || 0)
+        )[0];
+
+        return {
+          id: group.ownerId,
+          user: group.ownerName,
+          avatar: group.ownerAvatar,
+          storyImage: firstSegment?.url || 'https://via.placeholder.com/150',
+        };
+      });
+
+    return [
+      {
+        id: 'add-ucuts',
+        user: 'Add to UCuts',
+        avatar:
+          (user as any)?.profileImageUrl ||
+          'https://via.placeholder.com/150',
+        storyImage:
+          (user as any)?.profileImageUrl ||
+          'https://via.placeholder.com/150',
+        isMe: true,
+      },
+      ...groupedStories,
+    ];
+  }, [ucuts, user]);
+
   return (
     <View className='mt-6 mb-2'>
       <FlatList
         data={stories}
-        renderItem={({ item, index }) => (
-          <StoryCard story={item} index={index} />
-        )}
+        renderItem={({ item }) => <StoryCard story={item} />}
         keyExtractor={item => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}

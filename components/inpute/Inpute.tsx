@@ -1,6 +1,7 @@
-import Entypo from "@expo/vector-icons/Entypo";
-import React, { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import useThemeStore from '@/store/theme.store';
+import Entypo from '@expo/vector-icons/Entypo';
+import React, { useState } from 'react';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 type InputProps = {
   placeholder?: string;
@@ -30,24 +31,26 @@ const Inpute = ({
   multiline = false,
 }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false);
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
 
   return (
     <View className={className}>
       {title && (
-        <Text className="text-sm text-secondary dark:text-white/80 mb-1.5">
+        <Text className='text-sm text-black dark:text-white/80 mb-1.5'>
           {title}
-          {required && <Text className="text-red-600">*</Text>}
+          {required && <Text className='text-red-600'>*</Text>}
         </Text>
       )}
 
       <View
-        className={`flex-row items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-xl ${inputeStyle}`}
+        className={`flex-row items-center bg-[#151516] dark:bg-[#FFFFFF0D] rounded-xl ${inputeStyle}`}
       >
         <TextInput
           keyboardType={type}
-          className="flex-1 p-4 text-primary dark:text-white"
+          className='flex-1 p-4 text-white '
           placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={isLight ? 'white' : '#9CA3AF'}
           secureTextEntry={isPassword ? !showPassword : secureTextEntry}
           value={value}
           onChangeText={onChangeText}
@@ -57,12 +60,12 @@ const Inpute = ({
         {isPassword && (
           <TouchableOpacity
             onPress={() => setShowPassword(!showPassword)}
-            className="p-2"
+            className='p-2'
           >
             <Entypo
-              name={showPassword ? "eye-with-line" : "eye"}
+              name={showPassword ? 'eye-with-line' : 'eye'}
               size={20}
-              color="#9CA3AF"
+              color='#9CA3AF'
             />
           </TouchableOpacity>
         )}

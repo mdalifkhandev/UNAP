@@ -4,6 +4,7 @@ import Inpute from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useUserLogin } from '@/hooks/app/auth';
 import useAuthStore from '@/store/auth.store';
+import useThemeStore from '@/store/theme.store';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -22,6 +23,9 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const { mutate } = useUserLogin();
   const { setUser } = useAuthStore();
+
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
 
   // Login input states
   const [phoneNumber, setPhone] = useState('');
@@ -92,7 +96,7 @@ const Login = () => {
 
           <View className='flex-1 justify-center'>
             <View>
-              <Text className='text-[#000000] text-2xl font-roboto-semibold mt-6 text-center'>
+              <Text className='text-[#000000] dark:text-white text-2xl font-roboto-semibold mt-6 text-center'>
                 Welcome Back!
               </Text>
               <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5'>
@@ -100,7 +104,7 @@ const Login = () => {
               </Text>
             </View>
 
-            <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] p-6 rounded-3xl mt-6'>
+            <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] p-6 rounded-3xl mt-6'>
               <Inpute
                 title='Phone'
                 placeholder='+880 123 123 123'
@@ -151,7 +155,7 @@ const Login = () => {
                 <TouchableOpacity
                   onPress={() => router.push('/(auth)/forget-password')}
                 >
-                  <Text className='text-[#000000] font-roboto-regular text-sm'>
+                  <Text className='text-[#000000] dark:text-white font-roboto-regular text-sm'>
                     Forgot Password?
                   </Text>
                 </TouchableOpacity>
@@ -159,8 +163,8 @@ const Login = () => {
 
               <ShadowButton
                 text='Login'
-                textColor='#2B2B2B'
-                backGroundColor='#E8EBEE'
+                textColor={isLight ? 'white' : '#2B2B2B'}
+                backGroundColor={isLight ? 'black' : '#E8EBEE'}
                 onPress={handleLogin}
                 className='mt-4'
               />
@@ -183,21 +187,25 @@ const Login = () => {
                 Or continue with
               </Text>
               <View className='mt-6 flex-row justify-between items-center gap-6'>
-                <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>
+                <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>
                   <Image
                     source={require('@/assets/images/google.svg')}
                     contentFit='contain'
                     style={{ height: 24, width: 24 }}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>
+                <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>
                   <Image
                     source={require('@/assets/images/apple.svg')}
                     contentFit='contain'
-                    style={{ height: 24, width: 24 }}
+                    style={{
+                      height: 24,
+                      width: 24,
+                      tintColor: isLight ? 'black' : 'white',
+                    }}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>
+                <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>
                   <Image
                     source={require('@/assets/images/instagram.svg')}
                     contentFit='contain'

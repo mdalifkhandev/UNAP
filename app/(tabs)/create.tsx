@@ -15,7 +15,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { useVideoPlayer } from 'expo-video';
 import React, { useEffect, useState } from 'react';
 import {
@@ -308,7 +307,6 @@ const CreatePost = () => {
   if (mode === 'selection') {
     return (
       <GradientBackground>
-        <StatusBar style='dark' />
         <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
           <View className='mt-3 mx-6'>
             <Text className='font-roboto-bold text-primary dark:text-white text-3xl text-center mb-2'>
@@ -348,7 +346,6 @@ const CreatePost = () => {
 
   return (
     <GradientBackground>
-      <StatusBar style='dark' />
       <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

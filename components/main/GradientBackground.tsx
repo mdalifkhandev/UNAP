@@ -1,6 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { StatusBar } from "react-native";
 import useThemeStore from "@/store/theme.store";
 
 type GradientBackgroundProps = {
@@ -30,10 +29,6 @@ const GradientBackground = ({
       end={{ x: 1, y: 1 }}
       style={{ flex: 1, ...style }}
     >
-      <StatusBar
-        barStyle={isLight ? "dark-content" : "light-content"}
-        backgroundColor={isLight ? "white" : "black"}
-      />
       {children}
     </LinearGradient>
   );

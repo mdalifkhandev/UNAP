@@ -31,13 +31,13 @@ const WelcomeScreen = () => {
 
         {/* welcome message */}
         <View className='mt-8 my-10 items-center'>
-          <Text className='text-[#000000] font-roboto-semibold text-center text-2xl'>
+          <Text className='text-[#000000] dark:text-white font-roboto-semibold text-center text-2xl'>
             Welcome to
           </Text>
-          <Text className='text-[#000000] font-roboto-semibold text-center text-2xl'>
+          <Text className='text-[#000000] dark:text-white font-roboto-semibold text-center text-2xl'>
             United Artists of Power app
           </Text>
-          <Text className='text-[#000000] font-roboto-medium text-center text-sm mt-2'>
+          <Text className='text-[#000000] dark:text-white font-roboto-medium text-center text-sm mt-2'>
             Where artists unite, share, and rise together.
           </Text>
         </View>
@@ -53,9 +53,9 @@ const WelcomeScreen = () => {
 
           <TouchableOpacity
             onPress={() => router.push('/screens/auth/notice')}
-            className='p-3 bg-[#00000066] rounded-full mt-3 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
+            className='p-3 bg-[#00000066] dark:bg-slate-600 rounded-full mt-3 border border-black/20 dark:border-[#FFFFFF0D]'
           >
-            <Text className='font-roboto-bold text-[#000000] text-center'>
+            <Text className='font-roboto-bold text-[#000000] dark:text-white text-center'>
               Create Account
             </Text>
           </TouchableOpacity>

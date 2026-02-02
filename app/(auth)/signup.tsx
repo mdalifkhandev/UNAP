@@ -80,10 +80,8 @@ const Signup = () => {
         router.push('/screens/auth/signup-otp-verify');
         setEmail(formData.email);
       },
-
     });
   };
-
 
   return (
     <GradientBackground>
@@ -99,7 +97,7 @@ const Signup = () => {
             contentContainerStyle={{ paddingBottom: 100 }}
           >
             <View>
-              <Text className='text-[#000000] text-2xl font-roboto-semibold mt-6 text-center'>
+              <Text className='text-[#000000] dark:text-white text-2xl font-roboto-semibold mt-6 text-center'>
                 Welcome Back!
               </Text>
               <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5'>
@@ -207,7 +205,7 @@ const Signup = () => {
                 {Object.keys(socialIcons).map(item => (
                   <TouchableOpacity
                     key={item}
-                    className='flex-1 p-3 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl items-center'
+                    className='flex-1 p-3 border border-black/20 dark:border-[#FFFFFF0D] rounded-xl items-center'
                   >
                     <Image
                       source={socialIcons[item as keyof typeof socialIcons]}

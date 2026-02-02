@@ -3,10 +3,12 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import useThemeStore from '@/store/theme.store';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Feather from '@expo/vector-icons/Feather';
+import {
+  Feather,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { View } from 'react-native';
 
 export default function TabLayout() {
   const { mode } = useThemeStore();
@@ -40,11 +42,15 @@ export default function TabLayout() {
         options={{
           title: 'Trending',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="chart-timeline-variant-shimmer" size={24} color={color} />
+            <MaterialCommunityIcons
+              name='chart-timeline-variant-shimmer'
+              size={24}
+              color={color}
+            />
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name='create'
         options={{
           title: '',
@@ -62,8 +68,26 @@ export default function TabLayout() {
             </View>
           ),
         }}
-      />
+      /> */}
 
+      <Tabs.Screen
+        name='create'
+        options={{
+          title: 'Post',
+          tabBarIcon: ({ color }) => (
+            <Feather name='plus-square' size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='uclips'
+        options={{
+          title: 'UClips',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name='video-library' size={24} color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name='chats'
         options={{

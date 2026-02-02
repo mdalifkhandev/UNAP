@@ -59,7 +59,7 @@ const ResetPassword = () => {
 
         {/* welcome text */}
         <View>
-          <Text className='text-[#000000] text-2xl font-roboto-semibold mt-6 text-center'>
+          <Text className='text-[#000000] dark:text-white text-2xl font-roboto-semibold mt-6 text-center'>
             Set a new password
           </Text>
           <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5 '>

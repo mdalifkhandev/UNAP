@@ -68,7 +68,7 @@ const OTPVerification = () => {
 
         {/* welcome text */}
         <View>
-          <Text className='text-[#000000] text-2xl font-roboto-semibold mt-6 text-center'>
+          <Text className='text-[#000000] dark:text-white text-2xl font-roboto-semibold mt-6 text-center'>
             OTP Verification
           </Text>
           <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5 '>
@@ -88,7 +88,7 @@ const OTPVerification = () => {
                 className={`w-10 h-10 border rounded-[10px] text-sm pb-2 ${
                   digit
                     ? 'border-gray-300 bg-white'
-                    : 'border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-white'
+                    : 'border-black/20 dark:border-[#FFFFFF0D] bg-white'
                 }`}
                 style={{ textAlign: 'center' }}
                 value={digit}
