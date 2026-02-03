@@ -6,10 +6,16 @@ import {
   useCreatePost,
   useEditPost,
   useUpdateScheduledPost,
+  useCreatePostByUrl,
 } from '@/hooks/app/post';
+import {
+  useUploadSignature,
+  useUploadVideoToCloudinary,
+} from '@/hooks/app/uploads';
 import useThemeStore from '@/store/theme.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -48,6 +54,10 @@ const CreatePost = () => {
   const [isInstagram, setIsInstagram] = useState(
     params.shareToInstagram === 'true'
   );
+  const [isTwitter, setIsTwitter] = useState(false);
+  const [isYouTube, setIsYouTube] = useState(false);
+  const [isSnapchat, setIsSnapchat] = useState(false);
+  const [isTikTok, setIsTikTok] = useState(false);
   const [description, setDescription] = useState(
     (params.description as string) || ''
   );
@@ -66,6 +76,8 @@ const CreatePost = () => {
   const [photo, setPhoto] = useState<string | null>(null);
   const [video, setVideo] = useState<string | null>(null);
   const [audio, setAudio] = useState<string | null>(null);
+  const [videoSize, setVideoSize] = useState<number | null>(null);
+  const [videoName, setVideoName] = useState<string | null>(null);
   const [videoPlayerUri, setVideoPlayerUri] = useState<string | null>(null);
   const videoPlayer = useVideoPlayer(videoPlayerUri || '', player => {
     player.loop = true;
@@ -73,11 +85,27 @@ const CreatePost = () => {
   });
 
   const { mutate: createPost, isPending: isCreating } = useCreatePost();
+  const { mutate: createPostByUrl, isPending: isCreatingByUrl } =
+    useCreatePostByUrl();
+  const { mutateAsync: requestSignature, isPending: isSigning } =
+    useUploadSignature();
+  const { mutateAsync: uploadVideo, isPending: isUploadingVideo } =
+    useUploadVideoToCloudinary();
   const { mutate: updateScheduledPost, isPending: isUpdatingScheduled } =
     useUpdateScheduledPost();
   const { mutate: editPost, isPending: isEditingPublished } = useEditPost();
 
-  const isLoading = isCreating || isUpdatingScheduled || isEditingPublished;
+  const isLoading =
+    isCreating ||
+    isUpdatingScheduled ||
+    isEditingPublished ||
+    isCreatingByUrl ||
+    isSigning ||
+    isUploadingVideo;
+
+  const [postType, setPostType] = useState<'post' | 'uclip'>(
+    (params.postType as 'uclip' | 'post') || 'post'
+  );
 
   useEffect(() => {
     if (!resetKey) return;
@@ -85,14 +113,21 @@ const CreatePost = () => {
     setPhoto(null);
     setVideo(null);
     setAudio(null);
+    setVideoSize(null);
+    setVideoName(null);
     setVideoPlayerUri(null);
     setDescription('');
     setIsFacebook(false);
     setIsInstagram(false);
+    setIsTwitter(false);
+    setIsYouTube(false);
+    setIsSnapchat(false);
+    setIsTikTok(false);
     setIsScheduleMode(false);
     setScheduledDate(new Date());
     setShowDatePicker(false);
     setShowTimePicker(false);
+    setPostType('post');
   }, [resetKey]);
 
   useEffect(() => {
@@ -104,6 +139,8 @@ const CreatePost = () => {
       } else if (type === 'video') {
         setVideo(url);
         setVideoPlayerUri(url);
+        setVideoSize(null);
+        setVideoName(null);
       } else if (type === 'audio') {
         setAudio(url);
       }
@@ -137,9 +174,29 @@ const CreatePost = () => {
     }
   };
 
+  const BIG_VIDEO_BYTES = 50 * 1024 * 1024;
+
+  const buildShareTargets = () => {
+    const targets: string[] = [];
+    if (isFacebook) targets.push('facebook');
+    if (isInstagram) targets.push('instagram');
+    if (isTwitter) targets.push('twitter');
+    if (isYouTube) targets.push('youtube');
+    if (isSnapchat) targets.push('snapchat');
+    if (isTikTok) targets.push('tiktok');
+    return targets;
+  };
+
+  // moved to hooks: useUploadSignature, useUploadVideoToCloudinary
+
   const handlePost = async () => {
     if (!photo && !video && !audio) {
       alert('Please select a media file (photo, video, or audio)');
+      return;
+    }
+
+    if (postType === 'uclip' && !video) {
+      alert('UClip requires a video');
       return;
     }
 
@@ -152,6 +209,8 @@ const CreatePost = () => {
 
     const isRemote = (uri: string) => uri.startsWith('http');
 
+    const shareTargets = buildShareTargets();
+
     if (photo && !isRemote(photo)) {
       const filename = photo.split('/').pop() || 'photo.jpg';
       const match = /\.(\w+)$/.exec(filename);
@@ -163,6 +222,77 @@ const CreatePost = () => {
       } as any);
       formData.append('mediaType', 'image');
     } else if (video && !isRemote(video)) {
+      if (videoSize && videoSize > BIG_VIDEO_BYTES) {
+        try {
+          const signatureData = await requestSignature({
+            folder: 'mister/posts',
+            resourceType: 'video',
+          });
+          const uploadRes = await uploadVideo({
+            signature: signatureData,
+            uri: video,
+            fileName: videoName,
+          });
+          const mediaUrl =
+            uploadRes?.secure_url || uploadRes?.url || uploadRes?.playback_url;
+          if (!mediaUrl) {
+            throw new Error('Missing media URL from upload response');
+          }
+          createPostByUrl(
+            {
+              description,
+              mediaUrl,
+              mediaType: 'video',
+              shareTargets,
+              postType: postType === 'uclip' ? 'uclip' : undefined,
+              scheduledFor: isScheduleMode
+                ? scheduledDate.toISOString()
+                : undefined,
+            },
+            {
+              onSuccess: () => {
+                setPhoto(null);
+                setVideo(null);
+                setVideoPlayerUri(null);
+                setAudio(null);
+                setDescription('');
+                setIsFacebook(false);
+                setIsInstagram(false);
+                setIsTwitter(false);
+                setIsYouTube(false);
+                setIsSnapchat(false);
+                setIsTikTok(false);
+                setIsScheduleMode(false);
+                setVideoSize(null);
+                setVideoName(null);
+
+                alert(
+                  isScheduleMode
+                    ? 'Post scheduled successfully!'
+                    : 'Post created successfully!'
+                );
+                setMode('selection');
+              },
+              onError: (error: any) => {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Post Creation Failed',
+                  text2: error?.response?.data?.message || error.message,
+                });
+              },
+            }
+          );
+          return;
+        } catch (err: any) {
+          Toast.show({
+            type: 'error',
+            text1: 'Upload Failed',
+            text2: err?.message || 'Cloud upload failed',
+          });
+          return;
+        }
+      }
+
       const filename = video.split('/').pop() || 'video.mp4';
       const match = /\.(\w+)$/.exec(filename);
       const ext = match?.[1]?.toLowerCase() || 'mp4';
@@ -185,8 +315,10 @@ const CreatePost = () => {
     }
 
     formData.append('description', description);
-    formData.append('shareToFacebook', isFacebook.toString());
-    formData.append('shareToInstagram', isInstagram.toString());
+    formData.append('shareTargets', JSON.stringify(shareTargets));
+    if (postType === 'uclip') {
+      formData.append('postType', 'uclip');
+    }
 
     if (isScheduleMode) {
       if (scheduledDate <= new Date()) {
@@ -278,6 +410,14 @@ const CreatePost = () => {
   };
 
   const pickPhoto = async () => {
+    if (postType === 'uclip') {
+      Toast.show({
+        type: 'info',
+        text1: 'UClip Video Only',
+        text2: 'UClip supports video only.',
+      });
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
@@ -297,6 +437,8 @@ const CreatePost = () => {
     });
     if (!result.canceled) {
       setVideo(result.assets[0].uri);
+      setVideoSize(result.assets[0].fileSize ?? null);
+      setVideoName(result.assets[0].fileName ?? null);
       setVideoPlayerUri(result.assets[0].uri);
       setPhoto(null);
       setAudio(null);
@@ -304,6 +446,14 @@ const CreatePost = () => {
   };
 
   const pickAudio = async () => {
+    if (postType === 'uclip') {
+      Toast.show({
+        type: 'info',
+        text1: 'UClip Video Only',
+        text2: 'UClip supports video only.',
+      });
+      return;
+    }
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'audio/*',
@@ -334,7 +484,7 @@ const CreatePost = () => {
             </Text>
           </View>
 
-          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full'></View>
 
           <ScrollView
             contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 40 }}
@@ -407,7 +557,7 @@ const CreatePost = () => {
           </View>
 
           {/* border */}
-          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
 
           {/* Schedule Toggle */}
           {!isPublishedConfig && (
@@ -516,6 +666,41 @@ const CreatePost = () => {
             contentContainerStyle={{ paddingBottom: 72 }}
           >
             <View className='flex-1'>
+              {/* Post Type Selector */}
+              <View className='px-6 pt-4'>
+                <View className='flex-row gap-3'>
+                  <TouchableOpacity
+                    onPress={() => setPostType('post')}
+                    className={`flex-1 py-2 rounded-full items-center justify-center ${
+                      postType === 'post'
+                        ? 'bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D]'
+                        : 'bg-transparent border border-black/10 dark:border-[#FFFFFF0D]'
+                    }`}
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      Post
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setPostType('uclip')}
+                    className={`flex-1 py-2 rounded-full items-center justify-center ${
+                      postType === 'uclip'
+                        ? 'bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D]'
+                        : 'bg-transparent border border-black/10 dark:border-[#FFFFFF0D]'
+                    }`}
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      UClip
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {postType === 'uclip' && (
+                  <Text className='text-secondary dark:text-white/80 text-xs mt-2'>
+                    UClip is video only.
+                  </Text>
+                )}
+              </View>
+
               <View className='px-6 pt-4'>
                 <MediaPreview
                   photo={photo}
@@ -546,52 +731,147 @@ const CreatePost = () => {
                 onPickPhoto={pickPhoto}
                 onPickVideo={pickVideo}
                 onPickAudio={pickAudio}
+                disablePhoto={postType === 'uclip'}
+                disableAudio={postType === 'uclip'}
               />
 
-              <View className='mx-5 p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg mt-7 flex-row justify-between items-center'>
-                <View className='flex-row gap-3 items-center'>
-                  <Feather
-                    name='facebook'
-                    size={24}
-                    color={isLight ? 'black' : 'white'}
-                  />
-                  <Text className='text-black dark:text-white'>
-                    Share with Facebook
+              {/* Share Targets */}
+              <View className='mx-5 p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg mt-7'>
+                <View className='flex-row justify-between items-center mb-4'>
+                  <Text className='text-black dark:text-white font-roboto-medium'>
+                    Share Targets
                   </Text>
                 </View>
-                <TouchableOpacity
-                  onPress={() => setIsFacebook(!isFacebook)}
-                  className='w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center'
-                >
-                  {isFacebook ? (
-                    <View className='w-3.5 h-3.5 bg-blue-500 rounded-full' />
-                  ) : (
-                    <View className='w-3.5 h-3.5 bg-white rounded-full' />
-                  )}
-                </TouchableOpacity>
-              </View>
 
-              <View className='mx-5 p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg mt-7 flex-row justify-between items-center mb-8'>
-                <View className='flex-row gap-3 items-center'>
-                  <SimpleLineIcons
-                    name='social-instagram'
-                    size={24}
-                    color={isLight ? 'black' : 'white'}
-                  />
-                  <Text className='text-black dark:text-white'>
-                    Share with Instagram
-                  </Text>
+                <View className='flex-row justify-between items-center mb-4'>
+                  <View className='flex-row gap-3 items-center'>
+                    <Feather
+                      name='facebook'
+                      size={22}
+                      color={isLight ? 'black' : 'white'}
+                    />
+                    <Text className='text-black dark:text-white'>
+                      Facebook
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setIsFacebook(!isFacebook)}
+                    className='w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center'
+                  >
+                    {isFacebook ? (
+                      <View className='w-3.5 h-3.5 bg-blue-500 rounded-full' />
+                    ) : (
+                      <View className='w-3.5 h-3.5 bg-white rounded-full' />
+                    )}
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  onPress={() => setIsInstagram(!isInstagram)}
-                  className='w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center'
-                >
-                  {isInstagram ? (
-                    <View className='w-3.5 h-3.5 bg-blue-500 rounded-full' />
-                  ) : (
-                    <View className='w-3.5 h-3.5 bg-white rounded-full' />
-                  )}
-                </TouchableOpacity>
+
+                <View className='flex-row justify-between items-center mb-4'>
+                  <View className='flex-row gap-3 items-center'>
+                    <SimpleLineIcons
+                      name='social-instagram'
+                      size={22}
+                      color={isLight ? 'black' : 'white'}
+                    />
+                    <Text className='text-black dark:text-white'>
+                      Instagram
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setIsInstagram(!isInstagram)}
+                    className='w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center'
+                  >
+                    {isInstagram ? (
+                      <View className='w-3.5 h-3.5 bg-blue-500 rounded-full' />
+                    ) : (
+                      <View className='w-3.5 h-3.5 bg-white rounded-full' />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                <View className='flex-row justify-between items-center mb-4'>
+                  <View className='flex-row gap-3 items-center'>
+                    <Feather
+                      name='twitter'
+                      size={22}
+                      color={isLight ? 'black' : 'white'}
+                    />
+                    <Text className='text-black dark:text-white'>Twitter</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setIsTwitter(!isTwitter)}
+                    className='w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center'
+                  >
+                    {isTwitter ? (
+                      <View className='w-3.5 h-3.5 bg-blue-500 rounded-full' />
+                    ) : (
+                      <View className='w-3.5 h-3.5 bg-white rounded-full' />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                <View className='flex-row justify-between items-center mb-4'>
+                  <View className='flex-row gap-3 items-center'>
+                    <Ionicons
+                      name='logo-youtube'
+                      size={22}
+                      color={isLight ? 'black' : 'white'}
+                    />
+                    <Text className='text-black dark:text-white'>YouTube</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setIsYouTube(!isYouTube)}
+                    className='w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center'
+                  >
+                    {isYouTube ? (
+                      <View className='w-3.5 h-3.5 bg-blue-500 rounded-full' />
+                    ) : (
+                      <View className='w-3.5 h-3.5 bg-white rounded-full' />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                <View className='flex-row justify-between items-center mb-4'>
+                  <View className='flex-row gap-3 items-center'>
+                    <Ionicons
+                      name='logo-snapchat'
+                      size={22}
+                      color={isLight ? 'black' : 'white'}
+                    />
+                    <Text className='text-black dark:text-white'>Snapchat</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setIsSnapchat(!isSnapchat)}
+                    className='w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center'
+                  >
+                    {isSnapchat ? (
+                      <View className='w-3.5 h-3.5 bg-blue-500 rounded-full' />
+                    ) : (
+                      <View className='w-3.5 h-3.5 bg-white rounded-full' />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                <View className='flex-row justify-between items-center'>
+                  <View className='flex-row gap-3 items-center'>
+                    <Ionicons
+                      name='logo-tiktok'
+                      size={22}
+                      color={isLight ? 'black' : 'white'}
+                    />
+                    <Text className='text-black dark:text-white'>TikTok</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setIsTikTok(!isTikTok)}
+                    className='w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center'
+                  >
+                    {isTikTok ? (
+                      <View className='w-3.5 h-3.5 bg-blue-500 rounded-full' />
+                    ) : (
+                      <View className='w-3.5 h-3.5 bg-white rounded-full' />
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </ScrollView>

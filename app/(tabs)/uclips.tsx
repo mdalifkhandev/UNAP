@@ -1,13 +1,23 @@
 import GradientBackground from '@/components/main/GradientBackground';
+import {
+  useUserCreateComment,
+  useUserGetComment,
+  useUserLike,
+  useUserUnLike,
+} from '@/hooks/app/home';
+import { useSavePost, useSharePost, useUnsavePost } from '@/hooks/app/post';
+import { useGetUclips } from '@/hooks/app/uclips';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import React, { useMemo, useState } from 'react';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import React, { useState } from 'react';
 import {
   Dimensions,
   FlatList,
   Modal,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -15,54 +25,65 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { height, width } = Dimensions.get('window');
 
-const uclips = () => {
+type UclipPost = {
+  _id: string;
+  description: string;
+  mediaType: 'video';
+  mediaUrl: string;
+  postType: 'uclip';
+  viewCount: number;
+  createdAt: string;
+  author: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  profile: {
+    username: string;
+    displayName: string;
+    role: string;
+    profileImageUrl: string;
+  };
+  likeCount: number;
+  commentCount: number;
+  shareCount: number;
+  viewerHasLiked: boolean;
+  viewerIsFollowing: boolean;
+  viewerHasSaved: boolean;
+};
+
+const UclipItem = ({ item }: { item: UclipPost }) => {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
-  const iconColor = isLight ? 'black' : 'white';
+  const [liked, setLiked] = useState(!!item.viewerHasLiked);
+  const [saved, setSaved] = useState(!!item.viewerHasSaved);
+  const [likes, setLikes] = useState(item.likeCount || 0);
+  const [shares, setShares] = useState(item.shareCount || 0);
+  const [activeComment, setActiveComment] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [isPaused, setIsPaused] = useState(false);
 
-  const initialClips = useMemo(
-    () => [
-      {
-        id: '1',
-        user: 'Maya Lin',
-        caption: 'Studio session: new drop coming soon. 🎧',
-        likes: 12400,
-        comments: 1200,
-        shares: 420,
-        saved: false,
-        liked: false,
-        avatar: require('@/assets/images/profile.png'),
-        poster: require('@/assets/images/post.png'),
-      },
-      {
-        id: '2',
-        user: 'UNAP Official',
-        caption: 'Weekly spotlight: share your best 30s clip.',
-        likes: 9800,
-        comments: 980,
-        shares: 300,
-        saved: false,
-        liked: false,
-        avatar: require('@/assets/images/profile.png'),
-        poster: require('@/assets/images/post.png'),
-      },
-      {
-        id: '3',
-        user: 'Luna Voice',
-        caption: 'Late night vibes. 🌙',
-        likes: 7100,
-        comments: 640,
-        shares: 210,
-        saved: false,
-        liked: false,
-        avatar: require('@/assets/images/profile.png'),
-        poster: require('@/assets/images/post.png'),
-      },
-    ],
-    []
-  );
-  const [clips, setClips] = useState(initialClips);
-  const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+  const { mutate: likePost } = useUserLike();
+  const { mutate: unlikePost } = useUserUnLike();
+  const { mutate: savePost } = useSavePost();
+  const { mutate: unsavePost } = useUnsavePost();
+  const { mutate: sharePost } = useSharePost();
+  const { data: commentData } = useUserGetComment(item._id);
+  const { mutate: addComment } = useUserCreateComment();
+  const comments = (commentData as any)?.comments || [];
+
+  const player = useVideoPlayer(item.mediaUrl || '', p => {
+    p.loop = true;
+    p.play();
+  });
+
+  React.useEffect(() => {
+    if (isPaused) {
+      player.pause();
+    } else {
+      player.play();
+    }
+  }, [isPaused, player]);
 
   const formatCount = (value: number) => {
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
@@ -70,176 +91,152 @@ const uclips = () => {
     return `${value}`;
   };
 
-  const handleToggleLike = (id: string) => {
-    setClips(prev =>
-      prev.map(item => {
-        if (item.id !== id) return item;
-        const liked = !item.liked;
-        return {
-          ...item,
-          liked,
-          likes: liked ? item.likes + 1 : Math.max(0, item.likes - 1),
-        };
-      })
-    );
-  };
+  return (
+    <View style={{ height, width }} className='relative overflow-hidden'>
+      <VideoView
+        player={player}
+        style={{ width: '100%', height: '100%', position: 'absolute' }}
+        nativeControls={false}
+        contentFit='cover'
+      />
 
-  const handleToggleSave = (id: string) => {
-    setClips(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, saved: !item.saved } : item
-      )
-    );
-  };
-
-  const handleShare = (id: string) => {
-    setClips(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, shares: item.shares + 1 } : item
-      )
-    );
-  };
-
-  const openComments = (id: string) => {
-    setActiveCommentId(id);
-  };
-
-  const closeComments = () => {
-    setActiveCommentId(null);
-  };
-
-  const renderItem = ({ item }: { item: (typeof clips)[number] }) => {
-    return (
-      <View style={{ height, width }} className='relative overflow-hidden'>
-        <Image
-          source={item.poster}
-          style={{ width: '100%', height: '100%', position: 'absolute' }}
-          contentFit='cover'
-        />
-
-        <View className='absolute inset-0 bg-black/20 z-10' />
-
-        <SafeAreaView
-          edges={['top', 'left', 'right', 'bottom']}
-          className='flex-1 justify-between z-20 mt-5 mb-16'
+      <View className='absolute inset-0 bg-black/20 z-10' />
+      <View className='absolute top-20 right-6 z-30'>
+        <TouchableOpacity
+          onPress={() => {
+            setIsPaused(prev => !prev);
+          }}
+          className='h-10 w-10 rounded-full bg-black/60 items-center justify-center'
         >
-          <View className='px-6 pt-3 flex-row items-center justify-between'>
-            <Text className='text-black dark:text-white font-roboto-bold text-2xl'>
-              UClips
+          <Ionicons
+            name={isPaused ? 'play' : 'pause'}
+            size={20}
+            color='white'
+          />
+        </TouchableOpacity>
+      </View>
+
+      <SafeAreaView
+        edges={['top', 'left', 'right', 'bottom']}
+        className='flex-1 justify-between z-20 mt-5 mb-16'
+      >
+        <View className='px-6 pt-3 flex-row items-center justify-between'>
+          <Text className='text-black dark:text-white font-roboto-bold text-2xl'>
+            UClips
+          </Text>
+        </View>
+
+        <View className='flex-row justify-between items-end px-6 pb-12'>
+          <View className='w-3/4'>
+            <View className='flex-row items-center gap-3 mb-3'>
+              <Image
+                source={{
+                  uri:
+                    item.profile?.profileImageUrl ||
+                    'https://via.placeholder.com/150',
+                }}
+                style={{ width: 44, height: 44, borderRadius: 22 }}
+                contentFit='cover'
+              />
+              <View>
+                <Text className='text-black dark:text-white font-roboto-semibold text-base'>
+                  {item.profile?.displayName || item.author?.name || 'User'}
+                </Text>
+                <Text className='text-black/70 dark:text-white/70 text-xs'>
+                  @{item.profile?.username || 'uclip'}
+                </Text>
+              </View>
+            </View>
+
+            <Text className='text-black dark:text-white text-sm'>
+              {item.description}
             </Text>
           </View>
 
-          <View className='flex-row justify-between items-end px-6 pb-12'>
-            <View className='w-3/4'>
-              <View className='flex-row items-center gap-3 mb-3'>
-                <Image
-                  source={item.avatar}
-                  style={{ width: 44, height: 44, borderRadius: 22 }}
-                  contentFit='cover'
+          <View className='items-center gap-5'>
+            <TouchableOpacity
+              className='items-center'
+              onPress={() => {
+                const next = !liked;
+                setLiked(next);
+                setLikes(prev => (next ? prev + 1 : Math.max(0, prev - 1)));
+                if (next) likePost({ postId: item._id });
+                else unlikePost(item._id);
+              }}
+            >
+              <View className='h-12 w-12 rounded-full bg-black/40 items-center justify-center'>
+                <Ionicons
+                  name={liked ? 'heart' : 'heart-outline'}
+                  size={26}
+                  color={liked ? '#E11D48' : 'white'}
                 />
-                <View>
-                  <Text className='text-black dark:text-white font-roboto-semibold text-base'>
-                    {item.user}
-                  </Text>
-                  <Text className='text-black/70 dark:text-white/70 text-xs'>
-                    @unap
-                  </Text>
-                </View>
               </View>
-
-              <Text className='text-black dark:text-white text-sm'>
-                {item.caption}
+              <Text className='text-black dark:text-white text-xs mt-1'>
+                {formatCount(likes)}
               </Text>
-            </View>
+            </TouchableOpacity>
 
-            <View className='items-center gap-5'>
-              <TouchableOpacity
-                className='items-center'
-                onPress={() => handleToggleLike(item.id)}
-              >
-                <View className='h-12 w-12 rounded-full bg-black/40 items-center justify-center'>
-                  <Ionicons
-                    name={item.liked ? 'heart' : 'heart-outline'}
-                    size={26}
-                    color={item.liked ? '#E11D48' : 'white'}
-                  />
-                </View>
-                <Text className='text-black dark:text-white text-xs mt-1'>
-                  {formatCount(item.likes)}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className='items-center'
-                onPress={() => openComments(item.id)}
-              >
-                <View className='h-12 w-12 rounded-full bg-black/40 items-center justify-center'>
-                  <Ionicons
-                    name='chatbubble-ellipses-outline'
-                    size={24}
-                    color='white'
-                  />
-                </View>
-                <Text className='text-black dark:text-white text-xs mt-1'>
-                  {formatCount(item.comments)}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className='items-center'
-                onPress={() => handleShare(item.id)}
-              >
-                <View className='h-12 w-12 rounded-full bg-black/40 items-center justify-center'>
-                  <Ionicons
-                    name='share-social-outline'
-                    size={24}
-                    color='white'
-                  />
-                </View>
-                <Text className='text-black dark:text-white text-xs mt-1'>
-                  {formatCount(item.shares)}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className='items-center'
-                onPress={() => handleToggleSave(item.id)}
-              >
-                <View className='h-12 w-12 rounded-full bg-black/40 items-center justify-center'>
-                  <Ionicons
-                    name={item.saved ? 'bookmark' : 'bookmark-outline'}
-                    size={24}
-                    color={item.saved ? '#2563EB' : 'white'}
-                  />
-                </View>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              className='items-center'
+              onPress={() => setActiveComment(true)}
+            >
+              <View className='h-12 w-12 rounded-full bg-black/40 items-center justify-center'>
+                <Ionicons
+                  name='chatbubble-ellipses-outline'
+                  size={24}
+                  color='white'
+                />
+              </View>
+              <Text className='text-black dark:text-white text-xs mt-1'>
+                {formatCount(item.commentCount || 0)}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className='items-center'
+              onPress={() => {
+                setShares(prev => prev + 1);
+                sharePost(item._id);
+              }}
+            >
+              <View className='h-12 w-12 rounded-full bg-black/40 items-center justify-center'>
+                <Ionicons name='share-social-outline' size={24} color='white' />
+              </View>
+              <Text className='text-black dark:text-white text-xs mt-1'>
+                {formatCount(shares)}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className='items-center'
+              onPress={() => {
+                const next = !saved;
+                setSaved(next);
+                if (next) savePost(item._id);
+                else unsavePost(item._id);
+              }}
+            >
+              <View className='h-12 w-12 rounded-full bg-black/40 items-center justify-center'>
+                <Ionicons
+                  name={saved ? 'bookmark' : 'bookmark-outline'}
+                  size={24}
+                  color={saved ? '#2563EB' : 'white'}
+                />
+              </View>
+            </TouchableOpacity>
           </View>
-        </SafeAreaView>
-      </View>
-    );
-  };
-
-  return (
-    <GradientBackground>
-      <View className='flex-1'>
-        <FlatList
-          data={clips}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          pagingEnabled
-          showsVerticalScrollIndicator={false}
-          snapToAlignment='start'
-          decelerationRate='fast'
-        />
-      </View>
+        </View>
+      </SafeAreaView>
 
       <Modal
-        visible={!!activeCommentId}
+        visible={!!activeComment}
         transparent
         animationType='slide'
-        onRequestClose={closeComments}
+        onRequestClose={() => setActiveComment(false)}
       >
         <TouchableOpacity
           activeOpacity={1}
-          onPress={closeComments}
+          onPress={() => setActiveComment(false)}
           className='flex-1 justify-end bg-black/50'
         >
           <TouchableOpacity
@@ -251,13 +248,84 @@ const uclips = () => {
               Comments
             </Text>
             <View className='mt-4'>
-              <Text className='text-black/70 dark:text-white/70'>
-                No comments yet. Be the first to comment!
-              </Text>
+              {comments.length === 0 ? (
+                <Text className='text-black/70 dark:text-white/70'>
+                  No comments yet. Be the first to comment!
+                </Text>
+              ) : (
+                comments.map((c: any) => (
+                  <View key={c._id} className='mb-3'>
+                    <Text className='text-black dark:text-white font-roboto-semibold'>
+                      {c?.profile?.displayName || c?.user?.name || 'User'}
+                    </Text>
+                    <Text className='text-black/70 dark:text-white/70'>
+                      {c?.text}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </View>
+            <View className='mt-4 flex-row items-center gap-2'>
+              <TextInput
+                value={commentText}
+                onChangeText={setCommentText}
+                placeholder='Write a comment...'
+                placeholderTextColor={isLight ? '#6B7280' : '#BBBBBB'}
+                className='flex-1 bg-white/80 dark:bg-white/10 text-black dark:text-white p-3 rounded-2xl'
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  if (!commentText.trim()) return;
+                  addComment({ postId: item._id, text: commentText.trim() });
+                  setCommentText('');
+                }}
+                className='bg-black/80 px-4 py-3 rounded-2xl'
+              >
+                <Text className='text-white'>Send</Text>
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+    </View>
+  );
+};
+
+const uclips = () => {
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useGetUclips(10);
+  const clips = data?.pages.flatMap((page: any) => page?.posts || []) || [];
+
+  return (
+    <GradientBackground>
+      <View className='flex-1'>
+        <FlatList
+          data={clips}
+          renderItem={({ item }) => <UclipItem item={item} />}
+          keyExtractor={item => item._id}
+          pagingEnabled
+          showsVerticalScrollIndicator={false}
+          snapToAlignment='start'
+          decelerationRate='fast'
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          ListEmptyComponent={
+            !isLoading ? (
+              <View className='flex-1 items-center justify-center mt-10'>
+                <Text className='text-black dark:text-white'>
+                  No clips found
+                </Text>
+              </View>
+            ) : null
+          }
+        />
+      </View>
     </GradientBackground>
   );
 };

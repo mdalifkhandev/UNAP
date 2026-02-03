@@ -6,18 +6,25 @@ interface MediaPickersProps {
   onPickPhoto: () => void;
   onPickVideo: () => void;
   onPickAudio: () => void;
+  disablePhoto?: boolean;
+  disableVideo?: boolean;
+  disableAudio?: boolean;
 }
 
 const MediaPickers: React.FC<MediaPickersProps> = ({
   onPickPhoto,
   onPickVideo,
   onPickAudio,
+  disablePhoto = false,
+  disableVideo = false,
+  disableAudio = false,
 }) => {
   return (
     <View className='flex-row justify-between px-6 mt-6'>
       <TouchableOpacity
         onPress={onPickPhoto}
-        className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-5 py-4 rounded-lg items-center flex-1 mr-3'
+        disabled={disablePhoto}
+        className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-5 py-4 rounded-lg items-center flex-1 mr-3 ${disablePhoto ? 'opacity-40' : ''}`}
         activeOpacity={0.7}
       >
         <Feather name='image' size={32} color='#00E6E6' />
@@ -28,7 +35,8 @@ const MediaPickers: React.FC<MediaPickersProps> = ({
 
       <TouchableOpacity
         onPress={onPickVideo}
-        className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-5 py-4 rounded-lg items-center flex-1 mr-3'
+        disabled={disableVideo}
+        className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-5 py-4 rounded-lg items-center flex-1 mr-3 ${disableVideo ? 'opacity-40' : ''}`}
         activeOpacity={0.7}
       >
         <Feather name='video' size={32} color='#E60076' />
@@ -39,7 +47,8 @@ const MediaPickers: React.FC<MediaPickersProps> = ({
 
       <TouchableOpacity
         onPress={onPickAudio}
-        className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-5 py-4 rounded-lg items-center flex-1'
+        disabled={disableAudio}
+        className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-5 py-4 rounded-lg items-center flex-1 ${disableAudio ? 'opacity-40' : ''}`}
         activeOpacity={0.7}
       >
         <Feather name='music' size={32} color='#F54900' />

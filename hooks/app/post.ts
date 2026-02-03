@@ -33,6 +33,38 @@ export const useCreatePost = () => {
   });
 };
 
+export const useCreatePostByUrl = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      description: string;
+      mediaUrl: string;
+      mediaType: 'image' | 'video' | 'audio';
+      shareTargets: string[];
+      postType?: string;
+      scheduledFor?: string;
+    }) => {
+      const res = await api.post('/api/posts', data);
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Post Created',
+        text2: data?.message || 'Your post has been shared successfully.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Post Failed',
+        text2: error?.response?.data?.message || error.message,
+      });
+    },
+  });
+};
+
 export const useSavePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
