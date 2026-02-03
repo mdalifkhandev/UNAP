@@ -294,7 +294,7 @@ const PostCard = ({
         {isScheduled ? (
           <View className='flex-row gap-2'>
             <TouchableOpacity
-              className='py-1.5 px-3 rounded-full bg-[#F0F2F5] dark:bg-white/10 border border-black/20 dark:border-[#FFFFFF0D] dark:border-white/20'
+              className='py-1.5 px-3 rounded-full bg-[#F0F2F5] dark:bg-white/10 border border-black/20 dark:border-[#FFFFFF0D]'
               onPress={() =>
                 router.push({
                   pathname: '/(tabs)/create',
@@ -326,7 +326,7 @@ const PostCard = ({
         ) : isOwner && showOwnerActions ? (
           <View className='flex-row gap-2'>
             <TouchableOpacity
-              className='py-1.5 px-3 rounded-full bg-[#F0F2F5] dark:bg-white/10 border border-black/20 dark:border-[#FFFFFF0D] dark:border-white/20'
+              className='py-1.5 px-3 rounded-full bg-[#F0F2F5] dark:bg-white/10 border border-black/20 dark:border-[#FFFFFF0D]'
               onPress={() =>
                 router.push({
                   pathname: '/(tabs)/create',
@@ -491,7 +491,7 @@ const PostCard = ({
 
       {/* expandable comment section */}
       {showComments && !isScheduled && (
-        <View className='px-3 pb-4 border-t border-black/20 dark:border-[#FFFFFF0D] dark:border-white/10 pt-3'>
+        <View className='px-3 pb-4 border-t border-black/20 dark:border-white/10 pt-3'>
           {/* Comment Input */}
           <View className='flex-row items-center gap-2 mb-4'>
             <TextInput

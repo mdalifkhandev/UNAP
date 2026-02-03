@@ -1,7 +1,10 @@
 import ShadowButton from '@/components/button/ShadowButton';
+import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useUserFollow, useUserUnFollow } from '@/hooks/app/home';
 import { useGetOtherProfile } from '@/hooks/app/profile';
+import useAuthStore from '@/store/auth.store';
+import useThemeStore from '@/store/theme.store';
 import Feather from '@expo/vector-icons/Feather';
 import Foundation from '@expo/vector-icons/Foundation';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -10,12 +13,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -38,9 +41,12 @@ const VideoGridItem = ({ uri }: { uri: string }) => {
 
 const OtherProfile = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuthStore();
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
+  const iconColor = isLight ? 'black' : 'white';
   const { data, isLoading } = useGetOtherProfile(id || '');
 
-  // Hooks for follow/unfollow
   const { mutate: followUser } = useUserFollow();
   const { mutate: unfollowUser } = useUserUnFollow();
 
@@ -50,9 +56,9 @@ const OtherProfile = () => {
   const viewerIsFollowingInitial = data?.viewerIsFollowing || false;
 
   const [isFollowing, setIsFollowing] = useState(viewerIsFollowingInitial);
-  const [selectedType, setSelectedType] = useState<'photo' | 'video' | 'music'>(
-    'photo'
-  );
+  const [selectedType, setSelectedType] = useState<
+    'photo' | 'video' | 'music'
+  >('photo');
 
   useEffect(() => {
     setIsFollowing(viewerIsFollowingInitial);
@@ -68,13 +74,13 @@ const OtherProfile = () => {
     setIsFollowing(!isFollowing);
   };
 
-  // Map API posts to the format used in render
   const displayPosts =
     selectedType === 'photo'
       ? profile?.imagePosts || []
       : selectedType === 'video'
         ? profile?.videoPosts || []
         : profile?.audioPosts || [];
+
 
   if (isLoading) {
     return (
@@ -96,14 +102,14 @@ const OtherProfile = () => {
           {/* header */}
           <View className='mt-3 flex-row items-center mx-6'>
             <TouchableOpacity onPress={() => router.back()} className='p-2 -ml-2'>
-              <Ionicons name='chevron-back' size={28} color='black' />
+              <Ionicons name='chevron-back' size={28} color={iconColor} />
             </TouchableOpacity>
             <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1 mr-8'>
               Profile
             </Text>
           </View>
 
-          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#292929] w-full mt-2'></View>
 
           <ScrollView
             contentContainerStyle={{ paddingBottom: 40 }}
@@ -140,7 +146,7 @@ const OtherProfile = () => {
             </View>
 
             {/* border */}
-            <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full my-3 mx-6'></View>
+            <View className='border-b border-black/20 dark:border-[#292929] w-[90%] my-3 mx-6'></View>
 
             {/* post stats */}
             <View className='flex-row justify-between items-center mt-3 py-3 mx-6'>
@@ -171,7 +177,7 @@ const OtherProfile = () => {
             </View>
 
             {/* border */}
-            <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full my-3 mx-6'></View>
+            <View className='border-b border-black/20 dark:border-[#292929] w-[90%] my-3 mx-6'></View>
 
             {/* follow/message buttons */}
             <View className='flex-row justify-center items-center gap-5 mx-6'>
@@ -180,27 +186,32 @@ const OtherProfile = () => {
                 textColor={isFollowing ? '#000000' : '#2B2B2B'}
                 backGroundColor={isFollowing ? '#000000' : '#E8EBEE'}
                 onPress={handleFollowToggle}
-                className={`mt-4 ${isFollowing ? 'border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]' : ''}`}
+                className={`mt-4 ${isFollowing ? 'border border-black/20 dark:border-[#292929]' : ''}`}
               />
               <ShadowButton
                 text='Message'
-                textColor='#000000'
-                backGroundColor='#000000'
+                textColor={isLight ? '#000000' : '#E6E6E6'}
+                backGroundColor={isLight ? '#F0F2F5' : '#000000'}
                 onPress={() => {
-                   // Navigate to chat if implemented
-                   if (id) {
-                     router.push({
-                       pathname: '/screens/chat/chat-screen',
-                       params: { userId: id }
-                     });
-                   }
+                  if (!id) return;
+                  router.push({
+                    pathname: '/screens/chat/chat-screen',
+                    params: {
+                      userId: id,
+                      receiverId: id,
+                      senderId: user?.id || '',
+                      conversationId: '',
+                      userName: profile?.displayName || 'User',
+                      userImage: profile?.profileImageUrl || '',
+                    },
+                  });
                 }}
-                className='mt-4 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
+                className={`mt-4 border ${isLight ? 'border-black/20' : 'border-[#E6E6E6]'}`}
               />
             </View>
 
             {/* border */}
-            <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-24 mx-6'></View>
+            <View className='border-b border-black/20 dark:border-[#292929] w-[90%] mt-24 mx-6'></View>
 
             {/* post filter buttons */}
             <View className='flex-row justify-between items-center gap-6 mt-3 mx-6'>
@@ -216,13 +227,19 @@ const OtherProfile = () => {
                   <TouchableOpacity
                     key={type}
                     onPress={() =>
-                      setSelectedType(type as 'photo' | 'video' | 'music')
+                      setSelectedType(
+                        type as 'photo' | 'video' | 'music'
+                      )
                     }
-                    className={`px-5 py-4 rounded-lg flex-row gap-2 items-center ${
-                      selectedType === type ? 'bg-[#444]' : 'bg-transparent'
+                    className={`px-2 py-3 rounded-lg flex-row gap-2 items-center ${
+                      selectedType === type
+                        ? isLight
+                          ? 'bg-[#F0F2F5]'
+                          : 'bg-[#444]'
+                        : 'bg-transparent'
                     }`}
                   >
-                    <Icon name={iconName as any} size={24} color='black' />
+                    <Icon name={iconName as any} size={24} color={iconColor} />
                     <Text className='text-primary dark:text-white font-roboto-regular mt-1'>
                       {type.charAt(0).toUpperCase() + type.slice(1)}
                     </Text>
@@ -235,7 +252,10 @@ const OtherProfile = () => {
             <View className='flex-row flex-wrap mt-3 mx-6'>
               {displayPosts.length > 0 ? (
                 displayPosts.map((item: any) => (
-                  <View key={item._id} className='w-1/3 border border-white'>
+                  <View
+                    key={item._id}
+                    className='w-1/3 border border-black/20 dark:border-white'
+                  >
                     {selectedType === 'photo' && (
                       <Image
                         source={{ uri: item.mediaUrl }}
@@ -243,7 +263,9 @@ const OtherProfile = () => {
                           width: '100%',
                           height: 130,
                           borderWidth: 1,
-                          borderColor: 'white',
+                          borderColor: isLight
+                            ? 'rgba(0,0,0,0.2)'
+                            : 'white',
                         }}
                         contentFit='cover'
                       />
@@ -255,7 +277,7 @@ const OtherProfile = () => {
                           <Feather
                             name='video'
                             size={24}
-                            color='black'
+                            color={iconColor}
                             opacity={0.7}
                           />
                         </View>

@@ -1,28 +1,49 @@
-import { useGetUCutsFeed } from '@/hooks/app/ucuts';
+import {
+  useCommentUCuts,
+  useDeleteUCuts,
+  useGetUCutsComments,
+  useGetUCutsFeed,
+  useLikeUCuts,
+  useUnlikeUCuts,
+} from '@/hooks/app/ucuts';
+import useAuthStore from '@/store/auth.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   FlatList,
-  StyleSheet,
+  Modal,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useVideoPlayer, VideoView } from 'expo-video';
 
 const { width, height } = Dimensions.get('window');
 
 const StoryItem = ({ item }: { item: any }) => {
+  const { user } = useAuthStore();
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
   const [comment, setComment] = useState('');
-  const reaction = '🔥';
+  const reaction = '❤️';
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [liked, setLiked] = useState(!!item.viewerHasLiked);
+  const [likeCount, setLikeCount] = useState(item.likeCount || 0);
+  const { mutateAsync: likeUCut, isPending: isLiking } = useLikeUCuts();
+  const { mutateAsync: unlikeUCut, isPending: isUnliking } = useUnlikeUCuts();
+  const { mutateAsync: commentUCut, isPending: isCommenting } =
+    useCommentUCuts();
+  const { mutateAsync: deleteUCut, isPending: isDeleting } = useDeleteUCuts();
+  const { data: commentsData } = useGetUCutsComments(item.ucutId, {
+    enabled: commentsOpen && !!item.ucutId,
+  });
+  const comments = (commentsData as any)?.comments || [];
   const player = useVideoPlayer(
     item.mediaType === 'video' ? item.storyImage : '',
     mediaTypePlayer => {
@@ -33,11 +54,62 @@ const StoryItem = ({ item }: { item: any }) => {
     }
   );
 
+  useEffect(() => {
+    setLiked(!!item.viewerHasLiked);
+    setLikeCount(item.likeCount || 0);
+  }, [item.viewerHasLiked, item.likeCount, item.id]);
+
+  const handleToggleLike = async () => {
+    if (!item.ucutId || isLiking || isUnliking) return;
+    const nextLiked = !liked;
+    setLiked(nextLiked);
+    setLikeCount((prev: number) =>
+      Math.max(0, prev + (nextLiked ? 1 : -1))
+    );
+    try {
+      if (nextLiked) {
+        await likeUCut(item.ucutId);
+      } else {
+        await unlikeUCut(item.ucutId);
+      }
+    } catch {
+      // rollback on error
+      setLiked(!nextLiked);
+      setLikeCount((prev: number) =>
+        Math.max(0, prev + (nextLiked ? -1 : 1))
+      );
+    }
+  };
+
+  const handleSendComment = async () => {
+    const text = comment.trim();
+    if (!text || !item.ucutId || isCommenting) return;
+    if (item.canComment === false) {
+      return;
+    }
+    setComment('');
+    try {
+      await commentUCut({ ucutId: item.ucutId, text });
+    } catch {
+      // no-op, user can retry
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!item.ucutId || isDeleting) return;
+    try {
+      await deleteUCut(item.ucutId);
+      router.back();
+    } catch {
+      // handled by toast
+    }
+  };
+
   return (
-    <View style={styles.storyContainer}>
+    <View style={{ width, height }} className='bg-black'>
       {item.mediaType === 'video' ? (
         <VideoView
-          style={styles.storyImage}
+          style={{ width, height, position: 'absolute' }}
           player={player}
           fullscreenOptions={{ enable: true }}
           allowsPictureInPicture
@@ -45,76 +117,170 @@ const StoryItem = ({ item }: { item: any }) => {
       ) : (
         <Image
           source={{ uri: item.storyImage }}
-          style={styles.storyImage}
+          style={{ width, height, position: 'absolute' }}
           contentFit='cover'
         />
       )}
 
-      <View style={styles.overlay} />
+      <View className='absolute inset-0 bg-black/20' />
 
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <View style={styles.userInfo}>
+      <SafeAreaView className='flex-1'>
+        <View className='flex-row items-center justify-between px-4 pt-2.5'>
+          <View className='flex-row items-center flex-1'>
             <Image
               source={{ uri: item.avatar }}
-              style={styles.avatar}
+              style={{ width: 40, height: 40, borderRadius: 20 }}
               contentFit='cover'
+              className='border border-white'
             />
-            <View>
-              <Text style={styles.userName}>{item.user}</Text>
-              <Text style={styles.timeText}>Just now</Text>
+            <View className='ml-2.5'>
+              <Text className='text-white text-sm font-semibold'>
+                {item.user}
+              </Text>
+              <Text className='text-[#CCCCCC] text-xs'>Just now</Text>
             </View>
           </View>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.closeButton}
-          >
-            <Ionicons
-              name='close'
-              size={28}
-              color={
-                isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)'
-              }
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.footer}>
-          {item.text ? (
-            <Text style={styles.captionText} numberOfLines={2}>
-              {item.text}
-            </Text>
-          ) : null}
-          <TouchableOpacity style={styles.reactionItem}>
-            <Text style={styles.emoji}>{reaction}</Text>
-          </TouchableOpacity>
-
-          <View style={styles.commentInputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder='Send message'
-              placeholderTextColor='#BBBBBB'
-              value={comment}
-              onChangeText={setComment}
-            />
-            <TouchableOpacity style={styles.sendButton}>
+          <View className='flex-row items-center gap-2'>
+            {item.ownerId === user?.id ? (
+              <TouchableOpacity onPress={handleDelete} className='p-1.5'>
+                <Ionicons
+                  name='trash-outline'
+                  size={24}
+                  color={isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)'}
+                />
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity onPress={() => router.back()} className='p-1.5'>
               <Ionicons
-                name='send'
-                size={20}
-                color={isLight ? 'black' : 'white'}
+                name='close'
+                size={28}
+                color={isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)'}
               />
             </TouchableOpacity>
           </View>
         </View>
+
+        <View className='absolute bottom-7 left-0 right-0 px-4'>
+          {item.text ? (
+            <Text
+              className='text-white text-[13px] mt-4 px-4 mb-3'
+              numberOfLines={2}
+            >
+              {item.text}
+            </Text>
+          ) : null}
+          <View className='flex-row items-center gap-3'>
+            <TouchableOpacity
+              className='w-11 h-11 rounded-full items-center justify-center bg-white/15'
+              onPress={handleToggleLike}
+            >
+              <Text className='text-2xl'>{liked ? reaction : '🤍'}</Text>
+            </TouchableOpacity>
+            <Text className='text-white/80 text-xs w-10'>{likeCount}</Text>
+            <TouchableOpacity
+              className='w-11 h-11 rounded-full items-center justify-center bg-white/15'
+              onPress={() => setCommentsOpen(true)}
+            >
+              <Ionicons
+                name='chatbubble-ellipses-outline'
+                size={20}
+                color='white'
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <Modal
+          visible={commentsOpen}
+          animationType='slide'
+          transparent
+          onRequestClose={() => setCommentsOpen(false)}
+        >
+          <View className='flex-1 justify-end bg-black/40'>
+            <View className='bg-white dark:bg-[#0B0F15] rounded-t-3xl max-h-[70%]'>
+              <View className='px-5 pt-4 pb-2 flex-row items-center justify-between'>
+                <Text className='text-black dark:text-white text-base font-semibold'>
+                  Comments
+                </Text>
+                <TouchableOpacity onPress={() => setCommentsOpen(false)}>
+                  <Ionicons
+                    name='close'
+                    size={22}
+                    color={isLight ? 'black' : 'white'}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View className='px-5 pb-3'>
+                <View className='flex-row items-center h-12 rounded-full bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-4 border border-black/10 dark:border-white/10'>
+                  <TextInput
+                    className='flex-1 text-black dark:text-white text-sm'
+                    placeholder='Write a comment...'
+                    placeholderTextColor={isLight ? '#6B7280' : '#BBBBBB'}
+                    value={comment}
+                    onChangeText={setComment}
+                    onSubmitEditing={handleSendComment}
+                    editable={item.canComment !== false}
+                  />
+                  <TouchableOpacity onPress={handleSendComment}>
+                    <Ionicons
+                      name='send'
+                      size={18}
+                      color={isLight ? 'black' : 'white'}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <FlatList
+                data={comments}
+                keyExtractor={(c: any, idx: number) => c?._id || `${idx}`}
+                className='px-5 pb-6'
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item: c }: { item: any }) => (
+                  <View className='flex-row gap-3 py-3 border-b border-black/10 dark:border-white/10'>
+                    <Image
+                      source={{
+                        uri:
+                          c?.user?.profileImageUrl ||
+                          c?.profileImageUrl ||
+                          'https://via.placeholder.com/150',
+                      }}
+                      style={{ width: 36, height: 36, borderRadius: 18 }}
+                      contentFit='cover'
+                    />
+                    <View className='flex-1'>
+                      <Text className='text-black dark:text-white text-sm font-semibold'>
+                        {c?.user?.name || c?.name || 'User'}
+                      </Text>
+                      <Text className='text-black/70 dark:text-white/80 text-sm mt-1'>
+                        {c?.text || ''}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                ListEmptyComponent={
+                  <View className='py-6 items-center'>
+                    <Text className='text-black/60 dark:text-white/70 text-sm'>
+                      No comments yet
+                    </Text>
+                  </View>
+                }
+              />
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </View>
   );
 };
 
 const StoryView = () => {
+  const { user } = useAuthStore();
   const { ownerId } = useLocalSearchParams<{ ownerId?: string }>();
   const { data } = useGetUCutsFeed();
   const ucuts = data?.ucuts ?? [];
+  const listRef = useRef<FlatList<any>>(null);
 
   const segments = useMemo(() => {
     const groups = new Map<
@@ -154,9 +320,11 @@ const StoryView = () => {
       }
     });
 
-    const orderedGroups = Array.from(groups.values()).sort(
-      (a, b) => b.latestAt - a.latestAt
-    );
+    const orderedGroups = Array.from(groups.values()).sort((a, b) => {
+      if (a.ownerId === user?.id) return -1;
+      if (b.ownerId === user?.id) return 1;
+      return b.latestAt - a.latestAt;
+    });
 
     return orderedGroups.flatMap(group => {
       const orderedUCuts = [...group.items].sort((a: any, b: any) => {
@@ -171,12 +339,16 @@ const StoryView = () => {
         );
         return segs.map((seg: any) => ({
           id: `${ucut._id}-${seg.order}`,
+          ucutId: ucut._id,
           ownerId: group.ownerId,
           user: group.ownerName,
           avatar: group.ownerAvatar,
           storyImage: seg.url,
           mediaType: ucut.mediaType || ucut.type || 'image',
           text: ucut.text || '',
+          likeCount: ucut.likeCount || 0,
+          viewerHasLiked: !!ucut.viewerHasLiked,
+          canComment: ucut.canComment,
         }));
       });
     });
@@ -188,9 +360,18 @@ const StoryView = () => {
     return idx >= 0 ? idx : 0;
   }, [ownerId, segments]);
 
+  useEffect(() => {
+    if (!segments.length) return;
+    listRef.current?.scrollToIndex({
+      index: startIndex,
+      animated: false,
+    });
+  }, [segments.length, startIndex]);
+
   return (
-    <View style={styles.container}>
+    <View className='flex-1 bg-black'>
       <FlatList
+        ref={listRef}
         data={segments}
         renderItem={({ item }) => <StoryItem item={item} />}
         keyExtractor={item => item.id}
@@ -198,6 +379,9 @@ const StoryView = () => {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         initialScrollIndex={startIndex}
+        onScrollToIndexFailed={() => {
+          listRef.current?.scrollToIndex({ index: 0, animated: false });
+        }}
         getItemLayout={(data, index) => ({
           length: width,
           offset: width * index,
@@ -207,104 +391,5 @@ const StoryView = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  storyContainer: {
-    width: width,
-    height: height,
-  },
-  storyImage: {
-    position: 'absolute',
-    width: width,
-    height: height,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 10,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: 'white',
-  },
-  userName: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  timeText: {
-    color: '#CCCCCC',
-    fontSize: 12,
-  },
-  closeButton: {
-    padding: 5,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  captionText: {
-    color: 'white',
-    fontSize: 13,
-    maxWidth: '55%',
-    marginRight: 8,
-  },
-  reactionItem: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: 24,
-  },
-  commentInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    height: 50,
-    flex: 1,
-  },
-  input: {
-    flex: 1,
-    color: 'white',
-    fontSize: 14,
-  },
-  sendButton: {
-    marginLeft: 10,
-  },
-});
 
 export default StoryView;

@@ -122,7 +122,11 @@ const StorySection = () => {
     });
 
     const groupedStories = Array.from(groups.values())
-      .sort((a, b) => b.latestAt - a.latestAt)
+      .sort((a, b) => {
+        if (a.ownerId === user?.id) return -1;
+        if (b.ownerId === user?.id) return 1;
+        return b.latestAt - a.latestAt;
+      })
       .map(group => {
         const latest = [...group.items].sort((a: any, b: any) => {
           const aTime = new Date(a?.createdAt || 0).getTime();
