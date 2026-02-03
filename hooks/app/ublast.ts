@@ -92,11 +92,10 @@ export const useUpdateUBlastPost = () => {
       postId: string;
       formData: FormData;
     }) => {
-      const res = await api.patch(`/api/ublast/posts/${postId}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const res = await api.patch(
+        `/api/ublasts/submissions/${postId}`,
+        formData
+      );
       return res;
     },
     onSuccess: (data: any) => {

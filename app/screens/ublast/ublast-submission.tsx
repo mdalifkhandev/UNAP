@@ -149,15 +149,16 @@ const UBlastSubmission = () => {
     console.log(JSON.stringify(formData, null, 2));
 
     if (isEditMode) {
-      // updateUBlastPost(
-      //   { postId: params.postId as string, formData },
-      //   {
-      //     onSuccess: () => {
-      //       resetForm();
-      //       router.back();
-      //     },
-      //   }
-      // );
+      updateUBlastPost(
+        { postId: params.postId as string, formData },
+        {
+          onSuccess: () => {
+            resetForm();
+            refetchUBlast();
+            router.back();
+          },
+        }
+      );
     } else {
       submitUBlast(formData, {
         onSuccess: () => {

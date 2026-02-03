@@ -33,6 +33,7 @@ const CreatePost = () => {
   const { mode: colorMode } = useThemeStore();
   const isLight = colorMode === 'light';
   const params = useLocalSearchParams();
+  const resetKey = params.reset as string | undefined;
   const isEditMode = !!params.postId;
   const router = useRouter();
 
@@ -77,6 +78,22 @@ const CreatePost = () => {
   const { mutate: editPost, isPending: isEditingPublished } = useEditPost();
 
   const isLoading = isCreating || isUpdatingScheduled || isEditingPublished;
+
+  useEffect(() => {
+    if (!resetKey) return;
+    setMode('selection');
+    setPhoto(null);
+    setVideo(null);
+    setAudio(null);
+    setVideoPlayerUri(null);
+    setDescription('');
+    setIsFacebook(false);
+    setIsInstagram(false);
+    setIsScheduleMode(false);
+    setScheduledDate(new Date());
+    setShowDatePicker(false);
+    setShowTimePicker(false);
+  }, [resetKey]);
 
   useEffect(() => {
     if (isEditMode && params.mediaUrl && params.mediaType) {
@@ -354,15 +371,7 @@ const CreatePost = () => {
         >
           {/* header */}
           <View className='mt-3 flex-row items-center mx-6 justify-between'>
-            <TouchableOpacity
-              onPress={() => {
-                if (isEditMode) {
-                  router.back();
-                } else {
-                  setMode('selection');
-                }
-              }}
-            >
+            <TouchableOpacity onPress={() => router.back()}>
               <AntDesign
                 name='close'
                 size={22}
