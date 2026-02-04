@@ -3,6 +3,7 @@ import ShadowButton from '@/components/button/ShadowButton';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetMyProfile, useUpdateProfile } from '@/hooks/app/profile';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
@@ -41,6 +42,26 @@ const EditProfile = () => {
   // @ts-ignore
   const profile = profileData?.profile;
   const { mutate: updateProfile, isPending: loading } = useUpdateProfile();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Edit profile',
+      'Upload Photo',
+      'Username',
+      'Display Name',
+      'Select Your Role',
+      'Bio',
+      'Instagram',
+      'YouTube',
+      'Spotify',
+      'Save',
+      'Tell us about yourself and your music...',
+      'Singer',
+    ],
+    targetLang: profile?.preferredLanguage,
+    enabled: !!profile?.preferredLanguage,
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   useEffect(() => {
     if (profile) {
@@ -182,7 +203,7 @@ const EditProfile = () => {
           <View className='mt-3 flex-row items-center mx-6 justify-between'>
             <BackButton />
             <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1'>
-              Edit profile
+              {tx(0, 'Edit profile')}
             </Text>
           </View>
           {/* border */}
@@ -220,7 +241,7 @@ const EditProfile = () => {
               </View>
             </View>
             <Text className='text-primary dark:text-white text-xl font-roboto-semibold text-center mt-3'>
-              Upload Photo
+              {tx(1, 'Upload Photo')}
             </Text>
 
             {/* input fields */}
@@ -243,7 +264,7 @@ const EditProfile = () => {
 
               {/* Select Your Role */}
               <Text className='text-primary dark:text-white mb-2 mt-3 text-base'>
-                Select Your Role
+                {tx(4, 'Select Your Role')}
               </Text>
 
               {/* <View className='w-full'>
@@ -280,15 +301,17 @@ const EditProfile = () => {
               </View> */}
               <Input
                 className='mt-2'
-                placeholder='Singer'
+                placeholder={tx(11, 'Singer')}
                 value={selectedRole}
                 onChangeText={setSelectedRole}
               />
 
               {/* Bio */}
-              <Text className='text-primary dark:text-white mt-3 mb-2 text-base'>Bio</Text>
+              <Text className='text-primary dark:text-white mt-3 mb-2 text-base'>
+                {tx(5, 'Bio')}
+              </Text>
               <TextInput
-                placeholder='Tell us about yourself and your music...'
+                placeholder={tx(10, 'Tell us about yourself and your music...')}
                 placeholderTextColor='rgba(0,0,0,0.5)'
                 multiline
                 numberOfLines={4}
@@ -299,7 +322,9 @@ const EditProfile = () => {
               />
 
               {/* Instagram */}
-              <Text className='text-primary dark:text-white mt-3'>Instagram</Text>
+              <Text className='text-primary dark:text-white mt-3'>
+                {tx(6, 'Instagram')}
+              </Text>
               <View className='rounded-xl px-4 py-1 flex-row items-center border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D] mt-1.5 gap-2'>
                 <AntDesign name='instagram' size={20} color='#fff' />
                 <TextInput
@@ -312,7 +337,9 @@ const EditProfile = () => {
               </View>
 
               {/* YouTube */}
-              <Text className='text-primary dark:text-white mt-3'>YouTube</Text>
+              <Text className='text-primary dark:text-white mt-3'>
+                {tx(7, 'YouTube')}
+              </Text>
               <View className='rounded-xl px-4 py-1 flex-row items-center border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D] mt-1.5 gap-2'>
                 <AntDesign name='youtube' size={20} color='black' />
                 <TextInput
@@ -325,7 +352,9 @@ const EditProfile = () => {
               </View>
 
               {/* Spotify */}
-              <Text className='text-primary dark:text-white mt-3'>Spotify</Text>
+              <Text className='text-primary dark:text-white mt-3'>
+                {tx(8, 'Spotify')}
+              </Text>
               <View className='rounded-xl px-4 py-1 flex-row items-center border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D] mt-1.5 gap-2'>
                 <Feather name='music' size={20} color='black' />
                 <TextInput
@@ -346,7 +375,7 @@ const EditProfile = () => {
               ) : null}
 
               <ShadowButton
-                text={loading ? 'Saving...' : 'Save'}
+                text={loading ? 'Saving...' : tx(9, 'Save')}
                 textColor='#2B2B2B'
                 backGroundColor='#E8EBEE'
                 onPress={handleUpdateProfile}

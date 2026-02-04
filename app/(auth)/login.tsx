@@ -3,7 +3,9 @@ import ShadowButton from '@/components/button/ShadowButton';
 import Inpute from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useUserLogin } from '@/hooks/app/auth';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
@@ -22,10 +24,30 @@ import Toast from 'react-native-toast-message';
 const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const { mutate } = useUserLogin();
-  const { setUser } = useAuthStore();
+  const { setUser, user } = useAuthStore();
 
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Welcome Back!',
+      'Login to your account',
+      'Phone',
+      'Email',
+      'Password',
+      'Remember me',
+      'Forgot Password?',
+      'Login',
+      "Don't have an account?",
+      'Register',
+      'Or continue with',
+    ],
+    targetLang: language,
+    enabled: !!user?.token && !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   // Login input states
   const [phoneNumber, setPhone] = useState('');
@@ -97,16 +119,16 @@ const Login = () => {
           <View className='flex-1 justify-center'>
             <View>
               <Text className='text-[#000000] dark:text-white text-2xl font-roboto-semibold mt-6 text-center'>
-                Welcome Back!
+                {tx(0, 'Welcome Back!')}
               </Text>
               <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5'>
-                Login to your account
+                {tx(1, 'Login to your account')}
               </Text>
             </View>
 
             <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] p-6 rounded-3xl mt-6'>
               <Inpute
-                title='Phone'
+                title={tx(2, 'Phone')}
                 placeholder='+880 123 123 123'
                 className='mt-4'
                 // @ts-ignore
@@ -115,7 +137,7 @@ const Login = () => {
               />
 
               <Inpute
-                title='Email'
+                title={tx(3, 'Email')}
                 placeholder='example@example.com'
                 className='mt-4'
                 required={true}
@@ -126,7 +148,7 @@ const Login = () => {
               />
 
               <Inpute
-                title='Password'
+                title={tx(4, 'Password')}
                 placeholder='********'
                 className='mt-4'
                 required={true}
@@ -149,20 +171,20 @@ const Login = () => {
                     )}
                   </TouchableOpacity>
                   <Text className='text-secondary dark:text-white/80 text-sm font-roboto-medium mt-1.5'>
-                    Remember me
+                    {tx(5, 'Remember me')}
                   </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => router.push('/(auth)/forget-password')}
                 >
                   <Text className='text-[#000000] dark:text-white font-roboto-regular text-sm'>
-                    Forgot Password?
+                    {tx(6, 'Forgot Password?')}
                   </Text>
                 </TouchableOpacity>
               </View>
 
               <ShadowButton
-                text='Login'
+                text={tx(7, 'Login')}
                 textColor={isLight ? 'white' : '#2B2B2B'}
                 backGroundColor={isLight ? 'black' : '#E8EBEE'}
                 onPress={handleLogin}
@@ -171,12 +193,12 @@ const Login = () => {
 
               <View className='mt-4 flex-row justify-center items-center'>
                 <Text className='text-secondary dark:text-white/80 font-roboto-regular text-sm'>
-                  Don&apos;t have an account?{' '}
+                  {tx(8, "Don't have an account?")}{' '}
                 </Text>
                 <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
                   <Text className='font-roboto-bold text-secondary dark:text-white/80 text-sm'>
                     {' '}
-                    Register
+                    {tx(9, 'Register')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -184,7 +206,7 @@ const Login = () => {
 
             <View className='mt-6'>
               <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular'>
-                Or continue with
+                {tx(10, 'Or continue with')}
               </Text>
               <View className='mt-6 flex-row justify-between items-center gap-6'>
                 <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>

@@ -12,7 +12,9 @@ import {
   useUploadSignature,
   useUploadVideoToCloudinary,
 } from '@/hooks/app/uploads';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useThemeStore from '@/store/theme.store';
+import useLanguageStore from '@/store/language.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -38,6 +40,7 @@ import Toast from 'react-native-toast-message';
 const CreatePost = () => {
   const { mode: colorMode } = useThemeStore();
   const isLight = colorMode === 'light';
+  const { language } = useLanguageStore();
   const params = useLocalSearchParams();
   const resetKey = params.reset as string | undefined;
   const isEditMode = !!params.postId;
@@ -107,6 +110,59 @@ const CreatePost = () => {
     (params.postType as 'uclip' | 'post') || 'post'
   );
   const isUclip = postType === 'uclip';
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Create',
+      'Choose what you want to create',
+      'UPost Create',
+      'Share photos, videos, and audio with your followers',
+      'UBlast Submission',
+      'Submit your content to trending and reach more people',
+      'Edit Post',
+      'Create Post',
+      'Post Now',
+      'Schedule',
+      'Schedule Post',
+      'Schedule Date & Time',
+      'Date',
+      'Time',
+      'Description',
+      "What's on your mind?",
+      'Post',
+      'UClip',
+      'UClip is video only.',
+      'Share Targets',
+      'Facebook',
+      'Instagram',
+      'Twitter',
+      'YouTube',
+      'Snapchat',
+      'TikTok',
+      'Please select a media file (photo, video, or audio)',
+      'UClip requires a video',
+      'Please add a description',
+      'Post scheduled successfully!',
+      'Post created successfully!',
+      'Post Creation Failed',
+      'Upload Failed',
+      'Cloud upload failed',
+      'Please select a future date and time for scheduling.',
+      'UClip Video Only',
+      'UClip supports video only.',
+      'Updating...',
+      'UScheduling...',
+      'UPosting...',
+      'Update',
+      'USchedule',
+      'UPost',
+      'Post Update Failed',
+      'Done',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   useEffect(() => {
     if (!resetKey) return;
@@ -192,17 +248,17 @@ const CreatePost = () => {
 
   const handlePost = async () => {
     if (!photo && !video && !audio) {
-      alert('Please select a media file (photo, video, or audio)');
+      alert(tx(26, 'Please select a media file (photo, video, or audio)'));
       return;
     }
 
     if (isUclip && !video) {
-      alert('UClip requires a video');
+      alert(tx(27, 'UClip requires a video'));
       return;
     }
 
     if (!description.trim()) {
-      alert('Please add a description');
+      alert(tx(28, 'Please add a description'));
       return;
     }
 
@@ -269,15 +325,15 @@ const CreatePost = () => {
 
                 alert(
                   isScheduleMode
-                    ? 'Post scheduled successfully!'
-                    : 'Post created successfully!'
+                    ? tx(29, 'Post scheduled successfully!')
+                    : tx(30, 'Post created successfully!')
                 );
                 setMode('selection');
               },
               onError: (error: any) => {
                 Toast.show({
                   type: 'error',
-                  text1: 'Post Creation Failed',
+                  text1: tx(31, 'Post Creation Failed'),
                   text2: error?.response?.data?.message || error.message,
                 });
               },
@@ -287,8 +343,8 @@ const CreatePost = () => {
         } catch (err: any) {
           Toast.show({
             type: 'error',
-            text1: 'Upload Failed',
-            text2: err?.message || 'Cloud upload failed',
+            text1: tx(32, 'Upload Failed'),
+            text2: err?.message || tx(33, 'Cloud upload failed'),
           });
           return;
         }
@@ -323,7 +379,7 @@ const CreatePost = () => {
 
     if (isScheduleMode) {
       if (scheduledDate <= new Date()) {
-        alert('Please select a future date and time for scheduling.');
+        alert(tx(34, 'Please select a future date and time for scheduling.'));
         return;
       }
       formData.append('scheduledFor', scheduledDate.toISOString());
@@ -348,7 +404,7 @@ const CreatePost = () => {
             onError: (error: any) => {
               Toast.show({
                 type: 'error',
-                text1: 'Post Update Failed',
+                text1: tx(43, 'Post Update Failed'),
                 text2: error?.response?.data?.message || error.message,
               });
             },
@@ -373,7 +429,7 @@ const CreatePost = () => {
             onError: (error: any) => {
               Toast.show({
                 type: 'error',
-                text1: 'Post Update Failed',
+                text1: tx(43, 'Post Update Failed'),
                 text2: error?.response?.data?.message || error.message,
               });
             },
@@ -394,15 +450,15 @@ const CreatePost = () => {
 
           alert(
             isScheduleMode
-              ? 'Post scheduled successfully!'
-              : 'Post created successfully!'
+              ? tx(29, 'Post scheduled successfully!')
+              : tx(30, 'Post created successfully!')
           );
           setMode('selection');
         },
         onError: (error: any) => {
           Toast.show({
             type: 'error',
-            text1: 'Post Creation Failed',
+            text1: tx(31, 'Post Creation Failed'),
             text2: error?.response?.data?.message || error.message,
           });
         },
@@ -414,8 +470,8 @@ const CreatePost = () => {
     if (isUclip) {
       Toast.show({
         type: 'info',
-        text1: 'UClip Video Only',
-        text2: 'UClip supports video only.',
+        text1: tx(35, 'UClip Video Only'),
+        text2: tx(36, 'UClip supports video only.'),
       });
       return;
     }
@@ -450,8 +506,8 @@ const CreatePost = () => {
     if (isUclip) {
       Toast.show({
         type: 'info',
-        text1: 'UClip Video Only',
-        text2: 'UClip supports video only.',
+        text1: tx(35, 'UClip Video Only'),
+        text2: tx(36, 'UClip supports video only.'),
       });
       return;
     }
@@ -478,10 +534,10 @@ const CreatePost = () => {
         <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
           <View className='mt-3 mx-6'>
             <Text className='font-roboto-bold text-primary dark:text-white text-3xl text-center mb-2'>
-              Create
+              {tx(0, 'Create')}
             </Text>
             <Text className='font-roboto-regular text-secondary dark:text-white/80 text-center mb-8'>
-              Choose what you want to create
+              {tx(1, 'Choose what you want to create')}
             </Text>
           </View>
 
@@ -493,16 +549,22 @@ const CreatePost = () => {
           >
             <SelectionCard
               icon='camera'
-              title='UPost Create'
-              description='Share photos, videos, and audio with your followers'
+              title={tx(2, 'UPost Create')}
+              description={tx(
+                3,
+                'Share photos, videos, and audio with your followers'
+              )}
               onPress={() => setMode('post-create')}
               gradientColors={['#667eea', '#764ba2']}
             />
 
             <SelectionCard
               icon='rocket'
-              title='UBlast Submission'
-              description='Submit your content to trending and reach more people'
+              title={tx(4, 'UBlast Submission')}
+              description={tx(
+                5,
+                'Submit your content to trending and reach more people'
+              )}
               onPress={() => router.push('/screens/ublast/ublast-submission')}
               gradientColors={['#f093fb', '#f5576c']}
             />
@@ -530,7 +592,7 @@ const CreatePost = () => {
               />
             </TouchableOpacity>
             <Text className='font-roboto-bold text-black dark:text-white text-2xl'>
-              {isEditMode ? 'Edit Post' : 'Create Post'}
+              {isEditMode ? tx(6, 'Edit Post') : tx(7, 'Create Post')}
             </Text>
             <TouchableOpacity
               onPress={handlePost}
@@ -544,15 +606,15 @@ const CreatePost = () => {
               <Text className='text-black dark:text-white text-center font-bold'>
                 {isLoading
                   ? isEditMode
-                    ? 'Updating...'
+                    ? tx(37, 'Updating...')
                     : isScheduleMode
-                      ? 'UScheduling...'
-                      : 'UPosting...'
+                      ? tx(38, 'UScheduling...')
+                      : tx(39, 'UPosting...')
                   : isEditMode
-                    ? 'Update'
+                    ? tx(40, 'Update')
                     : isScheduleMode
-                      ? 'USchedule'
-                      : 'UPost'}
+                      ? tx(41, 'USchedule')
+                      : tx(42, 'UPost')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -565,14 +627,14 @@ const CreatePost = () => {
             <View className='px-6 mt-4'>
               <View className='flex-row justify-between items-center'>
                 <Text className='text-black dark:text-white text-base font-medium'>
-                  {isScheduleMode ? 'Schedule Post' : 'Post Now'}
+                  {isScheduleMode ? tx(10, 'Schedule Post') : tx(8, 'Post Now')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => setIsScheduleMode(!isScheduleMode)}
                   className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-4 py-2 rounded-lg'
                 >
                   <Text className='text-black dark:text-white text-sm'>
-                    {isScheduleMode ? 'Post Now' : 'Schedule'}
+                    {isScheduleMode ? tx(8, 'Post Now') : tx(9, 'Schedule')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -584,14 +646,16 @@ const CreatePost = () => {
             <View className='px-6 mt-4'>
               <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg p-4'>
                 <Text className='text-black dark:text-white text-base font-medium mb-3'>
-                  Schedule Date & Time
+                  {tx(11, 'Schedule Date & Time')}
                 </Text>
                 <View className='flex-row gap-3'>
                   <TouchableOpacity
                     className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
                     onPress={() => setShowDatePicker(true)}
                   >
-                    <Text className='text-gray-400 text-xs mb-1'>Date</Text>
+                    <Text className='text-gray-400 text-xs mb-1'>
+                      {tx(12, 'Date')}
+                    </Text>
                     <Text className='text-black dark:text-white text-base'>
                       {scheduledDate.toLocaleDateString()}
                     </Text>
@@ -601,7 +665,9 @@ const CreatePost = () => {
                     className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
                     onPress={() => setShowTimePicker(true)}
                   >
-                    <Text className='text-gray-400 text-xs mb-1'>Time</Text>
+                    <Text className='text-gray-400 text-xs mb-1'>
+                      {tx(13, 'Time')}
+                    </Text>
                     <Text className='text-black dark:text-white text-base'>
                       {scheduledDate.toLocaleTimeString([], {
                         hour: '2-digit',
@@ -620,7 +686,7 @@ const CreatePost = () => {
                           className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1 rounded-md'
                         >
                           <Text className='text-black dark:text-white font-medium'>
-                            Done
+                            {tx(44, 'Done')}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -644,7 +710,7 @@ const CreatePost = () => {
                           className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1 rounded-md'
                         >
                           <Text className='text-black dark:text-white font-medium'>
-                            Done
+                            {tx(44, 'Done')}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -679,7 +745,7 @@ const CreatePost = () => {
                     }`}
                   >
                     <Text className='text-black dark:text-white font-roboto-medium'>
-                      Post
+                      {tx(16, 'Post')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -691,13 +757,13 @@ const CreatePost = () => {
                     }`}
                   >
                     <Text className='text-black dark:text-white font-roboto-medium'>
-                      UClip
+                      {tx(17, 'UClip')}
                     </Text>
                   </TouchableOpacity>
                 </View>
                 {postType === 'uclip' && (
                   <Text className='text-secondary dark:text-white/80 text-xs mt-2'>
-                    UClip is video only.
+                    {tx(18, 'UClip is video only.')}
                   </Text>
                 )}
               </View>
@@ -713,12 +779,12 @@ const CreatePost = () => {
 
               <View className='px-6 pt-4'>
                 <Text className='text-black dark:text-white text-base font-medium mb-2'>
-                  Description
+                  {tx(14, 'Description')}
                 </Text>
                 <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl p-4 min-h-[100px]'>
                   <TextInput
                     className='text-black dark:text-white text-base flex-1'
-                    placeholder="What's on your mind?"
+                    placeholder={tx(15, "What's on your mind?")}
                     placeholderTextColor='#9CA3AF'
                     multiline
                     value={description}
@@ -740,7 +806,7 @@ const CreatePost = () => {
               <View className='mx-5 p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg mt-7'>
                 <View className='flex-row justify-between items-center mb-4'>
                   <Text className='text-black dark:text-white font-roboto-medium'>
-                    Share Targets
+                    {tx(19, 'Share Targets')}
                   </Text>
                 </View>
 
@@ -752,7 +818,7 @@ const CreatePost = () => {
                       color={isLight ? 'black' : 'white'}
                     />
                     <Text className='text-black dark:text-white'>
-                      Facebook
+                      {tx(20, 'Facebook')}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -775,7 +841,7 @@ const CreatePost = () => {
                       color={isLight ? 'black' : 'white'}
                     />
                     <Text className='text-black dark:text-white'>
-                      Instagram
+                      {tx(21, 'Instagram')}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -797,7 +863,9 @@ const CreatePost = () => {
                       size={22}
                       color={isLight ? 'black' : 'white'}
                     />
-                    <Text className='text-black dark:text-white'>Twitter</Text>
+                    <Text className='text-black dark:text-white'>
+                      {tx(22, 'Twitter')}
+                    </Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => setIsTwitter(!isTwitter)}
@@ -818,7 +886,9 @@ const CreatePost = () => {
                       size={22}
                       color={isLight ? 'black' : 'white'}
                     />
-                    <Text className='text-black dark:text-white'>YouTube</Text>
+                    <Text className='text-black dark:text-white'>
+                      {tx(23, 'YouTube')}
+                    </Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => setIsYouTube(!isYouTube)}
@@ -839,7 +909,9 @@ const CreatePost = () => {
                       size={22}
                       color={isLight ? 'black' : 'white'}
                     />
-                    <Text className='text-black dark:text-white'>Snapchat</Text>
+                    <Text className='text-black dark:text-white'>
+                      {tx(24, 'Snapchat')}
+                    </Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => setIsSnapchat(!isSnapchat)}
@@ -860,7 +932,9 @@ const CreatePost = () => {
                       size={22}
                       color={isLight ? 'black' : 'white'}
                     />
-                    <Text className='text-black dark:text-white'>TikTok</Text>
+                    <Text className='text-black dark:text-white'>
+                      {tx(25, 'TikTok')}
+                    </Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => setIsTikTok(!isTikTok)}

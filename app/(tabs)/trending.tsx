@@ -2,7 +2,9 @@ import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetTrendingPost } from '@/hooks/app/trending';
 import { useGetUblastEligibility } from '@/hooks/app/ublast';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useEffect, useState } from 'react';
@@ -23,7 +25,29 @@ const TrendingScreen = () => {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
   const { user } = useAuthStore();
+  const { language } = useLanguageStore();
   const [selectedTab, setSelectedTab] = useState<TabType>('active');
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Trending',
+      'Checking...',
+      'Eligible',
+      'Not Eligible',
+      'Checking your eligibility status',
+      'You can participate in trending posts',
+      'Complete your profile to be eligible',
+      'Blocked until',
+      'Active',
+      'Manual',
+      'Organic',
+      'No posts found',
+      'Check back later for new content',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   const { data, isLoading, isRefetching, refetch } = useGetTrendingPost(
     selectedTab,
@@ -73,7 +97,7 @@ const TrendingScreen = () => {
   const renderHeader = () => (
     <View>
       <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center'>
-        Trending
+        {tx(0, 'Trending')}
       </Text>
 
       {/* Eligibility Status Banner */}
@@ -107,21 +131,21 @@ const TrendingScreen = () => {
             <View className='flex-1'>
               <Text className='font-roboto-bold text-primary dark:text-white text-base'>
                 {isEligibilityLoading
-                  ? 'Checking...'
+                  ? tx(1, 'Checking...')
                   : isEligible
-                    ? 'Eligible'
-                    : 'Not Eligible'}
+                    ? tx(2, 'Eligible')
+                    : tx(3, 'Not Eligible')}
               </Text>
               <Text className='font-roboto-regular text-secondary dark:text-white/80 text-sm'>
                 {isEligibilityLoading
-                  ? 'Checking your eligibility status'
+                  ? tx(4, 'Checking your eligibility status')
                   : isEligible
-                    ? 'You can participate in trending posts'
+                    ? tx(5, 'You can participate in trending posts')
                     : (eligibilityData as any)?.blockedUntil
-                      ? `Blocked until ${new Date(
+                      ? `${tx(7, 'Blocked until')} ${new Date(
                           (eligibilityData as any).blockedUntil
                         ).toLocaleString()}`
-                      : 'Complete your profile to be eligible'}
+                      : tx(6, 'Complete your profile to be eligible')}
               </Text>
             </View>
           </View>
@@ -153,10 +177,10 @@ const TrendingScreen = () => {
             />
             <Text className='text-primary dark:text-white font-roboto-semibold text-sm'>
               {tab === 'active'
-                ? 'Active'
+                ? tx(8, 'Active')
                 : tab === 'manual'
-                  ? 'Manual'
-                  : 'Organic'}
+                  ? tx(9, 'Manual')
+                  : tx(10, 'Organic')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -209,10 +233,10 @@ const TrendingScreen = () => {
               <View className='mt-10 items-center mx-6'>
                 <Ionicons name='file-tray-outline' size={48} color='#666' />
                 <Text className='text-secondary dark:text-white/80 text-center mt-4 font-roboto-regular'>
-                  No {selectedTab} posts found
+                  {tx(11, 'No posts found')}
                 </Text>
                 <Text className='text-secondary dark:text-white/80/60 text-center mt-2 font-roboto-regular text-sm'>
-                  Check back later for new content
+                  {tx(12, 'Check back later for new content')}
                 </Text>
               </View>
             }

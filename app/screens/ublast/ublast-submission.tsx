@@ -4,6 +4,8 @@ import MediaPickers from '@/components/create-post/MediaPickers';
 import MediaPreview from '@/components/create-post/MediaPreview';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetUBlastPosts, useSubmitUBlast, useUpdateUBlastPost } from '@/hooks/app/ublast';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import useLanguageStore from '@/store/language.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -27,6 +29,35 @@ const UBlastSubmission = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
   const isEditMode = !!params.postId;
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'UBlast Submission',
+      'Description',
+      "What's on your mind?",
+      'Schedule Post',
+      'Schedule Date & Time',
+      'Date',
+      'Time',
+      'Submit to UBlast',
+      'Schedule Post',
+      'Update Post',
+      'Your UBlast Submissions',
+      'Edit',
+      'Eligibility Required',
+      'Make sure you meet the eligibility requirements in the Trending tab before submitting.',
+      'Scheduling...',
+      'Submitting...',
+      'Updating...',
+      'Error',
+      'Please select a media file (photo, video, or audio)',
+      'Please add a description',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   // Form states
   const [description, setDescription] = useState(
@@ -84,14 +115,14 @@ const UBlastSubmission = () => {
   const handleSubmit = async () => {
     if (!photo && !video && !audio) {
       Alert.alert(
-        'Error',
-        'Please select a media file (photo, video, or audio)'
+        tx(17, 'Error'),
+        tx(18, 'Please select a media file (photo, video, or audio)')
       );
       return;
     }
 
     if (!description.trim()) {
-      Alert.alert('Error', 'Please add a description');
+      Alert.alert(tx(17, 'Error'), tx(19, 'Please add a description'));
       return;
     }
 
@@ -298,7 +329,7 @@ const UBlastSubmission = () => {
         <View className='mt-3 flex-row items-center mx-6 justify-between'>
           <BackButton />
           <Text className='font-roboto-bold text-black dark:text-white text-2xl'>
-            UBlast Submission
+            {tx(0, 'UBlast Submission')}
           </Text>
           <View style={{ width: 24 }} />
         </View>
@@ -322,12 +353,12 @@ const UBlastSubmission = () => {
             {/* Description */}
             <View className='mt-4'>
               <Text className='text-black dark:text-white text-base font-medium mb-2'>
-                Description
+                {tx(1, 'Description')}
               </Text>
               <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl px-3  min-h-[50px]'>
                 <TextInput
                   className='text-black dark:text-white text-base '
-                  placeholder="What's on your mind?"
+                  placeholder={tx(2, "What's on your mind?")}
                   placeholderTextColor='#9CA3AF'
                   multiline
                   value={description}
@@ -349,7 +380,7 @@ const UBlastSubmission = () => {
             <View className='mt-4'>
               <View className='flex-row justify-between items-center mb-3'>
                 <Text className='text-black dark:text-white text-base font-medium'>
-                  Schedule Post
+                  {tx(3, 'Schedule Post')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => setIsScheduled(!isScheduled)}
@@ -366,14 +397,16 @@ const UBlastSubmission = () => {
               {isScheduled && (
                 <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg p-4'>
                   <Text className='text-black dark:text-white text-base font-medium mb-3'>
-                    Schedule Date & Time
+                    {tx(4, 'Schedule Date & Time')}
                   </Text>
                   <View className='flex-row gap-3'>
                     <TouchableOpacity
                       className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
                       onPress={() => setShowDatePicker(true)}
                     >
-                      <Text className='text-gray-400 text-xs mb-1'>Date</Text>
+                      <Text className='text-gray-400 text-xs mb-1'>
+                        {tx(5, 'Date')}
+                      </Text>
                       <Text className='text-black dark:text-white text-base'>
                         {scheduledDateTime.toLocaleDateString()}
                       </Text>
@@ -383,7 +416,9 @@ const UBlastSubmission = () => {
                       className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
                       onPress={() => setShowTimePicker(true)}
                     >
-                      <Text className='text-gray-400 text-xs mb-1'>Time</Text>
+                      <Text className='text-gray-400 text-xs mb-1'>
+                        {tx(6, 'Time')}
+                      </Text>
                       <Text className='text-black dark:text-white text-base'>
                         {scheduledDateTime.toLocaleTimeString([], {
                           hour: '2-digit',
@@ -450,15 +485,15 @@ const UBlastSubmission = () => {
               <Text className='text-black dark:text-white font-roboto-bold text-lg'>
                 {isLoading
                   ? isEditMode
-                    ? 'Updating...'
+                    ? tx(16, 'Updating...')
                     : isScheduled
-                      ? 'Scheduling...'
-                      : 'Submitting...'
+                      ? tx(14, 'Scheduling...')
+                      : tx(15, 'Submitting...')
                   : isEditMode
-                    ? 'Update Post'
+                    ? tx(9, 'Update Post')
                     : isScheduled
-                      ? 'Schedule Post'
-                      : 'Submit to UBlast'}
+                      ? tx(8, 'Schedule Post')
+                      : tx(7, 'Submit to UBlast')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -467,7 +502,7 @@ const UBlastSubmission = () => {
           {ublastData?.submissions && ublastData.submissions.length > 0 && (
             <View className='mt-6'>
               <Text className='text-black dark:text-white font-roboto-bold text-xl mb-4'>
-                Your UBlast Submissions
+                {tx(10, 'Your UBlast Submissions')}
               </Text>
               <View className='space-y-4'>
                 {ublastData.submissions.map((post: any) => (
@@ -479,7 +514,7 @@ const UBlastSubmission = () => {
                       onPress={() => handleEditPost(post)}
                     >
                       <Text className='text-black dark:text-white font-roboto-medium text-xs'>
-                        Edit
+                        {tx(11, 'Edit')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -494,11 +529,13 @@ const UBlastSubmission = () => {
               <AntDesign name='info-circle' size={24} color='#eab308' />
               <View className='flex-1'>
                 <Text className='text-yellow-500 font-roboto-semibold mb-1'>
-                  Eligibility Required
+                  {tx(12, 'Eligibility Required')}
                 </Text>
                 <Text className='text-yellow-500/80 font-roboto-regular text-sm'>
-                  Make sure you meet the eligibility requirements in the
-                  Trending tab before submitting.
+                  {tx(
+                    13,
+                    'Make sure you meet the eligibility requirements in the Trending tab before submitting.'
+                  )}
                 </Text>
               </View>
             </View>

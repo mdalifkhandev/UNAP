@@ -1,6 +1,8 @@
 import Feather from '@expo/vector-icons/Feather';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import useLanguageStore from '@/store/language.store';
 
 interface MediaPickersProps {
   onPickPhoto: () => void;
@@ -19,6 +21,15 @@ const MediaPickers: React.FC<MediaPickersProps> = ({
   disableVideo = false,
   disableAudio = false,
 }) => {
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: ['Photo', 'Video', 'Music'],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
+
   return (
     <View className='flex-row justify-between px-6 mt-6'>
       <TouchableOpacity
@@ -29,7 +40,7 @@ const MediaPickers: React.FC<MediaPickersProps> = ({
       >
         <Feather name='image' size={32} color='#00E6E6' />
         <Text className='text-black dark:text-white font-roboto-regular mt-2 text-xs'>
-          Photo
+          {tx(0, 'Photo')}
         </Text>
       </TouchableOpacity>
 
@@ -41,7 +52,7 @@ const MediaPickers: React.FC<MediaPickersProps> = ({
       >
         <Feather name='video' size={32} color='#E60076' />
         <Text className='text-black dark:text-white font-roboto-regular mt-2 text-xs'>
-          Video
+          {tx(1, 'Video')}
         </Text>
       </TouchableOpacity>
 
@@ -53,7 +64,7 @@ const MediaPickers: React.FC<MediaPickersProps> = ({
       >
         <Feather name='music' size={32} color='#F54900' />
         <Text className='text-black dark:text-white font-roboto-regular mt-2 text-xs'>
-          Music
+          {tx(2, 'Music')}
         </Text>
       </TouchableOpacity>
     </View>

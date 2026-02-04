@@ -1,6 +1,9 @@
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetAllChatList } from '@/hooks/app/chat';
+import { useSocketPresence } from '@/hooks/app/useSocketPresence';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useThemeStore from '@/store/theme.store';
+import useLanguageStore from '@/store/language.store';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -43,6 +46,23 @@ const ChatsList = () => {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
   const { data, isLoading, isError, error } = useGetAllChatList();
+  const { language } = useLanguageStore();
+  const { isUserOnline } = useSocketPresence();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Loading...',
+      'Failed to load chats',
+      'Unknown error',
+      'Chat',
+      'Search chats...',
+      'Online',
+      'Offline',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   // console.log(
   //   JSON.stringify(data,null,2)
@@ -65,12 +85,25 @@ const ChatsList = () => {
     );
   }, [searchQuery, chatData]);
 
+  const lastMessageTexts = useMemo(
+    () =>
+      filteredChats.map((chat: any) => String(chat?.lastMessage?.text || '')),
+    [filteredChats]
+  );
+  const { data: translatedMessages } = useTranslateTexts({
+    texts: lastMessageTexts,
+    targetLang: language,
+    enabled: !!language && language !== 'EN' && lastMessageTexts.length > 0,
+  });
+  const msg = (index: number, fallback: string) =>
+    translatedMessages?.translations?.[index] || fallback;
+
   if (isLoading) {
     return (
       <GradientBackground>
         <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
           <Text className='text-black dark:text-white text-center mt-10'>
-            Loading...
+            {tx(0, 'Loading...')}
           </Text>
         </SafeAreaView>
       </GradientBackground>
@@ -83,10 +116,10 @@ const ChatsList = () => {
         <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
           <View className='flex-1 justify-center items-center'>
             <Text className='text-red-500 text-center mt-10'>
-              Failed to load chats
+              {tx(1, 'Failed to load chats')}
             </Text>
             <Text className='text-black dark:text-white text-center mt-2'>
-              {error?.message || 'Unknown error'}
+              {error?.message || tx(2, 'Unknown error')}
             </Text>
           </View>
         </SafeAreaView>
@@ -103,7 +136,7 @@ const ChatsList = () => {
           {/* headers */}
           <View className='mt-3 flex-row items-center mx-6 justify-between'>
             <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1'>
-              Chat
+              {tx(3, 'Chat')}
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/screens/home/notification')}
@@ -127,7 +160,7 @@ const ChatsList = () => {
 
             {/* Input */}
             <TextInput
-              placeholder='Search chats...'
+              placeholder={tx(4, 'Search chats...')}
               placeholderTextColor={isLight ? '#6B7280' : 'rgba(255,255,255,0.6)'}
               returnKeyType='search'
               className='ml-2 flex-1 text-base text-black dark:text-white'
@@ -164,19 +197,28 @@ const ChatsList = () => {
                         onPress={() => router.push('/(tabs)/profile')}
                         className='mt-2'
                       >
-                        <Image
-                          source={
-                            chat?.profileImageUrl
-                              ? { uri: chat?.profileImageUrl }
-                              : require('@/assets/images/profile.png')
-                          }
-                          style={{
-                            width: 46,
-                            height: 46,
-                            borderRadius: 100,
-                          }}
-                          contentFit='cover'
-                        />
+                        <View className='relative'>
+                          <Image
+                            source={
+                              chat?.profileImageUrl
+                                ? { uri: chat?.profileImageUrl }
+                                : require('@/assets/images/profile.png')
+                            }
+                            style={{
+                              width: 46,
+                              height: 46,
+                              borderRadius: 100,
+                            }}
+                            contentFit='cover'
+                          />
+                          <View
+                            className={`h-3 w-3 rounded-full absolute right-0 bottom-0 border border-white ${
+                              isUserOnline(chat?.userId)
+                                ? 'bg-[#00B56C]'
+                                : 'bg-red-500'
+                            }`}
+                          />
+                        </View>
                       </TouchableOpacity>
                       <View className='w-5/6'>
                         <Text
@@ -189,7 +231,7 @@ const ChatsList = () => {
                           className='text-secondary dark:text-white/80 font-roboto-regular mt-1'
                           numberOfLines={1}
                         >
-                          {chat?.lastMessage?.text}
+                          {msg(index, chat?.lastMessage?.text || '')}
                         </Text>
                       </View>
                     </View>
@@ -201,6 +243,17 @@ const ChatsList = () => {
                         {chat?.lastMessage?.createdAt
                           ? formatMessageTime(chat.lastMessage.createdAt)
                           : ''}
+                      </Text>
+                      <Text
+                        className={`text-xs mt-1 ${
+                          isUserOnline(chat?.userId)
+                            ? 'text-green-500'
+                            : 'text-red-400'
+                        }`}
+                      >
+                        {isUserOnline(chat?.userId)
+                          ? tx(5, 'Online')
+                          : tx(6, 'Offline')}
                       </Text>
                     </View>
                   </TouchableOpacity>

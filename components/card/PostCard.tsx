@@ -14,13 +14,24 @@ import {
   useSharePost,
   useUnsavePost,
 } from '@/hooks/app/post';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import { useGetMyProfile } from '@/hooks/app/profile';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useState } from 'react';
-import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import Toast from 'react-native-toast-message';
 
 // Define the Post interface matching the one in home.tsx
@@ -81,6 +92,7 @@ const PostCard = ({
   const [likeCount, setLikeCount] = useState(post?.likeCount || 0);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const { data: commentData } = useUserGetComment(post?._id || '');
   const { mutate: addComment } = useUserCreateComment();
@@ -100,6 +112,8 @@ const PostCard = ({
   const { mutate: deletePost } = useDeletePost();
   const { mutate: cancelScheduledPost } = useCancelScheduledPost();
   const { mutate: sharePost } = useSharePost();
+  const { data: profileData } = useGetMyProfile();
+  const { language: storedLanguage } = useLanguageStore();
 
   const [isBookmarked, setIsBookmarked] = useState(
     // @ts-ignore
@@ -165,8 +179,8 @@ const PostCard = ({
       } else {
         Toast.show({
           type: 'info',
-          text1: 'Post Saved',
-          text2: 'This post is already in your saved collection.',
+          text1: uiTexts(8, 'Post Saved'),
+          text2: uiTexts(9, 'This post is already in your saved collection.'),
         });
       }
     }
@@ -186,25 +200,29 @@ const PostCard = ({
   const handleDeletePost = () => {
     if (!post?._id) return;
     // Show confirmation dialog before deleting
-    Alert.alert('Delete Post', 'Are you sure you want to delete this post?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => deletePost(post._id),
-      },
-    ]);
+    Alert.alert(
+      uiTexts(10, 'Delete Post'),
+      uiTexts(11, 'Are you sure you want to delete this post?'),
+      [
+        { text: uiTexts(6, 'Cancel'), style: 'cancel' },
+        {
+          text: uiTexts(2, 'Delete'),
+          style: 'destructive',
+          onPress: () => deletePost(post._id),
+        },
+      ]
+    );
   };
 
   const handleCancelScheduled = () => {
     if (!post?._id) return;
     Alert.alert(
-      'Cancel Scheduled Post',
-      'Are you sure you want to cancel this scheduled post?',
+      uiTexts(12, 'Cancel Scheduled Post'),
+      uiTexts(13, 'Are you sure you want to cancel this scheduled post?'),
       [
-        { text: 'No', style: 'cancel' },
+        { text: uiTexts(14, 'No'), style: 'cancel' },
         {
-          text: 'Yes, Cancel',
+          text: uiTexts(15, 'Yes, Cancel'),
           style: 'destructive',
           onPress: () => cancelScheduledPost(post._id),
         },
@@ -214,13 +232,17 @@ const PostCard = ({
 
   const handleSharePost = () => {
     if (!post?._id) return;
-    Alert.alert('Share Post', 'Are you sure you want to share this post?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Share',
-        onPress: () => sharePost(post._id),
-      },
-    ]);
+    setShowShareModal(true);
+  };
+
+  const handleShareTarget = (target: 'facebook' | 'instagram' | 'feed') => {
+    if (!post?._id) return;
+    if (target === 'feed') {
+      sharePost({ postId: post._id });
+    } else {
+      sharePost({ postId: post._id, target });
+    }
+    setShowShareModal(false);
   };
 
   // Use post data if provided, otherwise use defaults
@@ -250,11 +272,117 @@ const PostCard = ({
   const isOwner = currentUserId && post?.author?.id === currentUserId;
 
   const comments = (commentData as any)?.comments || [];
+  // @ts-ignore
+  const preferredLanguage =
+    (profileData as any)?.profile?.preferredLanguage || storedLanguage;
+  // @ts-ignore
+  const autoTranslateEnabled =
+    (profileData as any)?.profile?.autoTranslateEnabled === true;
+  const uiLanguage = storedLanguage || preferredLanguage;
+
+  const { data: translatedDesc } = useTranslateTexts({
+    texts: [postText],
+    targetLang: preferredLanguage,
+    enabled: autoTranslateEnabled,
+  });
+
+  const { data: translatedComments } = useTranslateTexts({
+    texts: comments.map((c: any) => c?.text || ''),
+    targetLang: preferredLanguage,
+    enabled: autoTranslateEnabled && showComments && comments.length > 0,
+  });
+
+  const { data: translatedUI } = useTranslateTexts({
+    texts: [
+      'Like',
+      'Reply',
+      'Delete',
+      'No comments yet. Be the first to comment!',
+      'Write a comment...',
+      'Share Post',
+      'Cancel',
+      'Share',
+      'Post Saved',
+      'This post is already in your saved collection.',
+      'Delete Post',
+      'Are you sure you want to delete this post?',
+      'Cancel Scheduled Post',
+      'Are you sure you want to cancel this scheduled post?',
+      'No',
+      'Yes, Cancel',
+      'Are you sure you want to share this post?',
+      'Edit',
+      'Unfollow',
+      'Follow',
+      'Audio Post',
+      'Click to play/pause',
+      'Scheduled:',
+      'Anonymous',
+      'Share to Facebook',
+      'Share to Instagram',
+      'Share to Feed',
+    ],
+    targetLang: uiLanguage,
+    enabled: !!uiLanguage && uiLanguage !== 'EN',
+  });
+
+  const uiTexts = (index: number, fallback: string) =>
+    translatedUI?.translations?.[index] || fallback;
 
   return (
     <View
       className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl ${className}`}
     >
+      <Modal
+        visible={showShareModal}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowShareModal(false)}>
+          <View className='flex-1 bg-black/50 justify-end'>
+            <TouchableWithoutFeedback>
+              <View className='bg-white dark:bg-[#111111] p-6 rounded-t-3xl'>
+                <Text className='text-black dark:text-white font-roboto-semibold text-lg mb-4'>
+                  {uiTexts(5, 'Share Post')}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => handleShareTarget('facebook')}
+                  className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                >
+                  <Text className='text-black dark:text-white font-roboto-medium'>
+                    {uiTexts(24, 'Share to Facebook')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleShareTarget('instagram')}
+                  className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                >
+                  <Text className='text-black dark:text-white font-roboto-medium'>
+                    {uiTexts(25, 'Share to Instagram')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleShareTarget('feed')}
+                  className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10'
+                >
+                  <Text className='text-black dark:text-white font-roboto-medium'>
+                    {uiTexts(26, 'Share to Feed')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setShowShareModal(false)}
+                  className='mt-4 py-3 px-4 rounded-xl border border-black/10 dark:border-white/10'
+                >
+                  <Text className='text-center text-black dark:text-white font-roboto-medium'>
+                    {uiTexts(6, 'Cancel')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
       {/* post header */}
       <View className='p-4 flex-row justify-between items-center'>
         <TouchableOpacity
@@ -281,7 +409,7 @@ const PostCard = ({
             </Text>
             {isScheduled ? (
               <Text className='font-roboto-medium text-xs text-blue-400'>
-                Scheduled: {scheduledTime}
+                {uiTexts(22, 'Scheduled:')} {scheduledTime}
               </Text>
             ) : (
               <Text className='font-roboto-regular text-sm text-secondary dark:text-white/80'>
@@ -311,7 +439,7 @@ const PostCard = ({
               }
             >
               <Text className='font-roboto-medium text-black dark:text-white text-xs'>
-                Edit
+                {uiTexts(17, 'Edit')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -319,7 +447,7 @@ const PostCard = ({
               onPress={handleCancelScheduled}
             >
               <Text className='font-roboto-medium text-red-400 text-xs'>
-                Cancel
+                {uiTexts(6, 'Cancel')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -343,7 +471,7 @@ const PostCard = ({
               }
             >
               <Text className='font-roboto-medium text-black dark:text-white text-xs'>
-                Edit
+                {uiTexts(17, 'Edit')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -351,7 +479,7 @@ const PostCard = ({
               onPress={handleDeletePost}
             >
               <Text className='font-roboto-medium text-red-400 text-xs'>
-                Delete
+                {uiTexts(2, 'Delete')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -363,7 +491,7 @@ const PostCard = ({
             <Text
               className={`font-roboto-semibold ${isFollowing ? 'text-secondary dark:text-white/80' : 'text-primary dark:text-white'}`}
             >
-              {isFollowing ? 'Unfollow' : 'Follow '}
+              {isFollowing ? uiTexts(18, 'Unfollow') : uiTexts(19, 'Follow')}
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -405,10 +533,10 @@ const PostCard = ({
             </TouchableOpacity>
             <View className='flex-1'>
               <Text className='text-black dark:text-white font-roboto-medium'>
-                Audio Post
+                {uiTexts(20, 'Audio Post')}
               </Text>
               <Text className='text-secondary dark:text-white/80 text-xs'>
-                Click to play/pause
+                {uiTexts(21, 'Click to play/pause')}
               </Text>
             </View>
             <Ionicons name='musical-note' size={24} color={iconColor} />
@@ -482,7 +610,7 @@ const PostCard = ({
       {/* post description */}
       <View className='px-3 pb-3'>
         <Text className='font-roboto-regular text-primary dark:text-white'>
-          {postText}
+          {translatedDesc?.translations?.[0] || postText}
         </Text>
         <Text className='font-roboto-semibold text-sm text-secondary dark:text-white/80 mt-2.5'>
           {timestamp}
@@ -496,7 +624,7 @@ const PostCard = ({
           <View className='flex-row items-center gap-2 mb-4'>
             <TextInput
               className='flex-1 bg-[#F0F2F5] dark:bg-white/10 text-black dark:text-white p-3 rounded-2xl font-roboto-regular'
-              placeholder='Write a comment...'
+              placeholder={uiTexts(4, 'Write a comment...')}
               placeholderTextColor='#999'
               value={commentText}
               onChangeText={setCommentText}
@@ -513,7 +641,7 @@ const PostCard = ({
 
           {/* Comments List */}
           {comments.length > 0 ? (
-            comments.map((comment: any) => (
+            comments.map((comment: any, index: number) => (
               <View key={comment._id} className='mb-4'>
                 <View className='flex-row gap-2'>
                   <Image
@@ -529,21 +657,22 @@ const PostCard = ({
                       <Text className='text-primary dark:text-white text-sm font-roboto-semibold mb-1'>
                         {comment.profile?.displayName ||
                           comment.user?.name ||
-                          'Anonymous'}
+                          uiTexts(23, 'Anonymous')}
                       </Text>
                       <Text className='text-primary dark:text-white text-sm font-roboto-regular'>
-                        {comment.text}
+                        {translatedComments?.translations?.[index] ||
+                          comment.text}
                       </Text>
                     </View>
                     <View className='flex-row gap-4 mt-1 px-2'>
                       <TouchableOpacity>
                         <Text className='text-secondary dark:text-white/80 text-xs font-roboto-medium'>
-                          Like
+                          {uiTexts(0, 'Like')}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity>
                         <Text className='text-secondary dark:text-white/80 text-xs font-roboto-medium'>
-                          Reply
+                          {uiTexts(1, 'Reply')}
                         </Text>
                       </TouchableOpacity>
                       {/* Only show delete if user owns the comment */}
@@ -553,7 +682,7 @@ const PostCard = ({
                           onPress={() => handleDeleteComment(comment._id)}
                         >
                           <Text className='text-red-400 text-xs font-roboto-medium'>
-                            Delete
+                            {uiTexts(2, 'Delete')}
                           </Text>
                         </TouchableOpacity>
                       )}
@@ -571,7 +700,7 @@ const PostCard = ({
           ) : (
             <View className='bg-[#F0F2F5] dark:bg-white/5 p-4 rounded-2xl items-center'>
               <Text className='text-secondary dark:text-white/80 text-sm font-roboto-regular italic'>
-                No comments yet. Be the first to comment!
+                {uiTexts(3, 'No comments yet. Be the first to comment!')}
               </Text>
             </View>
           )}

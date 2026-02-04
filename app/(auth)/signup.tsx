@@ -3,7 +3,9 @@ import ShadowButton from '@/components/button/ShadowButton';
 import Inpute from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useUserRegister } from '@/hooks/app/auth';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -26,7 +28,30 @@ const Signup = () => {
     instagram: require('@/assets/images/instagram.svg'),
   };
 
-  const { setEmail, email } = useAuthStore();
+  const { setEmail, email, user } = useAuthStore();
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Welcome Back!',
+      'Create your account',
+      'Name',
+      'Email',
+      'Phone',
+      'Password',
+      'Confirm Password',
+      'You agree to the',
+      'Terms of service',
+      'Privacy policy',
+      'Register',
+      'Already have an account?',
+      'Log In',
+      'Or continue with',
+    ],
+    targetLang: language,
+    enabled: !!user?.token && !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   const [isTerm, setIsTerm] = useState(false);
 
@@ -98,16 +123,16 @@ const Signup = () => {
           >
             <View>
               <Text className='text-[#000000] dark:text-white text-2xl font-roboto-semibold mt-6 text-center'>
-                Welcome Back!
+                {tx(0, 'Welcome Back!')}
               </Text>
               <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5'>
-                Create your account
+                {tx(1, 'Create your account')}
               </Text>
             </View>
 
             <View className='p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mt-6'>
               <Inpute
-                title='Name'
+                title={tx(2, 'Name')}
                 placeholder='Rokey Mahmud'
                 value={formData.name}
                 onChangeText={text => handleChange('name', text)}
@@ -115,7 +140,7 @@ const Signup = () => {
 
               <Inpute
                 type='email-address'
-                title='Email'
+                title={tx(3, 'Email')}
                 placeholder='example@example.com'
                 required
                 className='mt-4'
@@ -124,7 +149,7 @@ const Signup = () => {
               />
 
               <Inpute
-                title='Phone'
+                title={tx(4, 'Phone')}
                 placeholder='+880 123 123 123'
                 type='number-pad'
                 className='mt-4'
@@ -133,7 +158,7 @@ const Signup = () => {
               />
 
               <Inpute
-                title='Password'
+                title={tx(5, 'Password')}
                 placeholder='********'
                 required
                 isPassword
@@ -143,7 +168,7 @@ const Signup = () => {
               />
 
               <Inpute
-                title='Confirm Password'
+                title={tx(6, 'Confirm Password')}
                 placeholder='********'
                 required
                 isPassword
@@ -163,19 +188,19 @@ const Signup = () => {
                 </TouchableOpacity>
 
                 <Text className='text-secondary dark:text-white/80 text-sm pr-5'>
-                  You agree to the{' '}
+                  {tx(7, 'You agree to the')}{' '}
                   <Text className='font-roboto-semibold underline'>
-                    Terms of service
+                    {tx(8, 'Terms of service')}
                   </Text>{' '}
                   &{' '}
                   <Text className='font-roboto-semibold underline'>
-                    Privacy policy
+                    {tx(9, 'Privacy policy')}
                   </Text>
                 </Text>
               </View>
 
               <ShadowButton
-                text='Register'
+                text={tx(10, 'Register')}
                 textColor='#2B2B2B'
                 backGroundColor='#E8EBEE'
                 onPress={hendleRegister}
@@ -184,12 +209,12 @@ const Signup = () => {
 
               <View className='mt-4 flex-row justify-center'>
                 <Text className='text-secondary dark:text-white/80 text-sm'>
-                  Already have an account?
+                  {tx(11, 'Already have an account?')}
                 </Text>
                 <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
                   <Text className='font-roboto-bold text-secondary dark:text-white/80 text-sm'>
                     {' '}
-                    Log In
+                    {tx(12, 'Log In')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -197,7 +222,7 @@ const Signup = () => {
 
             <View className='mt-6'>
               <Text className='text-secondary dark:text-white/80 text-center'>
-                Or continue with
+                {tx(13, 'Or continue with')}
               </Text>
 
               {/* social with login */}

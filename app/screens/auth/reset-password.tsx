@@ -3,7 +3,9 @@ import ShadowButton from '@/components/button/ShadowButton';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useUserForgatePasswordResetPassword } from '@/hooks/app/auth';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
@@ -16,21 +18,37 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const { mutate } = useUserForgatePasswordResetPassword();
-  const { resetToken } = useAuthStore();
+  const { resetToken, user } = useAuthStore();
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Set a new password',
+      'Enter & confirm your new password',
+      'New Password',
+      'Confirm Password',
+      'Update Password',
+      'Please enter your password',
+      'Password does not match',
+    ],
+    targetLang: language,
+    enabled: !!user?.token && !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   const handleForgatePasswordResetPassword = () => {
     if (!newPassword.trim() || !confirmPassword.trim()) {
       return Toast.show({
         type: 'error',
         text1: 'Required',
-        text2: 'Please enter your password',
+        text2: tx(5, 'Please enter your password'),
       });
     }
     if (newPassword !== confirmPassword) {
       return Toast.show({
         type: 'error',
         text1: 'Mismatch',
-        text2: 'Password does not match',
+        text2: tx(6, 'Password does not match'),
       });
     }
 
@@ -60,17 +78,17 @@ const ResetPassword = () => {
         {/* welcome text */}
         <View>
           <Text className='text-[#000000] dark:text-white text-2xl font-roboto-semibold mt-6 text-center'>
-            Set a new password
+            {tx(0, 'Set a new password')}
           </Text>
           <Text className='font-roboto-medium text-secondary dark:text-white/80 text-sm text-center mt-1.5 '>
-            Enter & confirm your new password
+            {tx(1, 'Enter & confirm your new password')}
           </Text>
         </View>
 
         {/* emain input */}
         <View className=' p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mt-6'>
           <Input
-            title='New Password'
+            title={tx(2, 'New Password')}
             placeholder='Enter new password'
             className='mt-4'
             isPassword={true}
@@ -78,7 +96,7 @@ const ResetPassword = () => {
             onChangeText={(text: string) => setNewPassword(text)}
           />
           <Input
-            title='Confirm Password'
+            title={tx(3, 'Confirm Password')}
             placeholder='Confirm new password'
             className='mt-4'
             isPassword={true}
@@ -88,7 +106,7 @@ const ResetPassword = () => {
 
           {/* Back to Login button */}
           <ShadowButton
-            text='Update Password'
+            text={tx(4, 'Update Password')}
             textColor='#2B2B2B'
             backGroundColor='#E8EBEE'
             onPress={handleForgatePasswordResetPassword}

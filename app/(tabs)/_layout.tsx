@@ -2,6 +2,8 @@ import { Tabs, router } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import {
   Feather,
@@ -13,6 +15,14 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 export default function TabLayout() {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: ['Home', 'Trending', 'Post', 'UClips', 'Message', 'Profile'],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   return (
     <Tabs
@@ -31,7 +41,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='home'
         options={{
-          title: 'Home',
+          title: tx(0, 'Home'),
           tabBarIcon: ({ color }) => (
             <Ionicons name='home-outline' size={24} color={color} />
           ),
@@ -40,7 +50,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='trending'
         options={{
-          title: 'Trending',
+          title: tx(1, 'Trending'),
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name='chart-timeline-variant-shimmer'
@@ -73,7 +83,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='create'
         options={{
-          title: 'Post',
+          title: tx(2, 'Post'),
           tabBarIcon: ({ color }) => (
             <Feather name='plus-square' size={22} color={color} />
           ),
@@ -91,7 +101,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='uclips'
         options={{
-          title: 'UClips',
+          title: tx(3, 'UClips'),
           tabBarIcon: ({ color }) => (
             <MaterialIcons name='video-library' size={24} color={color} />
           ),
@@ -100,7 +110,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='chats'
         options={{
-          title: 'Message',
+          title: tx(4, 'Message'),
           tabBarIcon: ({ color }) => (
             <Ionicons name='chatbox-outline' size={24} color={color} />
           ),
@@ -109,7 +119,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='profile'
         options={{
-          title: 'Profile',
+          title: tx(5, 'Profile'),
           tabBarIcon: ({ color }) => (
             <Ionicons name='person-outline' size={24} color={color} />
           ),

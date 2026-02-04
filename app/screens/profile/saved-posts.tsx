@@ -1,7 +1,9 @@
 import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetAllSavePost } from '@/hooks/app/post';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import React from 'react';
@@ -18,6 +20,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const SavedPosts = () => {
   const { data, isLoading, refetch, isRefetching } = useGetAllSavePost();
   const { user } = useAuthStore();
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Saved Posts',
+      'No saved posts yet',
+      'Explore Posts',
+      'Loading your collection...',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   // Handle both bookmarks structure and direct posts array
   // @ts-ignore
@@ -29,7 +44,7 @@ const SavedPosts = () => {
         <Ionicons name='chevron-back' size={24} color='black' />
       </TouchableOpacity>
       <Text className='font-roboto-bold text-primary dark:text-white text-2xl flex-1 text-center pr-10'>
-        Saved Posts
+        {tx(0, 'Saved Posts')}
       </Text>
     </View>
   );
@@ -56,13 +71,15 @@ const SavedPosts = () => {
                 <View className='mt-20 items-center'>
                   <Ionicons name='bookmark-outline' size={64} color='#666' />
                   <Text className='text-secondary dark:text-white/80 text-lg font-roboto-medium mt-4'>
-                    No saved posts yet
+                    {tx(1, 'No saved posts yet')}
                   </Text>
                   <TouchableOpacity
                     onPress={() => router.push('/(tabs)/home')}
                     className='mt-6 px-8 py-3 bg-white rounded-full'
                   >
-                    <Text className='text-black dark:text-white font-roboto-bold'>Explore Posts</Text>
+                    <Text className='text-black dark:text-white font-roboto-bold'>
+                      {tx(2, 'Explore Posts')}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               ) : null
@@ -70,7 +87,9 @@ const SavedPosts = () => {
           />
           {isLoading && (
             <View className='absolute inset-0 justify-center items-center'>
-              <Text className='text-black dark:text-white font-roboto-medium'>Loading your collection...</Text>
+              <Text className='text-black dark:text-white font-roboto-medium'>
+                {tx(3, 'Loading your collection...')}
+              </Text>
             </View>
           )}
         </KeyboardAvoidingView>

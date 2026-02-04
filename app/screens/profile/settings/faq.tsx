@@ -1,6 +1,8 @@
 import BackButton from '@/components/button/BackButton';
 import GradientBackground from '@/components/main/GradientBackground';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import useLanguageStore from '@/store/language.store';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -85,32 +87,65 @@ const FAQItem: React.FC<FAQItemProps> = ({
 
 const Faq = () => {
   const [openIndex, setOpenIndex] = useState<number>(0);
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Faq',
+      'How do I submit my work (song/photo/video) for consideration?',
+      'Go to Profile → Upload for Consideration and submit your work. The UNAP team will review it and notify you.',
+      'Why do I need to promote my release within 72 hours?',
+      "Early promotion is crucial for algorithmic momentum. The first 72 hours significantly impact your release's visibility and performance across streaming platforms.",
+      "What happens if I don't promote within 72 hours?",
+      'Your release may receive less initial traction and lower algorithmic priority, potentially affecting its overall performance and reach.',
+      'Can I turn off email or SMS notifications?',
+      'Yes, you can manage your notification preferences in Settings. Navigate to Notifications and toggle email or SMS options on or off.',
+      'Why do official posts have a watermark?',
+      'Watermarks help protect content authenticity and prevent unauthorized use. They ensure official posts are easily identifiable and credited properly.',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   const faqData = [
     {
-      question: 'How do I submit my work (song/photo/video) for consideration?',
-      answer:
-        'Go to Profile → Upload for Consideration and submit your work. The UNAP team will review it and notify you.',
+      question: tx(
+        1,
+        'How do I submit my work (song/photo/video) for consideration?'
+      ),
+      answer: tx(
+        2,
+        'Go to Profile → Upload for Consideration and submit your work. The UNAP team will review it and notify you.'
+      ),
     },
     {
-      question: 'Why do I need to promote my release within 72 hours?',
-      answer:
-        "Early promotion is crucial for algorithmic momentum. The first 72 hours significantly impact your release's visibility and performance across streaming platforms.",
+      question: tx(3, 'Why do I need to promote my release within 72 hours?'),
+      answer: tx(
+        4,
+        "Early promotion is crucial for algorithmic momentum. The first 72 hours significantly impact your release's visibility and performance across streaming platforms."
+      ),
     },
     {
-      question: "What happens if I don't promote within 72 hours?",
-      answer:
-        'Your release may receive less initial traction and lower algorithmic priority, potentially affecting its overall performance and reach.',
+      question: tx(5, "What happens if I don't promote within 72 hours?"),
+      answer: tx(
+        6,
+        'Your release may receive less initial traction and lower algorithmic priority, potentially affecting its overall performance and reach.'
+      ),
     },
     {
-      question: 'Can I turn off email or SMS notifications?',
-      answer:
-        'Yes, you can manage your notification preferences in Settings. Navigate to Notifications and toggle email or SMS options on or off.',
+      question: tx(7, 'Can I turn off email or SMS notifications?'),
+      answer: tx(
+        8,
+        'Yes, you can manage your notification preferences in Settings. Navigate to Notifications and toggle email or SMS options on or off.'
+      ),
     },
     {
-      question: 'Why do official posts have a watermark?',
-      answer:
-        'Watermarks help protect content authenticity and prevent unauthorized use. They ensure official posts are easily identifiable and credited properly.',
+      question: tx(9, 'Why do official posts have a watermark?'),
+      answer: tx(
+        10,
+        'Watermarks help protect content authenticity and prevent unauthorized use. They ensure official posts are easily identifiable and credited properly.'
+      ),
     },
   ];
 
@@ -128,7 +163,7 @@ const Faq = () => {
           <View className='flex-row mt-4 mx-6'>
             <BackButton />
             <Text className='text-primary dark:text-white font-roboto-bold text-2xl text-center flex-1'>
-              Faq
+              {tx(0, 'Faq')}
             </Text>
           </View>
           <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>

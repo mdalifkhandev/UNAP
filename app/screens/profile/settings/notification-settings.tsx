@@ -1,6 +1,8 @@
 import BackButton from '@/components/button/BackButton';
 import { ToggleButton } from '@/components/button/ToggleButton';
 import GradientBackground from '@/components/main/GradientBackground';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import useLanguageStore from '@/store/language.store';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -15,6 +17,14 @@ const NotificationSettings = () => {
   const [isEmailOn, setIsEmailOn] = useState(false);
   const [isSMSOn, setIsSMSOn] = useState(true);
   // Dark/Light mode toggle moved to main Settings screen.
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: ['Notification', 'Email Notifications', 'SMS Notifications'],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   return (
     <GradientBackground>
@@ -26,7 +36,7 @@ const NotificationSettings = () => {
           <View className='flex-row mt-4 mx-6'>
             <BackButton />
             <Text className='text-primary dark:text-white font-roboto-bold text-2xl text-center flex-1'>
-              Notification
+              {tx(0, 'Notification')}
             </Text>
           </View>
           <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
@@ -36,13 +46,13 @@ const NotificationSettings = () => {
           >
             <View className='flex-row justify-between p-3 border border-black/20 dark:border-[#FFFFFF0D] rounded-2xl mt-6 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'>
               <Text className='text-primary dark:text-white font-roboto-semibold'>
-                Email Notifications
+                {tx(1, 'Email Notifications')}
               </Text>
               <ToggleButton isOn={isEmailOn} setIsOn={setIsEmailOn} />
             </View>
             <View className='flex-row justify-between p-3 border border-black/20 dark:border-[#FFFFFF0D] rounded-2xl mt-3 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'>
               <Text className='text-primary dark:text-white font-roboto-semibold'>
-                SMS Notifications
+                {tx(2, 'SMS Notifications')}
               </Text>
               <ToggleButton isOn={isSMSOn} setIsOn={setIsSMSOn} />
             </View>

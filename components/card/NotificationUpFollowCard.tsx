@@ -1,5 +1,7 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useTranslateTexts } from "@/hooks/app/translate";
+import useLanguageStore from "@/store/language.store";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -20,6 +22,14 @@ const NotificationUpFollowCard = ({
   className,
   type,
 }: NotificationUpFollowCardProps) => {
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: ["Options"],
+    targetLang: language,
+    enabled: !!language && language !== "EN",
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
   return (
     <View
       className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] py-5 px-4 rounded-xl flex-row justify-between gap-5 ${className} `}

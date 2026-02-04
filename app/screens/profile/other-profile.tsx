@@ -3,7 +3,9 @@ import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useUserFollow, useUserUnFollow } from '@/hooks/app/home';
 import { useGetOtherProfile } from '@/hooks/app/profile';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Feather from '@expo/vector-icons/Feather';
 import Foundation from '@expo/vector-icons/Foundation';
@@ -45,7 +47,32 @@ const OtherProfile = () => {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
   const iconColor = isLight ? 'black' : 'white';
+  const { language } = useLanguageStore();
   const { data, isLoading } = useGetOtherProfile(id || '');
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Profile',
+      'Posts',
+      'Followers',
+      'Following',
+      'Follow',
+      'Unfollow',
+      'Message',
+      'Photo',
+      'Video',
+      'Music',
+      'Loading...',
+      'No bio yet',
+      'No photo posts found',
+      'No video posts found',
+      'No music posts found',
+      'Audio File',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   const { mutate: followUser } = useUserFollow();
   const { mutate: unfollowUser } = useUserUnFollow();
@@ -54,6 +81,12 @@ const OtherProfile = () => {
   const profile = data?.profile;
   // @ts-ignore
   const viewerIsFollowingInitial = data?.viewerIsFollowing || false;
+  const bioValue = profile?.bio?.trim();
+  const { data: translatedBio } = useTranslateTexts({
+    texts: [bioValue || ''],
+    targetLang: language,
+    enabled: !!language && language !== 'EN' && !!bioValue,
+  });
 
   const [isFollowing, setIsFollowing] = useState(viewerIsFollowingInitial);
   const [selectedType, setSelectedType] = useState<
@@ -86,7 +119,9 @@ const OtherProfile = () => {
     return (
       <GradientBackground>
         <SafeAreaView className='flex-1 justify-center items-center'>
-          <Text className='text-primary dark:text-white'>Loading...</Text>
+          <Text className='text-primary dark:text-white'>
+            {tx(10, 'Loading...')}
+          </Text>
         </SafeAreaView>
       </GradientBackground>
     );
@@ -105,7 +140,7 @@ const OtherProfile = () => {
               <Ionicons name='chevron-back' size={28} color={iconColor} />
             </TouchableOpacity>
             <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1 mr-8'>
-              Profile
+              {tx(0, 'Profile')}
             </Text>
           </View>
 
@@ -141,7 +176,9 @@ const OtherProfile = () => {
             {/* details */}
             <View className='mt-3 mx-6'>
               <Text className='font-roboto-medium text-primary dark:text-white'>
-                {profile?.bio || 'No bio yet'}
+                {bioValue
+                  ? translatedBio?.translations?.[0] || bioValue
+                  : tx(11, 'No bio yet')}
               </Text>
             </View>
 
@@ -155,7 +192,7 @@ const OtherProfile = () => {
                   {profile?.postsCount || 0}
                 </Text>
                 <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
-                  Posts
+                  {tx(1, 'Posts')}
                 </Text>
               </View>
               <View>
@@ -163,7 +200,7 @@ const OtherProfile = () => {
                   {profile?.followersCount || 0}
                 </Text>
                 <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
-                  Followers
+                  {tx(2, 'Followers')}
                 </Text>
               </View>
               <View>
@@ -171,7 +208,7 @@ const OtherProfile = () => {
                   {profile?.followingCount || 0}
                 </Text>
                 <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
-                  Following
+                  {tx(3, 'Following')}
                 </Text>
               </View>
             </View>
@@ -182,14 +219,14 @@ const OtherProfile = () => {
             {/* follow/message buttons */}
             <View className='flex-row justify-center items-center gap-5 mx-6'>
               <ShadowButton
-                text={isFollowing ? 'Unfollow' : 'Follow'}
+                text={isFollowing ? tx(5, 'Unfollow') : tx(4, 'Follow')}
                 textColor={isFollowing ? '#000000' : '#2B2B2B'}
                 backGroundColor={isFollowing ? '#000000' : '#E8EBEE'}
                 onPress={handleFollowToggle}
                 className={`mt-4 ${isFollowing ? 'border border-black/20 dark:border-[#292929]' : ''}`}
               />
               <ShadowButton
-                text='Message'
+                text={tx(6, 'Message')}
                 textColor={isLight ? '#000000' : '#E6E6E6'}
                 backGroundColor={isLight ? '#F0F2F5' : '#000000'}
                 onPress={() => {
@@ -241,7 +278,11 @@ const OtherProfile = () => {
                   >
                     <Icon name={iconName as any} size={24} color={iconColor} />
                     <Text className='text-primary dark:text-white font-roboto-regular mt-1'>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                      {type === 'photo'
+                        ? tx(7, 'Photo')
+                        : type === 'video'
+                          ? tx(8, 'Video')
+                          : tx(9, 'Music')}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -287,7 +328,7 @@ const OtherProfile = () => {
                       <View className='p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] items-center justify-center w-full aspect-square'>
                         <Feather name='music' size={40} color='#F54900' />
                         <Text className='text-black dark:text-white mt-2 text-center text-xs'>
-                          {item.description || 'Audio File'}
+                          {item.description || tx(15, 'Audio File')}
                         </Text>
                       </View>
                     )}
@@ -295,7 +336,11 @@ const OtherProfile = () => {
                 ))
               ) : (
                 <Text className='text-primary dark:text-white font-roboto-regular mt-1'>
-                  No {selectedType} posts found
+                  {selectedType === 'photo'
+                    ? tx(12, 'No photo posts found')
+                    : selectedType === 'video'
+                      ? tx(13, 'No video posts found')
+                      : tx(14, 'No music posts found')}
                 </Text>
               )}
             </View>

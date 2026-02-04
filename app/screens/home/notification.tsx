@@ -2,6 +2,8 @@ import NotificationCard from "@/components/card/NotificationCard";
 import NotificationUpFollowCard from "@/components/card/NotificationUpFollowCard";
 import BackButton from "@/components/button/BackButton";
 import GradientBackground from "@/components/main/GradientBackground";
+import { useTranslateTexts } from "@/hooks/app/translate";
+import useLanguageStore from "@/store/language.store";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -15,6 +17,24 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const Notification = () => {
   const img1 = require("@/assets/images/profile.png");
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      "Notification",
+      "Liked Your Post",
+      "started following you",
+      "You've reached 10,000 followers! 🎉",
+      "2 minute ago",
+      "5 minute ago",
+      "10 minute ago",
+      "15 minute ago",
+      "20 minute ago",
+    ],
+    targetLang: language,
+    enabled: !!language && language !== "EN",
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   const handleMenuToggle = (id: string) => {
     setActiveMenuId(activeMenuId === id ? null : id);
@@ -28,40 +48,40 @@ const Notification = () => {
     {
       id: "1",
       name: "Sarah Martinez",
-      reson: "Liked Your Post",
-      time: "2 minute ago",
+      reson: tx(1, "Liked Your Post"),
+      time: tx(4, "2 minute ago"),
       img: img1,
       type: "like",
     },
     {
       id: "2",
       name: "Sarah Martinez",
-      reson: "started following you",
-      time: "5 minute ago",
+      reson: tx(2, "started following you"),
+      time: tx(5, "5 minute ago"),
       img: img1,
       type: "follow",
     },
     {
       id: "3",
       name: "Luna Voice",
-      reson: "You've reached 10,000 followers! 🎉",
-      time: "10 minute ago",
+      reson: tx(3, "You've reached 10,000 followers! 🎉"),
+      time: tx(6, "10 minute ago"),
       img: img1,
       type: "10000",
     },
     {
       id: "4",
       name: "Sarah Martinez",
-      reson: "Liked Your Post",
-      time: "15 minute ago",
+      reson: tx(1, "Liked Your Post"),
+      time: tx(7, "15 minute ago"),
       img: img1,
       type: "like",
     },
     {
       id: "5",
       name: "Sarah Martinez",
-      reson: "Liked Your Post",
-      time: "20 minute ago",
+      reson: tx(1, "Liked Your Post"),
+      time: tx(8, "20 minute ago"),
       img: img1,
       type: "like",
     },
@@ -77,7 +97,7 @@ const Notification = () => {
           <View className="flex-row mt-4 mx-6">
             <BackButton />
             <Text className="text-primary dark:text-white font-roboto-bold text-2xl text-center flex-1">
-              Notification
+              {tx(0, "Notification")}
             </Text>
           </View>
 

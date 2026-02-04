@@ -3,6 +3,9 @@ import { ToggleButton } from '@/components/button/ToggleButton';
 import GradientBackground from '@/components/main/GradientBackground';
 import useAuthStore from '@/store/auth.store';
 import useThemeStore from '@/store/theme.store';
+import { useUpdateProfileLanguage } from '@/hooks/app/profile';
+import useLanguageStore from '@/store/language.store';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -33,17 +36,70 @@ const Settings = () => {
   const isLight = mode === 'light';
   const iconColor = isLight ? 'black' : 'white';
   const isDarkMode = useMemo(() => mode === 'dark', [mode]);
+  const { mutateAsync: updateLanguage, isPending: isUpdatingLanguage } =
+    useUpdateProfileLanguage();
   const [langOpen, setLangOpen] = useState(false);
-  const [language, setLanguage] = useState('EN');
+  const { language, setLanguage } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Setting',
+      'Account Information',
+      'Edit Profile',
+      'Complete Profile',
+      'Policy Center',
+      'Privacy Policy',
+      'Terms & Condition',
+      'Faq',
+      'Settings',
+      'Notification',
+      'Language',
+      'Dark Mode',
+      'Light Mode',
+      'Log Out',
+      'Delete Account',
+      'Options',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
   const langOptions = useMemo(
     () => [
+      { code: 'AR', name: 'Arabic' },
+      { code: 'BG', name: 'Bulgarian' },
+      { code: 'CS', name: 'Czech' },
+      { code: 'DA', name: 'Danish' },
+      { code: 'DE', name: 'German' },
+      { code: 'EL', name: 'Greek' },
       { code: 'EN', name: 'English' },
-      { code: 'EN-US', name: 'English (US)' },
       { code: 'EN-GB', name: 'English (UK)' },
-      { code: 'PT-PT', name: 'Portuguese (PT)' },
-      { code: 'PT-BR', name: 'Portuguese (BR)' },
+      { code: 'EN-US', name: 'English (US)' },
       { code: 'ES', name: 'Spanish' },
+      { code: 'ET', name: 'Estonian' },
+      { code: 'FI', name: 'Finnish' },
       { code: 'FR', name: 'French' },
+      { code: 'HU', name: 'Hungarian' },
+      { code: 'ID', name: 'Indonesian' },
+      { code: 'IT', name: 'Italian' },
+      { code: 'JA', name: 'Japanese' },
+      { code: 'KO', name: 'Korean' },
+      { code: 'LT', name: 'Lithuanian' },
+      { code: 'LV', name: 'Latvian' },
+      { code: 'NB', name: 'Norwegian Bokmal' },
+      { code: 'NL', name: 'Dutch' },
+      { code: 'PL', name: 'Polish' },
+      { code: 'PT', name: 'Portuguese' },
+      { code: 'PT-BR', name: 'Portuguese (BR)' },
+      { code: 'PT-PT', name: 'Portuguese (PT)' },
+      { code: 'RO', name: 'Romanian' },
+      { code: 'RU', name: 'Russian' },
+      { code: 'SK', name: 'Slovak' },
+      { code: 'SL', name: 'Slovenian' },
+      { code: 'SV', name: 'Swedish' },
+      { code: 'TR', name: 'Turkish' },
+      { code: 'UK', name: 'Ukrainian' },
+      { code: 'ZH', name: 'Chinese' },
     ],
     []
   );
@@ -65,7 +121,7 @@ const Settings = () => {
         <View className='flex-row mt-4 mx-6'>
           <BackButton />
           <Text className='text-primary dark:text-white font-roboto-bold text-2xl text-center flex-1'>
-            Setting
+            {tx(0, 'Setting')}
           </Text>
         </View>
         <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
@@ -73,7 +129,7 @@ const Settings = () => {
           {/* account info */}
           <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-3 rounded-xl'>
             <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-semibold text-xl'>
-              Account Information
+              {tx(1, 'Account Information')}
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/screens/profile/edit-profile')}
@@ -91,7 +147,7 @@ const Settings = () => {
                   }}
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
-                  Edit Profile
+                  {tx(2, 'Edit Profile')}
                 </Text>
               </View>
               <Entypo
@@ -115,7 +171,7 @@ const Settings = () => {
                   color={iconColor}
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
-                  Complete Profile
+                  {tx(3, 'Complete Profile')}
                 </Text>
               </View>
               <Entypo
@@ -130,7 +186,7 @@ const Settings = () => {
           {/* Policy Center */}
           <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-3 rounded-xl mt-4'>
             <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-semibold text-xl'>
-              Policy Center
+              {tx(4, 'Policy Center')}
             </Text>
 
             {/* Privacy Policy */}
@@ -148,7 +204,7 @@ const Settings = () => {
                   color={iconColor}
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
-                  Privacy Policy
+                  {tx(5, 'Privacy Policy')}
                 </Text>
               </View>
               <Entypo
@@ -178,7 +234,7 @@ const Settings = () => {
                   }}
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
-                  Terms & Condition
+                  {tx(6, 'Terms & Condition')}
                 </Text>
               </View>
               <Entypo
@@ -202,7 +258,7 @@ const Settings = () => {
                   className='mt-3'
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
-                  Faq
+                  {tx(7, 'Faq')}
                 </Text>
               </View>
               <Entypo
@@ -216,7 +272,7 @@ const Settings = () => {
           {/* Settings */}
           <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-3 rounded-xl mt-4'>
             <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-semibold text-xl'>
-              Settings
+              {tx(8, 'Settings')}
             </Text>
 
             {/* Notification */}
@@ -234,7 +290,7 @@ const Settings = () => {
                   color={iconColor}
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
-                  Notification
+                  {tx(9, 'Notification')}
                 </Text>
               </View>
               <Entypo
@@ -258,12 +314,12 @@ const Settings = () => {
                   color={iconColor}
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
-                  Language
+                  {tx(10, 'Language')}
                 </Text>
               </View>
               <View className='flex-row items-center gap-2'>
                 <Text className='text-primary dark:text-white mt-3'>
-                  {displayLang}
+                  {isUpdatingLanguage ? 'Updating...' : displayLang}
                 </Text>
                 <Entypo
                   name={langOpen ? 'chevron-small-down' : 'chevron-small-right'}
@@ -279,9 +335,17 @@ const Settings = () => {
                 {langOptions.map(opt => (
                   <TouchableOpacity
                     key={opt.code}
-                    onPress={() => {
+                    onPress={async () => {
                       setLanguage(opt.code);
                       setLangOpen(false);
+                      try {
+                        await updateLanguage({
+                          preferredLanguage: opt.code,
+                          autoTranslateEnabled: true,
+                        });
+                      } catch {
+                        // keep local preference even if API fails
+                      }
                     }}
                     className='px-4 py-3 border-b border-black/10 dark:border-[#FFFFFF0D]'
                   >
@@ -303,7 +367,7 @@ const Settings = () => {
                   color={iconColor}
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
-                  {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+                  {isDarkMode ? tx(11, 'Dark Mode') : tx(12, 'Light Mode')}
                 </Text>
               </View>
               <ToggleButton
@@ -329,7 +393,7 @@ const Settings = () => {
                   }}
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
-                  Log Out
+                  {tx(13, 'Log Out')}
                 </Text>
               </View>
               <Entypo
@@ -349,7 +413,7 @@ const Settings = () => {
                   className='mt-3'
                 />
                 <Text className='mx-3 mt-3 text-[#FF0000] font-roboto-regular text-lg'>
-                  Delete Account
+                  {tx(14, 'Delete Account')}
                 </Text>
               </View>
               <Entypo

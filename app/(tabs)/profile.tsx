@@ -3,7 +3,9 @@ import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useDeletePost, useGetMyPosts } from '@/hooks/app/post';
 import { useGetMyProfile } from '@/hooks/app/profile';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Feather from '@expo/vector-icons/Feather';
 import Foundation from '@expo/vector-icons/Foundation';
@@ -46,10 +48,45 @@ const Profiles = () => {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
   const iconColor = isLight ? 'black' : 'white';
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Profile',
+      'Posts',
+      'Followers',
+      'Following',
+      'Edit Profile',
+      'Saved Posts',
+      'Options',
+      'Scheduled Posts',
+      'Share Profile',
+      'Cancel',
+      'All Posts',
+      'Photo',
+      'Video',
+      'Music',
+      'No posts found',
+      'No photo posts found',
+      'No video posts found',
+      'No music posts found',
+      'Audio File',
+      'No bio yet',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   const { data } = useGetMyProfile();
   // @ts-ignore
   const profile = data?.profile;
+  const bioValue = profile?.bio?.trim();
+  const { data: translatedBio } = useTranslateTexts({
+    texts: [bioValue || ''],
+    targetLang: language,
+    enabled: !!language && language !== 'EN' && !!bioValue,
+  });
 
   // ... existing state and logic ...
   // Selected post type state
@@ -84,7 +121,7 @@ const Profiles = () => {
           {/* headers */}
           <View className='mt-3 flex-row items-center mx-6 justify-between'>
             <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1'>
-              Profile
+              {tx(0, 'Profile')}
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/screens/profile/settings/settings')}
@@ -125,7 +162,9 @@ const Profiles = () => {
             {/* details */}
             <View className='mt-3 mx-6'>
               <Text className='font-roboto-medium text-primary dark:text-white'>
-                {profile?.bio || 'No bio yet'}
+                {bioValue
+                  ? translatedBio?.translations?.[0] || bioValue
+                  : tx(19, 'No bio yet')}
               </Text>
             </View>
 
@@ -139,7 +178,7 @@ const Profiles = () => {
                   {profile?.postsCount || 0}
                 </Text>
                 <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
-                  Posts
+                  {tx(1, 'Posts')}
                 </Text>
               </View>
               <View>
@@ -147,7 +186,7 @@ const Profiles = () => {
                   {profile?.followersCount || 0}
                 </Text>
                 <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
-                  Followers
+                  {tx(2, 'Followers')}
                 </Text>
               </View>
               <View>
@@ -155,7 +194,7 @@ const Profiles = () => {
                   {profile?.followingCount || 0}
                 </Text>
                 <Text className='text-secondary dark:text-white/80 text-center font-roboto-regular text-lg'>
-                  Following
+                  {tx(3, 'Following')}
                 </Text>
               </View>
             </View>
@@ -167,14 +206,14 @@ const Profiles = () => {
             {/* edit/share/saved buttons */}
             <View className='flex-row justify-center items-center gap-3 mx-4'>
               <ShadowButton
-                text='Edit Profile'
+                text={tx(4, 'Edit Profile')}
                 textColor='#2B2B2B'
                 backGroundColor='#E8EBEE'
                 onPress={() => router.push('/screens/profile/edit-profile')}
                 className='mt-4 flex-1'
               />
               <ShadowButton
-                text='Saved Posts'
+                text={tx(5, 'Saved Posts')}
                 textColor={isLight ? '#000000' : '#E6E6E6'}
                 backGroundColor={isLight ? '#F0F2F5' : '#000000'}
                 onPress={() => router.push('/screens/profile/saved-posts')}
@@ -226,8 +265,12 @@ const Profiles = () => {
                     <Icon name={iconName as any} size={20} color={iconColor} />
                     <Text className='text-primary dark:text-white font-roboto-regular text-sm'>
                       {type === 'all'
-                        ? 'All Posts'
-                        : type.charAt(0).toUpperCase() + type.slice(1)}
+                        ? tx(10, 'All Posts')
+                        : type === 'photo'
+                          ? tx(11, 'Photo')
+                          : type === 'video'
+                            ? tx(12, 'Video')
+                            : tx(13, 'Music')}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -250,7 +293,7 @@ const Profiles = () => {
                     ))
                   ) : (
                     <Text className='text-primary dark:text-white font-roboto-regular text-center mt-8'>
-                      No posts found
+                      {tx(14, 'No posts found')}
                     </Text>
                   )}
                 </View>
@@ -295,7 +338,7 @@ const Profiles = () => {
                           <View className='p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] items-center justify-center w-full aspect-square'>
                             <Feather name='music' size={40} color='#F54900' />
                             <Text className='text-black dark:text-white mt-2 text-center text-xs'>
-                              {item.description || 'Audio File'}
+                              {item.description || tx(18, 'Audio File')}
                             </Text>
                           </View>
                         )}
@@ -303,7 +346,11 @@ const Profiles = () => {
                     ))
                   ) : (
                     <Text className='text-primary dark:text-white font-roboto-regular mt-1'>
-                      No {selectedType} posts found
+                      {selectedType === 'photo'
+                        ? tx(15, 'No photo posts found')
+                        : selectedType === 'video'
+                          ? tx(16, 'No video posts found')
+                          : tx(17, 'No music posts found')}
                     </Text>
                   )}
                 </View>
@@ -330,7 +377,7 @@ const Profiles = () => {
                   }`}
                 >
                   <Text className='text-black dark:text-white text-lg font-roboto-bold text-center mb-4'>
-                    Options
+                    {tx(6, 'Options')}
                   </Text>
 
                   <TouchableOpacity
@@ -344,7 +391,7 @@ const Profiles = () => {
                   >
                     <Ionicons name='time-outline' size={24} color={iconColor} />
                     <Text className='text-black dark:text-white font-roboto-medium text-base'>
-                      Scheduled Posts
+                      {tx(7, 'Scheduled Posts')}
                     </Text>
                   </TouchableOpacity>
 
@@ -363,7 +410,7 @@ const Profiles = () => {
                       color={iconColor}
                     />
                     <Text className='text-black dark:text-white font-roboto-medium text-base'>
-                      Share Profile
+                      {tx(8, 'Share Profile')}
                     </Text>
                   </TouchableOpacity>
 
@@ -371,7 +418,7 @@ const Profiles = () => {
                     onPress={() => setShowShareModal(false)}
                     className='mt-4 p-2 items-center'
                   >
-                    <Text className='text-gray-400'>Cancel</Text>
+                    <Text className='text-gray-400'>{tx(9, 'Cancel')}</Text>
                   </TouchableOpacity>
                 </View>
               </TouchableWithoutFeedback>

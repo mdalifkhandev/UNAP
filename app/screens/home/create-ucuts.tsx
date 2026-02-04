@@ -2,6 +2,8 @@ import ShadowButton from '@/components/button/ShadowButton';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetMyProfile } from '@/hooks/app/profile';
 import { useCreateUCuts } from '@/hooks/app/ucuts';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -28,6 +30,24 @@ const CreateStory = () => {
     '';
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Create UCuts',
+      'Write something...',
+      'Sharing...',
+      'Share to UCuts',
+      'Tap to select a photo',
+      'Permission Required',
+      'Camera roll permissions are needed to select a UCuts.',
+      'Missing info',
+      'Please add text and select a media file.',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
   const [text, setText] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<{
     uri: string;
@@ -43,8 +63,8 @@ const CreateStory = () => {
     if (status !== 'granted') {
       Toast.show({
         type: 'error',
-        text1: 'Permission Required',
-        text2: 'Camera roll permissions are needed to select a UCuts.',
+        text1: tx(5, 'Permission Required'),
+        text2: tx(6, 'Camera roll permissions are needed to select a UCuts.'),
       });
       return;
     }
@@ -79,8 +99,8 @@ const CreateStory = () => {
     if (!selectedMedia || !text.trim()) {
       Toast.show({
         type: 'error',
-        text1: 'Missing info',
-        text2: 'Please add text and select a media file.',
+        text1: tx(7, 'Missing info'),
+        text2: tx(8, 'Please add text and select a media file.'),
       });
       return;
     }
@@ -108,7 +128,7 @@ const CreateStory = () => {
             />
           </TouchableOpacity>
           <Text className='text-black dark:text-white text-lg font-semibold'>
-            Create UCuts
+            {tx(0, 'Create UCuts')}
           </Text>
           <View className='w-10 h-10 rounded-full overflow-hidden border border-black/20 dark:border-white/20'>
             <Image
@@ -125,7 +145,7 @@ const CreateStory = () => {
           <TextInput
             value={text}
             onChangeText={setText}
-            placeholder='Write something...'
+            placeholder={tx(1, 'Write something...')}
             placeholderTextColor={isLight ? '#9CA3AF' : 'rgba(255,255,255,0.6)'}
             className='w-full rounded-2xl border border-black/20 dark:border-white/10 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-4 py-3 text-black dark:text-white'
           />
@@ -174,7 +194,7 @@ const CreateStory = () => {
                 />
               </View>
               <Text className='text-black/50 dark:text-white/70 text-base'>
-                Tap to select a photo
+                {tx(4, 'Tap to select a photo')}
               </Text>
             </TouchableOpacity>
           )}
@@ -183,7 +203,7 @@ const CreateStory = () => {
         {selectedMedia && (
           <View className='px-6 pb-10'>
             <ShadowButton
-              text={isPending ? 'Sharing...' : 'Share to UCuts'}
+              text={isPending ? tx(2, 'Sharing...') : tx(3, 'Share to UCuts')}
               onPress={handlePostStory}
               className='w-full'
             />

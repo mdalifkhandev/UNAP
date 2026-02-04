@@ -1,7 +1,9 @@
 import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetScheduledPosts } from '@/hooks/app/post';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
@@ -22,6 +24,19 @@ const ScheduledPosts = () => {
 
   const { data, isLoading, refetch, isRefetching } = useGetScheduledPosts();
   const { user } = useAuthStore();
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Scheduled Posts',
+      'No scheduled posts',
+      'Create Post',
+      'Loading scheduled posts...',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   // Handle posts structure
   // @ts-ignore
@@ -40,7 +55,7 @@ const ScheduledPosts = () => {
         />
       </TouchableOpacity>
       <Text className='font-roboto-bold text-primary dark:text-white text-2xl flex-1 text-center pr-10'>
-        Scheduled Posts
+        {tx(0, 'Scheduled Posts')}
       </Text>
     </View>
   );
@@ -72,14 +87,14 @@ const ScheduledPosts = () => {
                 <View className='mt-20 items-center'>
                   <Ionicons name='time-outline' size={64} color='#666' />
                   <Text className='text-secondary dark:text-white/80 text-lg font-roboto-medium mt-4'>
-                    No scheduled posts
+                    {tx(1, 'No scheduled posts')}
                   </Text>
                   <TouchableOpacity
                     onPress={() => router.push('/(tabs)/create')}
                     className='mt-6 px-8 py-3 bg-white dark:bg-[#FFFFFF0D] rounded-full'
                   >
                     <Text className='text-black dark:text-white font-roboto-bold'>
-                      Create Post
+                      {tx(2, 'Create Post')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -89,7 +104,7 @@ const ScheduledPosts = () => {
           {isLoading && (
             <View className='absolute inset-0 justify-center items-center'>
               <Text className='text-black dark:text-white font-roboto-medium'>
-                Loading scheduled posts...
+                {tx(3, 'Loading scheduled posts...')}
               </Text>
             </View>
           )}

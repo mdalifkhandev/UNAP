@@ -41,6 +41,46 @@ export const useUpdateProfile = () => {
   });
 };
 
+export const useUpdateProfileLanguage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      preferredLanguage: string;
+      autoTranslateEnabled?: boolean;
+    }) => {
+      const formData = new FormData();
+      formData.append('preferredLanguage', payload.preferredLanguage);
+      if (typeof payload.autoTranslateEnabled === 'boolean') {
+        formData.append(
+          'autoTranslateEnabled',
+          payload.autoTranslateEnabled ? 'true' : 'false'
+        );
+      }
+      const res = await api.patch('/api/profile/me', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Language Updated',
+        text2: data?.message || 'Your language preference has been updated.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Update Failed',
+        text2: error?.response?.data?.message || error.message,
+      });
+    },
+  });
+};
+
 export const useCompleteProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({

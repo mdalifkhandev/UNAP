@@ -7,6 +7,9 @@ import {
 } from '@/hooks/app/home';
 import { useSavePost, useSharePost, useUnsavePost } from '@/hooks/app/post';
 import { useGetUclips } from '@/hooks/app/uclips';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import { useGetMyProfile } from '@/hooks/app/profile';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -71,6 +74,35 @@ const UclipItem = ({ item }: { item: UclipPost }) => {
   const { data: commentData } = useUserGetComment(item._id);
   const { mutate: addComment } = useUserCreateComment();
   const comments = (commentData as any)?.comments || [];
+  const { data: profileData } = useGetMyProfile();
+  const { language: storedLanguage } = useLanguageStore();
+  // @ts-ignore
+  const preferredLanguage =
+    (profileData as any)?.profile?.preferredLanguage || storedLanguage;
+  // @ts-ignore
+  const autoTranslateEnabled =
+    (profileData as any)?.profile?.autoTranslateEnabled === true;
+
+  const { data: translatedDesc } = useTranslateTexts({
+    texts: [item.description || ''],
+    targetLang: preferredLanguage,
+    enabled: autoTranslateEnabled,
+  });
+
+  const { data: translatedComments } = useTranslateTexts({
+    texts: comments.map((c: any) => c?.text || ''),
+    targetLang: preferredLanguage,
+    enabled: autoTranslateEnabled && activeComment && comments.length > 0,
+  });
+
+  const { data: translatedUI } = useTranslateTexts({
+    texts: ['Comments', 'No comments yet. Be the first to comment!', 'Send'],
+    targetLang: preferredLanguage,
+    enabled: autoTranslateEnabled,
+  });
+
+  const uiTexts = (index: number, fallback: string) =>
+    translatedUI?.translations?.[index] || fallback;
 
   const player = useVideoPlayer(item.mediaUrl || '', p => {
     p.loop = true;
@@ -149,7 +181,7 @@ const UclipItem = ({ item }: { item: UclipPost }) => {
             </View>
 
             <Text className='text-black dark:text-white text-sm'>
-              {item.description}
+              {translatedDesc?.translations?.[0] || item.description}
             </Text>
           </View>
 
@@ -196,7 +228,7 @@ const UclipItem = ({ item }: { item: UclipPost }) => {
               className='items-center'
               onPress={() => {
                 setShares(prev => prev + 1);
-                sharePost(item._id);
+                sharePost({ postId: item._id });
               }}
             >
               <View className='h-12 w-12 rounded-full bg-black/40 items-center justify-center'>
@@ -245,21 +277,21 @@ const UclipItem = ({ item }: { item: UclipPost }) => {
           >
             <View className='w-12 h-1.5 bg-black/20 dark:bg-white/20 rounded-full self-center mb-4' />
             <Text className='text-black dark:text-white font-roboto-semibold text-lg'>
-              Comments
+              {uiTexts(0, 'Comments')}
             </Text>
             <View className='mt-4'>
               {comments.length === 0 ? (
                 <Text className='text-black/70 dark:text-white/70'>
-                  No comments yet. Be the first to comment!
+                  {uiTexts(1, 'No comments yet. Be the first to comment!')}
                 </Text>
               ) : (
-                comments.map((c: any) => (
+                comments.map((c: any, index: number) => (
                   <View key={c._id} className='mb-3'>
                     <Text className='text-black dark:text-white font-roboto-semibold'>
                       {c?.profile?.displayName || c?.user?.name || 'User'}
                     </Text>
                     <Text className='text-black/70 dark:text-white/70'>
-                      {c?.text}
+                      {translatedComments?.translations?.[index] || c?.text}
                     </Text>
                   </View>
                 ))
@@ -281,7 +313,7 @@ const UclipItem = ({ item }: { item: UclipPost }) => {
                 }}
                 className='bg-black/80 px-4 py-3 rounded-2xl'
               >
-                <Text className='text-white'>Send</Text>
+                <Text className='text-white'>{uiTexts(2, 'Send')}</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>

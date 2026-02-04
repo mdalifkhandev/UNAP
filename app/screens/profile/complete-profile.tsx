@@ -2,6 +2,7 @@ import ShadowButton from '@/components/button/ShadowButton';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useCompleteProfile, useGetMyProfile } from '@/hooks/app/profile';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -39,6 +40,30 @@ const CompleteProfile = () => {
   // @ts-ignore
   const profile = profileData?.profile;
   const { mutate: completeProfile, isPending: loading } = useCompleteProfile();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      'Complete Your Profile',
+      'Let other artists know more about you',
+      'Upload Photo',
+      'Username',
+      'Display Name',
+      'Select Your Role',
+      'Bio',
+      'Connect Instagram',
+      'Connect YouTube',
+      'Connect TikTok',
+      'Connect Facebook',
+      'Connect Twitter',
+      'Connect Spotify',
+      'Complete Setup',
+      'Write something...',
+      'Tell us about yourself and your music...',
+    ],
+    targetLang: profile?.preferredLanguage,
+    enabled: !!profile?.preferredLanguage,
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   useEffect(() => {
     if (profile) {
@@ -192,10 +217,10 @@ const CompleteProfile = () => {
             {/* headers */}
             <View className='mx-6 mt-10'>
               <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1'>
-                Complete Your Profile
+                {tx(0, 'Complete Your Profile')}
               </Text>
               <Text className='font-roboto-regular text-secondary dark:text-white/80 text-center flex-1'>
-                Let other artists know more about you
+                {tx(1, 'Let other artists know more about you')}
               </Text>
             </View>
 
@@ -229,7 +254,7 @@ const CompleteProfile = () => {
               </View>
             </View>
             <Text className='text-primary dark:text-white text-xl font-roboto-semibold text-center mt-3'>
-              Upload Photo
+              {tx(2, 'Upload Photo')}
             </Text>
 
             {/* input fields */}
@@ -254,7 +279,7 @@ const CompleteProfile = () => {
 
               {/* Select Your Role */}
               <Text className='text-primary dark:text-white mb-2 mt-3 text-base'>
-                Select Your Role
+                {tx(5, 'Select Your Role')}
               </Text>
               <Input
                 className='mt-2'
@@ -298,7 +323,7 @@ const CompleteProfile = () => {
               {/* Bio */}
               <Text className='text-primary dark:text-white mt-3 mb-2 text-base'>Bio</Text>
               <TextInput
-                placeholder='Tell us about yourself and your music...'
+                placeholder={tx(15, 'Tell us about yourself and your music...')}
                 placeholderTextColor='rgba(0,0,0,0.5)'
                 multiline
                 numberOfLines={4}
@@ -310,7 +335,7 @@ const CompleteProfile = () => {
 
               {/* Instagram */}
               <ShadowButton
-                text='Connect Instagram'
+                text={tx(7, 'Connect Instagram')}
                 textColor='black'
                 backGroundColor='gray'
                 onPress={() => {}}
@@ -319,7 +344,7 @@ const CompleteProfile = () => {
 
               {/* YouTube */}
               <ShadowButton
-                text='Connect YouTube'
+                text={tx(8, 'Connect YouTube')}
                 textColor='black'
                 backGroundColor='gray'
                 onPress={() => {}}
@@ -328,7 +353,7 @@ const CompleteProfile = () => {
 
               {/* TikTok */}
               <ShadowButton
-                text='Connect TikTok'
+                text={tx(9, 'Connect TikTok')}
                 textColor='black'
                 backGroundColor='gray'
                 onPress={() => {}}
@@ -337,7 +362,7 @@ const CompleteProfile = () => {
 
               {/* Facebook */}
               <ShadowButton
-                text='Connect Facebook'
+                text={tx(10, 'Connect Facebook')}
                 textColor='black'
                 backGroundColor='gray'
                 onPress={() => {}}
@@ -346,7 +371,7 @@ const CompleteProfile = () => {
 
               {/* Twitter */}
               <ShadowButton
-                text='Connect Twitter'
+                text={tx(11, 'Connect Twitter')}
                 textColor='black'
                 backGroundColor='gray'
                 onPress={() => {}}
@@ -355,7 +380,7 @@ const CompleteProfile = () => {
 
               {/* Spotify */}
               <ShadowButton
-                text='Connect Spotify'
+                text={tx(12, 'Connect Spotify')}
                 textColor='black'
                 backGroundColor='gray'
                 onPress={() => {}}
@@ -371,7 +396,7 @@ const CompleteProfile = () => {
               ) : null}
 
               <ShadowButton
-                text={loading ? 'Saving...' : 'Complete Setup'}
+                text={loading ? 'Saving...' : tx(13, 'Complete Setup')}
                 textColor='#2B2B2B'
                 backGroundColor='#E8EBEE'
                 onPress={handleCompleteProfile}

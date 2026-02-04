@@ -1,6 +1,8 @@
 import { MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { useTranslateTexts } from "@/hooks/app/translate";
+import useLanguageStore from "@/store/language.store";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import useThemeStore from "@/store/theme.store";
@@ -36,6 +38,14 @@ const NotificationCard = ({
   const [isDeleted, setIsDeleted] = useState(false);
   const { mode } = useThemeStore();
   const isLight = mode === "light";
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: ["Mark as read", "Delete"],
+    targetLang: language,
+    enabled: !!language && language !== "EN",
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   const handleMarkAsRead = () => {
     setIsRead(true);
@@ -112,11 +122,11 @@ const NotificationCard = ({
             className="px-4 py-3 flex-row items-center border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-gray-600"
           >
             <MaterialCommunityIcons name="check" size={16} color="#10B981" />
-            <Text className="text-black dark:text-white ml-2 text-sm">Mark as read</Text>
+            <Text className="text-black dark:text-white ml-2 text-sm">{tx(0, "Mark as read")}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleDelete} className="px-4 py-3 flex-row items-center">
             <MaterialCommunityIcons name="delete" size={16} color="#EF4444" />
-            <Text className="text-black dark:text-white ml-2 text-sm">Delete</Text>
+            <Text className="text-black dark:text-white ml-2 text-sm">{tx(1, "Delete")}</Text>
           </TouchableOpacity>
         </View>
       )}

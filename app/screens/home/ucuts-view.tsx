@@ -6,6 +6,9 @@ import {
   useLikeUCuts,
   useUnlikeUCuts,
 } from '@/hooks/app/ucuts';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import { useGetMyProfile } from '@/hooks/app/profile';
+import useLanguageStore from '@/store/language.store';
 import useAuthStore from '@/store/auth.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -44,6 +47,35 @@ const StoryItem = ({ item }: { item: any }) => {
     enabled: commentsOpen && !!item.ucutId,
   });
   const comments = (commentsData as any)?.comments || [];
+  const { data: profileData } = useGetMyProfile();
+  const { language: storedLanguage } = useLanguageStore();
+  // @ts-ignore
+  const preferredLanguage =
+    (profileData as any)?.profile?.preferredLanguage || storedLanguage;
+  // @ts-ignore
+  const autoTranslateEnabled =
+    (profileData as any)?.profile?.autoTranslateEnabled === true;
+
+  const { data: translatedText } = useTranslateTexts({
+    texts: [item.text || ''],
+    targetLang: preferredLanguage,
+    enabled: autoTranslateEnabled,
+  });
+
+  const { data: translatedComments } = useTranslateTexts({
+    texts: comments.map((c: any) => c?.text || ''),
+    targetLang: preferredLanguage,
+    enabled: autoTranslateEnabled && commentsOpen && comments.length > 0,
+  });
+
+  const { data: translatedUI } = useTranslateTexts({
+    texts: ['Comments', 'Write a comment...', 'No comments yet'],
+    targetLang: preferredLanguage,
+    enabled: autoTranslateEnabled,
+  });
+
+  const uiTexts = (index: number, fallback: string) =>
+    translatedUI?.translations?.[index] || fallback;
   const player = useVideoPlayer(
     item.mediaType === 'video' ? item.storyImage : '',
     mediaTypePlayer => {
@@ -166,7 +198,7 @@ const StoryItem = ({ item }: { item: any }) => {
               className='text-white text-[13px] mt-4 px-4 mb-3'
               numberOfLines={2}
             >
-              {item.text}
+              {translatedText?.translations?.[0] || item.text}
             </Text>
           ) : null}
           <View className='flex-row items-center gap-3'>
@@ -200,7 +232,7 @@ const StoryItem = ({ item }: { item: any }) => {
             <View className='bg-white dark:bg-[#0B0F15] rounded-t-3xl max-h-[70%]'>
               <View className='px-5 pt-4 pb-2 flex-row items-center justify-between'>
                 <Text className='text-black dark:text-white text-base font-semibold'>
-                  Comments
+                  {uiTexts(0, 'Comments')}
                 </Text>
                 <TouchableOpacity onPress={() => setCommentsOpen(false)}>
                   <Ionicons
@@ -215,7 +247,7 @@ const StoryItem = ({ item }: { item: any }) => {
                 <View className='flex-row items-center h-12 rounded-full bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-4 border border-black/10 dark:border-white/10'>
                   <TextInput
                     className='flex-1 text-black dark:text-white text-sm'
-                    placeholder='Write a comment...'
+                    placeholder={uiTexts(1, 'Write a comment...')}
                     placeholderTextColor={isLight ? '#6B7280' : '#BBBBBB'}
                     value={comment}
                     onChangeText={setComment}
@@ -237,7 +269,7 @@ const StoryItem = ({ item }: { item: any }) => {
                 keyExtractor={(c: any, idx: number) => c?._id || `${idx}`}
                 className='px-5 pb-6'
                 showsVerticalScrollIndicator={false}
-                renderItem={({ item: c }: { item: any }) => (
+                renderItem={({ item: c, index }: { item: any; index: number }) => (
                   <View className='flex-row gap-3 py-3 border-b border-black/10 dark:border-white/10'>
                     <Image
                       source={{
@@ -254,7 +286,7 @@ const StoryItem = ({ item }: { item: any }) => {
                         {c?.user?.name || c?.name || 'User'}
                       </Text>
                       <Text className='text-black/70 dark:text-white/80 text-sm mt-1'>
-                        {c?.text || ''}
+                        {translatedComments?.translations?.[index] || c?.text || ''}
                       </Text>
                     </View>
                   </View>
@@ -262,7 +294,7 @@ const StoryItem = ({ item }: { item: any }) => {
                 ListEmptyComponent={
                   <View className='py-6 items-center'>
                     <Text className='text-black/60 dark:text-white/70 text-sm'>
-                      No comments yet
+                      {uiTexts(2, 'No comments yet')}
                     </Text>
                   </View>
                 }

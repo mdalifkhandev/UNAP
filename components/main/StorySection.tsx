@@ -1,5 +1,7 @@
 import { useGetUCutsFeed } from '@/hooks/app/ucuts';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -14,7 +16,13 @@ export interface Story {
   isMe?: boolean;
 }
 
-const StoryCard = ({ story }: { story: Story }) => {
+const StoryCard = ({
+  story,
+  createLabel,
+}: {
+  story: Story;
+  createLabel: string;
+}) => {
   if (story.isMe) {
     return (
       <TouchableOpacity
@@ -31,7 +39,7 @@ const StoryCard = ({ story }: { story: Story }) => {
             <Ionicons name='add' size={20} color='black' />
           </View>
           <Text className='text-black dark:text-white text-[9px] font-roboto-medium mt-1'>
-            Create UCuts
+            {createLabel}
           </Text>
         </View>
       </TouchableOpacity>
@@ -80,6 +88,19 @@ const StoryCard = ({ story }: { story: Story }) => {
 
 const StorySection = () => {
   const { user } = useAuthStore();
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: ['Create UCuts', 'Add to UCuts', 'User'],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
+  const ui = {
+    create: tx(0, 'Create UCuts'),
+    add: tx(1, 'Add to UCuts'),
+    user: tx(2, 'User'),
+  };
   const { data } = useGetUCutsFeed();
   const ucuts = data?.ucuts ?? [];
 
@@ -101,7 +122,7 @@ const StorySection = () => {
       if (!ownerId) return;
       const createdAt = new Date(ucut?.createdAt || 0).getTime();
       const existing = groups.get(ownerId);
-      const ownerName = owner?.name || 'User';
+      const ownerName = owner?.name || ui.user;
       const ownerAvatar =
         owner?.profileImageUrl || 'https://via.placeholder.com/150';
 
@@ -148,7 +169,7 @@ const StorySection = () => {
     return [
       {
         id: 'add-ucuts',
-        user: 'Add to UCuts',
+        user: ui.add,
         avatar:
           (user as any)?.profileImageUrl ||
           'https://via.placeholder.com/150',
@@ -159,13 +180,15 @@ const StorySection = () => {
       },
       ...groupedStories,
     ];
-  }, [ucuts, user]);
+  }, [ucuts, ui.add, ui.user, user]);
 
   return (
     <View className='mt-6 mb-2'>
       <FlatList
         data={stories}
-        renderItem={({ item }) => <StoryCard story={item} />}
+        renderItem={({ item }) => (
+          <StoryCard story={item} createLabel={ui.create} />
+        )}
         keyExtractor={item => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}

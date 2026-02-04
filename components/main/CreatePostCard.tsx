@@ -1,6 +1,8 @@
 import Input from '@/components/inpute/Inpute';
 import { useCreatePost } from '@/hooks/app/post';
 import { useGetMyProfile } from '@/hooks/app/profile';
+import { useTranslateTexts } from '@/hooks/app/translate';
+import useLanguageStore from '@/store/language.store';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -18,6 +20,24 @@ const CreatePostCard = () => {
     'image' | 'video' | 'audio'
   >('image');
 
+  const { language } = useLanguageStore();
+  const { data: t } = useTranslateTexts({
+    texts: [
+      "What's on your mind?",
+      'Sorry, we need camera roll permissions to make this work!',
+      'Validation Error',
+      'Please enter a description or select media.',
+      'Photo',
+      'Full',
+      'Posting...',
+      'Post',
+    ],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
+
   const { data: profileData } = useGetMyProfile();
   // @ts-ignore
   const profileImage = profileData?.profile?.profileImageUrl;
@@ -28,7 +48,7 @@ const CreatePostCard = () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== 'granted') {
-      alert('Sorry, we need camera roll permissions to make this work!');
+      alert(tx(1, 'Sorry, we need camera roll permissions to make this work!'));
       return;
     }
     let pickerResult = await ImagePicker.launchImageLibraryAsync({
@@ -50,8 +70,8 @@ const CreatePostCard = () => {
     if (!postText.trim() && !selectedImage) {
       Toast.show({
         type: 'error',
-        text1: 'Validation Error',
-        text2: 'Please enter a description or select media.',
+        text1: tx(2, 'Validation Error'),
+        text2: tx(3, 'Please enter a description or select media.'),
       });
       return;
     }
@@ -122,7 +142,7 @@ const CreatePostCard = () => {
       </TouchableOpacity>
       <View className=' flex-1'>
         <Input
-          placeholder="What's on your mind?"
+          placeholder={tx(0, "What's on your mind?")}
           inputeStyle='pb-10'
           value={postText}
           onChangeText={setPostText}
@@ -160,14 +180,18 @@ const CreatePostCard = () => {
               className='flex-row items-center gap-2'
             >
               <Feather name='image' size={18} color='black' />
-              <Text className='text-black dark:text-white'>Photo</Text>
+              <Text className='text-black dark:text-white'>
+                {tx(4, 'Photo')}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/create')}
               className='flex-row items-center gap-2'
             >
               <Feather name='maximize' size={18} color='black' />
-              <Text className='text-black dark:text-white'>Full</Text>
+              <Text className='text-black dark:text-white'>
+                {tx(5, 'Full')}
+              </Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity
@@ -176,7 +200,7 @@ const CreatePostCard = () => {
             disabled={isPosting}
           >
             <Text className='text-[#2B2B2B] font-roboto-medium'>
-              {isPosting ? 'Posting...' : 'Post'}
+              {isPosting ? tx(6, 'Posting...') : tx(7, 'Post')}
             </Text>
           </TouchableOpacity>
         </View>

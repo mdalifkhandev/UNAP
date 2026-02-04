@@ -312,10 +312,16 @@ export const useEditPost = () => {
 
 export const useSharePost = () => {
   return useMutation({
-    mutationFn: async (postId: string) => {
-      const res = await api.post(`/api/share`, {
-        id: postId
-      });
+    mutationFn: async ({
+      postId,
+      target,
+    }: {
+      postId: string;
+      target?: 'facebook' | 'instagram' | 'feed';
+    }) => {
+      const payload: any = { id: postId };
+      if (target) payload.target = target;
+      const res = await api.post(`/api/share`, payload);
       return res;
     },
     onSuccess: (data: any) => {

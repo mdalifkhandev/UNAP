@@ -4,7 +4,9 @@ import SuggestedArtistsCard from '@/components/card/SuggestedArtistsCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import StorySection from '@/components/main/StorySection';
 import { useGetAllPost } from '@/hooks/app/home';
+import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
+import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -60,9 +62,17 @@ const Home = () => {
     refetch,
   } = useGetAllPost();
   const { user } = useAuthStore();
+  const { language } = useLanguageStore();
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
   const queryClient = useQueryClient();
+  const { data: t } = useTranslateTexts({
+    texts: ["What's on your mind?", 'No posts found'],
+    targetLang: language,
+    enabled: !!language && language !== 'EN',
+  });
+  const tx = (i: number, fallback: string) =>
+    t?.translations?.[i] || fallback;
 
   const posts = data?.pages.flatMap((page: any) => page.posts || []) || [];
 
@@ -115,7 +125,7 @@ const Home = () => {
         className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl px-4 py-2 mt-4 h-11'
       >
         <Text className='text-[#9CA3AF] text-base flex-1'>
-          What's on your mind?
+          {tx(0, "What's on your mind?")}
         </Text>
       </TouchableOpacity>
     </View>
@@ -191,7 +201,7 @@ const Home = () => {
             ListEmptyComponent={
               <View className='mt-10'>
                 <Text className='text-black dark:text-white text-center'>
-                  No posts found
+                  {tx(1, 'No posts found')}
                 </Text>
               </View>
             }
