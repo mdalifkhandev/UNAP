@@ -106,6 +106,7 @@ const CreatePost = () => {
   const [postType, setPostType] = useState<'post' | 'uclip'>(
     (params.postType as 'uclip' | 'post') || 'post'
   );
+  const isUclip = postType === 'uclip';
 
   useEffect(() => {
     if (!resetKey) return;
@@ -195,7 +196,7 @@ const CreatePost = () => {
       return;
     }
 
-    if (postType === 'uclip' && !video) {
+    if (isUclip && !video) {
       alert('UClip requires a video');
       return;
     }
@@ -222,7 +223,7 @@ const CreatePost = () => {
       } as any);
       formData.append('mediaType', 'image');
     } else if (video && !isRemote(video)) {
-      if (videoSize && videoSize > BIG_VIDEO_BYTES) {
+      if (!isUclip && videoSize && videoSize > BIG_VIDEO_BYTES) {
         try {
           const signatureData = await requestSignature({
             folder: 'mister/posts',
@@ -244,7 +245,7 @@ const CreatePost = () => {
               mediaUrl,
               mediaType: 'video',
               shareTargets,
-              postType: postType === 'uclip' ? 'uclip' : undefined,
+              postType: isUclip ? 'uclip' : undefined,
               scheduledFor: isScheduleMode
                 ? scheduledDate.toISOString()
                 : undefined,
@@ -316,7 +317,7 @@ const CreatePost = () => {
 
     formData.append('description', description);
     formData.append('shareTargets', JSON.stringify(shareTargets));
-    if (postType === 'uclip') {
+    if (isUclip) {
       formData.append('postType', 'uclip');
     }
 
@@ -410,7 +411,7 @@ const CreatePost = () => {
   };
 
   const pickPhoto = async () => {
-    if (postType === 'uclip') {
+    if (isUclip) {
       Toast.show({
         type: 'info',
         text1: 'UClip Video Only',
@@ -446,7 +447,7 @@ const CreatePost = () => {
   };
 
   const pickAudio = async () => {
-    if (postType === 'uclip') {
+    if (isUclip) {
       Toast.show({
         type: 'info',
         text1: 'UClip Video Only',

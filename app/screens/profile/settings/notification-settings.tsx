@@ -1,8 +1,7 @@
 import BackButton from '@/components/button/BackButton';
 import { ToggleButton } from '@/components/button/ToggleButton';
 import GradientBackground from '@/components/main/GradientBackground';
-import useThemeStore from '@/store/theme.store';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -15,8 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const NotificationSettings = () => {
   const [isEmailOn, setIsEmailOn] = useState(false);
   const [isSMSOn, setIsSMSOn] = useState(true);
-  const { mode, setMode } = useThemeStore();
-  const isDarkMode = useMemo(() => mode === 'dark', [mode]);
+  // Dark/Light mode toggle moved to main Settings screen.
 
   return (
     <GradientBackground>
@@ -31,33 +29,22 @@ const NotificationSettings = () => {
               Notification
             </Text>
           </View>
-          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#292929] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 72, marginHorizontal: 24 }}
           >
-            <View className='flex-row justify-between p-3 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-2xl mt-6 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'>
+            <View className='flex-row justify-between p-3 border border-black/20 dark:border-[#FFFFFF0D] rounded-2xl mt-6 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'>
               <Text className='text-primary dark:text-white font-roboto-semibold'>
                 Email Notifications
               </Text>
               <ToggleButton isOn={isEmailOn} setIsOn={setIsEmailOn} />
             </View>
-            <View className='flex-row justify-between p-3 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-2xl mt-3 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'>
+            <View className='flex-row justify-between p-3 border border-black/20 dark:border-[#FFFFFF0D] rounded-2xl mt-3 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'>
               <Text className='text-primary dark:text-white font-roboto-semibold'>
                 SMS Notifications
               </Text>
               <ToggleButton isOn={isSMSOn} setIsOn={setIsSMSOn} />
-            </View>
-            <View className='flex-row justify-between p-3 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-2xl mt-3 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'>
-              <Text className='text-primary dark:text-white font-roboto-semibold'>
-                {isDarkMode ? 'Dark Mode' : 'Light Mode'}
-              </Text>
-              <ToggleButton
-                isOn={isDarkMode}
-                setIsOn={(value: boolean) =>
-                  setMode(value ? 'dark' : 'light')
-                }
-              />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
