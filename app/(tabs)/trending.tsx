@@ -1,13 +1,19 @@
 import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
+import { useGetMyPosts } from '@/hooks/app/post';
 import { useGetTrendingPost } from '@/hooks/app/trending';
-import { useGetUblastEligibility } from '@/hooks/app/ublast';
+import {
+  useGetActiveUblasts,
+  useGetUblastEligibility,
+  useShareUblast,
+} from '@/hooks/app/ublast';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
 import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React, { useEffect, useState } from 'react';
+import { Image } from 'expo-image';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -18,6 +24,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 type TabType = 'manual' | 'active' | 'organic';
 
@@ -42,6 +49,7 @@ const TrendingScreen = () => {
       'Organic',
       'No posts found',
       'Check back later for new content',
+      'Share by',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
@@ -54,8 +62,18 @@ const TrendingScreen = () => {
     { enabled: !!user }
   );
 
+  const {
+    data: activeData,
+    isLoading: isActiveLoading,
+    refetch: refetchActive,
+  } = useGetActiveUblasts({ enabled: !!user && selectedTab === 'active' });
+
   const { data: eligibilityData, isLoading: isEligibilityLoading } =
     useGetUblastEligibility({ enabled: !!user });
+
+  const { data: myPostsData } = useGetMyPosts({
+    enabled: !!user && selectedTab === 'active',
+  });
 
   const [isEligible, setIsEligible] = useState(true);
 
@@ -66,6 +84,18 @@ const TrendingScreen = () => {
   }, [eligibilityData]);
 
   const trendingData = data?.[selectedTab] || [];
+  const activeUblasts = activeData?.ublasts || data?.active || [];
+  const myPosts = (myPostsData as any)?.posts || [];
+
+  const sharedByUblastId = useMemo(() => {
+    const map = new Map<string, any>();
+    myPosts.forEach((post: any) => {
+      if (post?.ublastId) {
+        map.set(String(post.ublastId), post);
+      }
+    });
+    return map;
+  }, [myPosts]);
 
   const filteredPosts = Array.isArray(trendingData)
     ? trendingData
@@ -188,6 +218,104 @@ const TrendingScreen = () => {
     </View>
   );
 
+  const UblastCard = ({ item }: { item: any }) => {
+    const { mutate: shareUblast, isPending } = useShareUblast();
+    const hasShared = Boolean(item?.viewerHasShared);
+    const dueAt = item?.dueAt ? new Date(item.dueAt) : null;
+    const isLightTheme = isLight;
+    const handleDisabledAction = () => {
+      Toast.show({
+        type: 'info',
+        text1: 'Share Required',
+        text2: 'Share to Feed first to enable likes and comments.',
+      });
+    };
+
+    return (
+      <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mx-5 mt-4 overflow-hidden'>
+        <View className='p-4 flex-row justify-between items-center'>
+          <View className='flex-row gap-3'>
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={{ width: 40, height: 40, borderRadius: 20 }}
+              contentFit='cover'
+            />
+            <View>
+              <Text className='font-roboto-semibold text-sm text-primary dark:text-white'>
+                {item?.title || 'UBlast'}
+              </Text>
+              <Text className='font-roboto-regular text-sm text-secondary dark:text-white/80'>
+                Official UBlast
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {item?.mediaType === 'image' && item?.mediaUrl ? (
+          <Image
+            source={{ uri: item.mediaUrl }}
+            style={{ width: '100%', height: 220 }}
+            contentFit='cover'
+          />
+        ) : (
+          <View className='h-[220px] items-center justify-center bg-black/10 dark:bg-white/5'>
+            <Ionicons
+              name={item?.mediaType === 'audio' ? 'musical-notes' : 'play-circle'}
+              size={48}
+              color={isLightTheme ? 'black' : 'white'}
+            />
+          </View>
+        )}
+
+        <View className='p-3 flex-row justify-between items-center'>
+          <View className='flex-row gap-4'>
+            <TouchableOpacity onPress={handleDisabledAction}>
+              <Ionicons
+                name='heart-outline'
+                size={26}
+                color={isLightTheme ? 'black' : 'white'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleDisabledAction}>
+              <Ionicons
+                name='chatbubble-outline'
+                size={24}
+                color={isLightTheme ? 'black' : 'white'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                if (!item?._id) return;
+                shareUblast({ ublastId: item._id, shareType: 'feed' });
+              }}
+              disabled={hasShared || isPending}
+            >
+              <Ionicons
+                name='share-social-outline'
+                size={24}
+                color={isLightTheme ? 'black' : 'white'}
+                style={{ opacity: hasShared || isPending ? 0.5 : 1 }}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View className='px-3 pb-3'>
+          {!!item?.content && (
+            <Text className='font-roboto-regular text-primary dark:text-white'>
+              {item.content}
+            </Text>
+          )}
+          {dueAt && (
+            <Text className='font-roboto-semibold text-sm text-secondary dark:text-white/80 mt-2.5'>
+              {tx(13, 'Share by')} {dueAt.toLocaleString()}
+            </Text>
+          )}
+        </View>
+      </View>
+    );
+  };
+
   if (isLoading && !isRefetching) {
     return (
       <GradientBackground>
@@ -215,20 +343,41 @@ const TrendingScreen = () => {
           style={{ flex: 1 }}
         >
           <FlatList
-            data={filteredPosts}
-            renderItem={({ item }) => (
-              <PostCard
-                post={item}
-                currentUserId={user?.id}
-                className='mt-4 mx-5'
-              />
-            )}
+            data={selectedTab === 'active' ? activeUblasts : filteredPosts}
+            renderItem={({ item }) => {
+              if (selectedTab === 'active') {
+                const sharedPost = sharedByUblastId.get(String(item?._id));
+                if (sharedPost) {
+                  return (
+                    <PostCard
+                      post={sharedPost}
+                      currentUserId={user?.id}
+                      className='mt-4 mx-5'
+                    />
+                  );
+                }
+                return <UblastCard item={item} />;
+              }
+              return (
+                <PostCard
+                  post={item}
+                  currentUserId={user?.id}
+                  className='mt-4 mx-5'
+                />
+              );
+            }}
             keyExtractor={(item: any) => item._id}
             ListHeaderComponent={renderHeader()}
             contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
-            refreshing={isRefetching}
-            onRefresh={refetch}
+            refreshing={selectedTab === 'active' ? isActiveLoading : isRefetching}
+            onRefresh={() => {
+              if (selectedTab === 'active') {
+                refetchActive();
+              } else {
+                refetch();
+              }
+            }}
             ListEmptyComponent={
               <View className='mt-10 items-center mx-6'>
                 <Ionicons name='file-tray-outline' size={48} color='#666' />

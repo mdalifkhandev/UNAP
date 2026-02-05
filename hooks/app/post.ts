@@ -1,4 +1,5 @@
 import api from '@/api/axiosInstance';
+import { getShortErrorMessage } from '@/lib/error';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -27,7 +28,7 @@ export const useCreatePost = () => {
       Toast.show({
         type: 'error',
         text1: 'Post Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -59,7 +60,7 @@ export const useCreatePostByUrl = () => {
       Toast.show({
         type: 'error',
         text1: 'Post Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -84,7 +85,7 @@ export const useSavePost = () => {
       Toast.show({
         type: 'error',
         text1: 'Post Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -109,13 +110,13 @@ export const useUnsavePost = () => {
       Toast.show({
         type: 'error',
         text1: 'Post Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
 };
 
-export const useGetMyPosts = () => {
+export const useGetMyPosts = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['myPosts'],
     queryFn: async () => {
@@ -137,6 +138,7 @@ export const useGetMyPosts = () => {
         return { posts: [] };
       }
     },
+    enabled: options?.enabled,
   });
 };
 
@@ -160,7 +162,7 @@ export const useDeletePost = () => {
       Toast.show({
         type: 'error',
         text1: 'Delete Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -243,7 +245,7 @@ export const useUpdateScheduledPost = () => {
       Toast.show({
         type: 'error',
         text1: 'Update Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -268,7 +270,7 @@ export const useCancelScheduledPost = () => {
       Toast.show({
         type: 'error',
         text1: 'Cancel Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -304,13 +306,14 @@ export const useEditPost = () => {
       Toast.show({
         type: 'error',
         text1: 'Update Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
 };
 
 export const useSharePost = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
       postId,
@@ -319,12 +322,15 @@ export const useSharePost = () => {
       postId: string;
       target?: 'facebook' | 'instagram' | 'feed';
     }) => {
-      const payload: any = { id: postId };
+      // Backend expects postId for post shares (id is treated as ublast first).
+      const payload: any = { postId };
       if (target) payload.target = target;
       const res = await api.post(`/api/share`, payload);
       return res;
     },
     onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['post'] });
+      queryClient.invalidateQueries({ queryKey: ['myPosts'] });
       Toast.show({
         type: 'success',
         text1: 'Post Shared',
@@ -335,7 +341,7 @@ export const useSharePost = () => {
       Toast.show({
         type: 'error',
         text1: 'Share Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });

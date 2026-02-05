@@ -1,4 +1,5 @@
 import api from '@/api/axiosInstance';
+import { getShortErrorMessage } from '@/lib/error';
 import {
   useInfiniteQuery,
   useMutation,
@@ -100,7 +101,7 @@ export const useUserFollow = () => {
       Toast.show({
         type: 'error',
         text1: 'Follow Failed',
-        text2: err?.response?.data?.message || err.message,
+        text2: getShortErrorMessage(err, 'Follow failed.'),
       });
     },
     onSettled: (data, error, variables) => {
@@ -182,7 +183,7 @@ export const useUserUnFollow = () => {
       Toast.show({
         type: 'error',
         text1: 'Unfollow Failed',
-        text2: err?.response?.data?.message || err.message,
+        text2: getShortErrorMessage(err, 'Unfollow failed.'),
       });
     },
     onSettled: (data, error, id) => {
@@ -322,7 +323,7 @@ export const useUserCreateComment = () => {
       Toast.show({
         type: 'error',
         text1: 'Comment Failed',
-        text2: err?.response?.data?.message || err.message,
+        text2: getShortErrorMessage(err, 'Comment failed.'),
       });
     },
   });
@@ -355,7 +356,7 @@ export const useDeleteComment = () => {
       Toast.show({
         type: 'error',
         text1: 'Delete Failed',
-        text2: err?.response?.data?.message || err.message,
+        text2: getShortErrorMessage(err, 'Delete failed.'),
       });
     },
   });

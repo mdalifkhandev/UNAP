@@ -1,4 +1,5 @@
 import api from '@/api/axiosInstance';
+import { getShortErrorMessage } from '@/lib/error';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -14,7 +15,7 @@ export const useGetUblastEligibility = (options?: { enabled?: boolean }) => {
         Toast.show({
           type: 'error',
           text1: 'Fetch Failed',
-          text2: error?.response?.data?.message || error.message,
+          text2: getShortErrorMessage(error, 'Request failed.'),
         });
         return null;
       }
@@ -52,7 +53,7 @@ export const useSubmitUBlast = () => {
       Toast.show({
         type: 'error',
         text1: 'UBlast Submission Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -111,7 +112,66 @@ export const useUpdateUBlastPost = () => {
       Toast.show({
         type: 'error',
         text1: 'Update Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
+      });
+    },
+  });
+};
+
+export const useGetActiveUblasts = (options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: ['ublast-active'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/api/ublasts/active?page=1&limit=20');
+        const data = res?.data || res;
+        if (!data || !data.ublasts) {
+          return { ublasts: [] };
+        }
+        return data;
+      } catch (error: any) {
+        console.error('API Error in useGetActiveUblasts:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Fetch Failed',
+          text2: getShortErrorMessage(error, 'Request failed.'),
+        });
+        return { ublasts: [] };
+      }
+    },
+    enabled: options?.enabled,
+  });
+};
+
+export const useShareUblast = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      ublastId,
+      shareType = 'feed',
+    }: {
+      ublastId: string;
+      shareType?: 'feed' | 'story';
+    }) => {
+      const res = await api.post(`/api/ublasts/${ublastId}/share`, { shareType });
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['trendingPost', 'active'] });
+      queryClient.invalidateQueries({ queryKey: ['ublast-active'] });
+      queryClient.invalidateQueries({ queryKey: ['myPosts'] });
+      queryClient.invalidateQueries({ queryKey: ['post'] });
+      Toast.show({
+        type: 'success',
+        text1: 'UBlast Shared',
+        text2: data?.message || 'Shared to feed successfully.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Share Failed',
+        text2: getShortErrorMessage(error, 'Share failed.'),
       });
     },
   });

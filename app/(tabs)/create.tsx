@@ -13,6 +13,7 @@ import {
   useUploadVideoToCloudinary,
 } from '@/hooks/app/uploads';
 import { useTranslateTexts } from '@/hooks/app/translate';
+import { getShortErrorMessage } from '@/lib/error';
 import useThemeStore from '@/store/theme.store';
 import useLanguageStore from '@/store/language.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -334,7 +335,7 @@ const CreatePost = () => {
                 Toast.show({
                   type: 'error',
                   text1: tx(31, 'Post Creation Failed'),
-                  text2: error?.response?.data?.message || error.message,
+                  text2: getShortErrorMessage(error, 'Request failed.'),
                 });
               },
             }
@@ -405,7 +406,7 @@ const CreatePost = () => {
               Toast.show({
                 type: 'error',
                 text1: tx(43, 'Post Update Failed'),
-                text2: error?.response?.data?.message || error.message,
+                text2: getShortErrorMessage(error, 'Request failed.'),
               });
             },
           }
@@ -430,7 +431,7 @@ const CreatePost = () => {
               Toast.show({
                 type: 'error',
                 text1: tx(43, 'Post Update Failed'),
-                text2: error?.response?.data?.message || error.message,
+                text2: getShortErrorMessage(error, 'Request failed.'),
               });
             },
           }
@@ -459,7 +460,7 @@ const CreatePost = () => {
           Toast.show({
             type: 'error',
             text1: tx(31, 'Post Creation Failed'),
-            text2: error?.response?.data?.message || error.message,
+            text2: getShortErrorMessage(error, 'Request failed.'),
           });
         },
       });

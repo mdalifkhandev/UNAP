@@ -74,6 +74,7 @@ const PostCard = ({
   isScheduled = false,
   showOwnerActions = false, // Only show Edit/Delete on Profile screen
   hideFollowButton = false, // Hide follow button for UBlast submissions
+  hideActions = false, // Hide like/comment/share/bookmark actions
 }: {
   className?: string;
   img?: any;
@@ -83,6 +84,7 @@ const PostCard = ({
   isScheduled?: boolean;
   showOwnerActions?: boolean;
   hideFollowButton?: boolean;
+  hideActions?: boolean;
 }) => {
   const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
@@ -545,67 +547,69 @@ const PostCard = ({
       </View>
 
       {/* like comment share */}
-      <View className='p-3 flex-row justify-between items-center'>
-        <View className='flex-row gap-4'>
-          <TouchableOpacity
-            onPress={handleLikeToggle}
-            className='flex-row items-center gap-1.5'
-            disabled={isScheduled} // Disable interactions on scheduled posts
-          >
+      {!hideActions && (
+        <View className='p-3 flex-row justify-between items-center'>
+          <View className='flex-row gap-4'>
+            <TouchableOpacity
+              onPress={handleLikeToggle}
+              className='flex-row items-center gap-1.5'
+              disabled={isScheduled} // Disable interactions on scheduled posts
+            >
+              <Ionicons
+                name={isLiked ? 'heart' : 'heart-outline'}
+                size={26}
+                color={isLiked ? 'red' : iconColor}
+                style={{ opacity: isScheduled ? 0.5 : 1 }}
+              />
+              {likeCount > 0 && (
+                <Text className='text-black dark:text-white font-roboto-medium'>
+                  {likeCount}
+                </Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowComments(!showComments)}
+              className='flex-row items-center gap-1.5'
+              disabled={isScheduled}
+            >
+              <Ionicons
+                name='chatbubble-outline'
+                size={24}
+                color={iconColor}
+                style={{ opacity: isScheduled ? 0.5 : 1 }}
+              />
+              {post?.commentCount !== undefined && post.commentCount > 0 && (
+                <Text className='text-black dark:text-white font-roboto-medium'>
+                  {post.commentCount}
+                </Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity disabled={isScheduled} onPress={handleSharePost}>
+              <Ionicons
+                name='share-social-outline'
+                size={24}
+                color={iconColor}
+                style={{ opacity: isScheduled ? 0.5 : 1 }}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity onPress={handleBookmarkToggle} disabled={isScheduled}>
             <Ionicons
-              name={isLiked ? 'heart' : 'heart-outline'}
-              size={26}
-              color={isLiked ? 'red' : iconColor}
-              style={{ opacity: isScheduled ? 0.5 : 1 }}
-            />
-            {likeCount > 0 && (
-              <Text className='text-black dark:text-white font-roboto-medium'>
-                {likeCount}
-              </Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setShowComments(!showComments)}
-            className='flex-row items-center gap-1.5'
-            disabled={isScheduled}
-          >
-            <Ionicons
-              name='chatbubble-outline'
+              name={
+                isSavedScreen
+                  ? 'trash-outline'
+                  : isBookmarked
+                    ? 'bookmark'
+                    : 'bookmark-outline'
+              }
               size={24}
-              color={iconColor}
-              style={{ opacity: isScheduled ? 0.5 : 1 }}
-            />
-            {post?.commentCount !== undefined && post.commentCount > 0 && (
-              <Text className='text-black dark:text-white font-roboto-medium'>
-                {post.commentCount}
-              </Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity disabled={isScheduled} onPress={handleSharePost}>
-            <Ionicons
-              name='share-social-outline'
-              size={24}
-              color={iconColor}
+              color={isSavedScreen ? '#FF4B4B' : iconColor}
               style={{ opacity: isScheduled ? 0.5 : 1 }}
             />
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity onPress={handleBookmarkToggle} disabled={isScheduled}>
-          <Ionicons
-            name={
-              isSavedScreen
-                ? 'trash-outline'
-                : isBookmarked
-                  ? 'bookmark'
-                  : 'bookmark-outline'
-            }
-            size={24}
-            color={isSavedScreen ? '#FF4B4B' : iconColor}
-            style={{ opacity: isScheduled ? 0.5 : 1 }}
-          />
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* post description */}
       <View className='px-3 pb-3'>
@@ -618,7 +622,7 @@ const PostCard = ({
       </View>
 
       {/* expandable comment section */}
-      {showComments && !isScheduled && (
+      {showComments && !isScheduled && !hideActions && (
         <View className='px-3 pb-4 border-t border-black/20 dark:border-white/10 pt-3'>
           {/* Comment Input */}
           <View className='flex-row items-center gap-2 mb-4'>

@@ -1,4 +1,5 @@
 import api from '@/api/axiosInstance';
+import { getShortErrorMessage } from '@/lib/error';
 import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -19,7 +20,7 @@ export const useUserRegister = () => {
       Toast.show({
         type: 'error',
         text1: 'Registration Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Registration failed.'),
       });
     },
   });
@@ -42,7 +43,7 @@ export const useUserRegisterOtp = () => {
       Toast.show({
         type: 'error',
         text1: 'Verification Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'OTP verification failed.'),
       });
     },
   });
@@ -65,7 +66,7 @@ export const useUserLogin = () => {
       Toast.show({
         type: 'error',
         text1: 'Login Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Login failed.'),
       });
     },
   });
@@ -88,7 +89,7 @@ export const useUserForgatePasswordSendMail = () => {
       Toast.show({
         type: 'error',
         text1: 'Request Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -111,7 +112,7 @@ export const useUserForgatePasswordVerifyOtp = () => {
       Toast.show({
         type: 'error',
         text1: 'Verification Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'OTP verification failed.'),
       });
     },
   });
@@ -138,7 +139,7 @@ export const useUserForgatePasswordResetPassword = () => {
       Toast.show({
         type: 'error',
         text1: 'Reset Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Reset failed.'),
       });
     },
   });

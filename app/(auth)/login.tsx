@@ -4,6 +4,7 @@ import Inpute from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useUserLogin } from '@/hooks/app/auth';
 import { useTranslateTexts } from '@/hooks/app/translate';
+import { getShortErrorMessage } from '@/lib/error';
 import useAuthStore from '@/store/auth.store';
 import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
@@ -98,7 +99,7 @@ const Login = () => {
         Toast.show({
           type: 'error',
           text1: 'Login Failed',
-          text2: error.message,
+          text2: getShortErrorMessage(error, 'Login failed.'),
         });
       },
     });

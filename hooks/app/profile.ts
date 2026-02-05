@@ -1,4 +1,5 @@
 import api from '@/api/axiosInstance';
+import { getShortErrorMessage } from '@/lib/error';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -35,7 +36,7 @@ export const useUpdateProfile = () => {
       Toast.show({
         type: 'error',
         text1: 'Update Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -75,7 +76,7 @@ export const useUpdateProfileLanguage = () => {
       Toast.show({
         type: 'error',
         text1: 'Update Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });
@@ -104,7 +105,7 @@ export const useCompleteProfile = () => {
       Toast.show({
         type: 'error',
         text1: 'Submission Failed',
-        text2: error?.response?.data?.message || error.message,
+        text2: getShortErrorMessage(error, 'Request failed.'),
       });
     },
   });

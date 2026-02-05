@@ -507,7 +507,12 @@ const UBlastSubmission = () => {
               <View className='space-y-4'>
                 {ublastData.submissions.map((post: any) => (
                   <View key={post._id} className='relative'>
-                    <PostCard post={post} showOwnerActions={true} hideFollowButton={true} />
+                    <PostCard
+                      post={post}
+                      showOwnerActions={true}
+                      hideFollowButton={true}
+                      hideActions={true}
+                    />
                     {/* Edit Button in Top Right */}
                     <TouchableOpacity
                       className='absolute top-4 right-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1.5 rounded-full border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
