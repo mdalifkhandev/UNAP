@@ -1,11 +1,18 @@
 import ShadowButton from '@/components/button/ShadowButton';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
+import {
+  useConnectAccount,
+  useDisconnectAccount,
+  useGetAccounts,
+} from '@/hooks/app/accounts';
 import { useCompleteProfile, useGetMyProfile } from '@/hooks/app/profile';
 import { useTranslateTexts } from '@/hooks/app/translate';
+import { getShortErrorMessage } from '@/lib/error';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import * as WebBrowser from 'expo-web-browser';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -18,6 +25,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const CompleteProfile = () => {
   const [roleOpen, setRoleOpen] = useState(false);
@@ -35,11 +43,17 @@ const CompleteProfile = () => {
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [connectingPlatform, setConnectingPlatform] = useState<string | null>(
+    null
+  );
 
   const { data: profileData } = useGetMyProfile();
   // @ts-ignore
   const profile = profileData?.profile;
   const { mutate: completeProfile, isPending: loading } = useCompleteProfile();
+  const { data: accountsData, refetch: refetchAccounts } = useGetAccounts();
+  const { mutateAsync: connectAccount } = useConnectAccount();
+  const { mutateAsync: disconnectAccount } = useDisconnectAccount();
   const { data: t } = useTranslateTexts({
     texts: [
       'Complete Your Profile',
@@ -58,12 +72,59 @@ const CompleteProfile = () => {
       'Complete Setup',
       'Write something...',
       'Tell us about yourself and your music...',
+      'Connected',
+      'Disconnect',
+      'Connecting...',
     ],
     targetLang: profile?.preferredLanguage,
     enabled: !!profile?.preferredLanguage,
   });
   const tx = (i: number, fallback: string) =>
     t?.translations?.[i] || fallback;
+
+  const connectedPlatforms = new Set(
+    (accountsData?.accounts || []).map((acc: any) => acc.platform)
+  );
+
+  const isConnected = (platform: string) =>
+    connectedPlatforms.has(platform);
+
+  const handleConnectPlatform = async (platform: string) => {
+    try {
+      setConnectingPlatform(platform);
+      if (isConnected(platform)) {
+        await disconnectAccount(platform);
+        await refetchAccounts();
+        Toast.show({
+          type: 'success',
+          text1: tx(16, 'Disconnect'),
+          text2: `${platform} disconnected.`,
+        });
+        return;
+      }
+
+      const res = await connectAccount({ platform });
+      const url = res?.authUrl || res?.url;
+      if (!url) {
+        throw new Error('Missing authorization URL');
+      }
+      await WebBrowser.openBrowserAsync(url);
+      await refetchAccounts();
+      Toast.show({
+        type: 'success',
+        text1: tx(17, 'Connected'),
+        text2: `${platform} connected.`,
+      });
+    } catch (err: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Connection Failed',
+        text2: getShortErrorMessage(err, 'Please try again.'),
+      });
+    } finally {
+      setConnectingPlatform(null);
+    }
+  };
 
   useEffect(() => {
     if (profile) {
@@ -327,7 +388,7 @@ const CompleteProfile = () => {
                 placeholderTextColor='rgba(0,0,0,0.5)'
                 multiline
                 numberOfLines={4}
-                className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl p-4 text-primary dark:text-white'
+                className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] rounded-xl p-4 text-primary dark:text-white'
                 style={{ textAlignVertical: 'top' }}
                 value={bio}
                 onChangeText={setBio}
@@ -335,55 +396,91 @@ const CompleteProfile = () => {
 
               {/* Instagram */}
               <ShadowButton
-                text={tx(7, 'Connect Instagram')}
+                text={
+                  connectingPlatform === 'instagram'
+                    ? tx(18, 'Connecting...')
+                    : isConnected('instagram')
+                      ? `${tx(16, 'Connected')} Instagram`
+                      : tx(7, 'Connect Instagram')
+                }
                 textColor='black'
                 backGroundColor='gray'
-                onPress={() => {}}
+                onPress={() => handleConnectPlatform('instagram')}
                 className='mt-8 mx-6'
               />
 
               {/* YouTube */}
               <ShadowButton
-                text={tx(8, 'Connect YouTube')}
+                text={
+                  connectingPlatform === 'youtube'
+                    ? tx(18, 'Connecting...')
+                    : isConnected('youtube')
+                      ? `${tx(16, 'Connected')} YouTube`
+                      : tx(8, 'Connect YouTube')
+                }
                 textColor='black'
                 backGroundColor='gray'
-                onPress={() => {}}
+                onPress={() => handleConnectPlatform('youtube')}
                 className='mt-8 mx-6'
               />
 
               {/* TikTok */}
               <ShadowButton
-                text={tx(9, 'Connect TikTok')}
+                text={
+                  connectingPlatform === 'tiktok'
+                    ? tx(18, 'Connecting...')
+                    : isConnected('tiktok')
+                      ? `${tx(16, 'Connected')} TikTok`
+                      : tx(9, 'Connect TikTok')
+                }
                 textColor='black'
                 backGroundColor='gray'
-                onPress={() => {}}
+                onPress={() => handleConnectPlatform('tiktok')}
                 className='mt-8 mx-6'
               />
 
               {/* Facebook */}
               <ShadowButton
-                text={tx(10, 'Connect Facebook')}
+                text={
+                  connectingPlatform === 'facebook'
+                    ? tx(18, 'Connecting...')
+                    : isConnected('facebook')
+                      ? `${tx(16, 'Connected')} Facebook`
+                      : tx(10, 'Connect Facebook')
+                }
                 textColor='black'
                 backGroundColor='gray'
-                onPress={() => {}}
+                onPress={() => handleConnectPlatform('facebook')}
                 className='mt-8 mx-6'
               />
 
               {/* Twitter */}
               <ShadowButton
-                text={tx(11, 'Connect Twitter')}
+                text={
+                  connectingPlatform === 'twitter'
+                    ? tx(18, 'Connecting...')
+                    : isConnected('twitter')
+                      ? `${tx(16, 'Connected')} Twitter`
+                      : tx(11, 'Connect Twitter')
+                }
                 textColor='black'
                 backGroundColor='gray'
-                onPress={() => {}}
+                onPress={() => handleConnectPlatform('twitter')}
                 className='mt-8 mx-6'
               />
 
               {/* Spotify */}
               <ShadowButton
-                text={tx(12, 'Connect Spotify')}
+                text={
+                  connectingPlatform === 'spotify'
+                    ? tx(18, 'Connecting...')
+                    : isConnected('spotify')
+                      ? `${tx(16, 'Connected')} Spotify`
+                      : tx(12, 'Connect Spotify')
+                }
                 textColor='black'
                 backGroundColor='gray'
-                onPress={() => {}}
+                onPress={() => handleConnectPlatform('spotify')}
                 className='mt-8 mx-6'
               />
             </View>

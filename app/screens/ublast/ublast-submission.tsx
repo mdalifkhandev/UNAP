@@ -24,12 +24,14 @@ import {
   View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 
 const UBlastSubmission = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
   const isEditMode = !!params.postId;
   const { language } = useLanguageStore();
+  const isFocused = useIsFocused();
   const { data: t } = useTranslateTexts({
     texts: [
       'UBlast Submission',
@@ -82,16 +84,29 @@ const UBlastSubmission = () => {
 
   const videoPlayer = useVideoPlayer(videoPlayerUri || '', player => {
     player.loop = true;
-    player.play();
   });
+  useEffect(() => {
+    if (!isFocused) {
+      videoPlayer.pause();
+    }
+  }, [isFocused, videoPlayer]);
 
   const { mutate: submitUBlast, isPending: isSubmitting } = useSubmitUBlast();
   const { mutate: updateUBlastPost, isPending: isUpdating } =
     useUpdateUBlastPost();
 
-  const { data: ublastData, refetch: refetchUBlast } = useGetUBlastPosts();
+  const {
+    data: ublastData,
+    refetch: refetchUBlast,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetUBlastPosts();
 
   console.log(JSON.stringify(ublastData, null, 2));
+
+  const submissions =
+    ublastData?.pages?.flatMap((page: any) => page?.submissions || []) || [];
 
   const isLoading = isSubmitting || isUpdating;
 
@@ -339,6 +354,22 @@ const UBlastSubmission = () => {
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24 }}
           showsVerticalScrollIndicator={false}
+          onScroll={({ nativeEvent }) => {
+            const paddingToBottom = 200;
+            const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+            const canScroll =
+              contentSize.height > layoutMeasurement.height + 20;
+            if (!canScroll) return;
+            if (
+              layoutMeasurement.height + contentOffset.y >=
+              contentSize.height - paddingToBottom
+            ) {
+              if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+              }
+            }
+          }}
+          scrollEventThrottle={200}
         >
           {/* UBlast Submission Form */}
           <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl p-6 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] mb-6'>
@@ -499,13 +530,13 @@ const UBlastSubmission = () => {
           </View>
 
           {/* UBlast Posts List */}
-          {ublastData?.submissions && ublastData.submissions.length > 0 && (
+          {submissions.length > 0 && (
             <View className='mt-6'>
               <Text className='text-black dark:text-white font-roboto-bold text-xl mb-4'>
                 {tx(10, 'Your UBlast Submissions')}
               </Text>
               <View className='space-y-4'>
-                {ublastData.submissions.map((post: any) => (
+                {submissions.map((post: any) => (
                   <View key={post._id} className='relative'>
                     <PostCard
                       post={post}

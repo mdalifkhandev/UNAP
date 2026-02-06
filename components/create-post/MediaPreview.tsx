@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import { VideoView } from 'expo-video';
 import React from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 
 interface MediaPreviewProps {
   photo: string | null;
@@ -19,10 +20,16 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
   audio,
   videoPlayer,
 }) => {
+  const isFocused = useIsFocused();
   // Setup Audio Player using expo-audio's hook
   // Note: useAudioPlayer usually returns a player object.
   // We handle the case where audio might be null safely by passing an empty string or checking inside.
   const player = useAudioPlayer(audio || '');
+  React.useEffect(() => {
+    if (!isFocused || !audio) {
+      player.pause();
+    }
+  }, [isFocused, audio, player]);
 
   const togglePlayback = () => {
     if (player.playing) {

@@ -1,6 +1,6 @@
 import api from '@/api/axiosInstance';
 import { getShortErrorMessage } from '@/lib/error';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 export const useGetUblastEligibility = (options?: { enabled?: boolean }) => {
@@ -60,14 +60,14 @@ export const useSubmitUBlast = () => {
 };
 
 export const useGetUBlastPosts = () => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['ublast-posts'],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const res = await api.get('/api/ublasts/submissions');
+        const res = await api.get(`/api/ublasts/submissions?page=${pageParam}&limit=12`);
         const data = res?.data || res;
         if (data === undefined || data === null) {
-          return { submissions: [] };
+          return { submissions: [], page: pageParam, totalPages: 1 };
         }
         return data;
       } catch (error: any) {
@@ -77,9 +77,15 @@ export const useGetUBlastPosts = () => {
           text1: 'Fetch Failed',
           text2: 'Could not load UBlast posts.',
         });
-        return { submissions: [] };
+        return { submissions: [], page: pageParam, totalPages: 1 };
       }
     },
+    getNextPageParam: (lastPage: any) => {
+      const page = lastPage?.page ?? 1;
+      const totalPages = lastPage?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
   });
 };
 
@@ -118,34 +124,18 @@ export const useUpdateUBlastPost = () => {
   });
 };
 
-export const useGetActiveUblasts = (options?: { enabled?: boolean }) => {
-  return useQuery({
-    queryKey: ['ublast-active'],
-    queryFn: async () => {
+export const useGetActiveUblasts = (options?: { enabled?: boolean; limit?: number }) => {
+  return useInfiniteQuery({
+    queryKey: ['ublast-active', options?.limit ?? 12],
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const limit = 20;
-        const maxPages = 10;
-        const all: any[] = [];
-        let page = 1;
-        let totalPages = 1;
-
-        while (page <= totalPages && page <= maxPages) {
-          const res = await api.get(`/api/ublasts/active?page=${page}&limit=${limit}`);
-          const data = res?.data || res;
-          const ublasts = data?.ublasts || [];
-          totalPages = data?.totalPages || totalPages;
-          all.push(...ublasts);
-
-          if (!ublasts.length) break;
-          page += 1;
+        const limit = options?.limit ?? 12;
+        const res = await api.get(`/api/ublasts/active?page=${pageParam}&limit=${limit}`);
+        const data = res?.data || res;
+        if (data === undefined || data === null) {
+          return { ublasts: [], page: pageParam, totalPages: 1 };
         }
-
-        return {
-          ublasts: all,
-          page: 1,
-          totalPages,
-          totalCount: all.length,
-        };
+        return data;
       } catch (error: any) {
         console.error('API Error in useGetActiveUblasts:', error);
         Toast.show({
@@ -153,9 +143,15 @@ export const useGetActiveUblasts = (options?: { enabled?: boolean }) => {
           text1: 'Fetch Failed',
           text2: getShortErrorMessage(error, 'Request failed.'),
         });
-        return { ublasts: [] };
+        return { ublasts: [], page: pageParam, totalPages: 1 };
       }
     },
+    getNextPageParam: (lastPage: any) => {
+      const page = lastPage?.page ?? 1;
+      const totalPages = lastPage?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
     enabled: options?.enabled,
   });
 };

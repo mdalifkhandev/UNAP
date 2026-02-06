@@ -37,11 +37,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { useIsFocused } from '@react-navigation/native';
 
 const CreatePost = () => {
   const { mode: colorMode } = useThemeStore();
   const isLight = colorMode === 'light';
   const { language } = useLanguageStore();
+  const isFocused = useIsFocused();
   const params = useLocalSearchParams();
   const resetKey = params.reset as string | undefined;
   const isEditMode = !!params.postId;
@@ -86,8 +88,12 @@ const CreatePost = () => {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const videoPlayer = useVideoPlayer(videoPlayerUri || '', player => {
     player.loop = true;
-    player.play();
   });
+  useEffect(() => {
+    if (!isFocused) {
+      videoPlayer.pause();
+    }
+  }, [isFocused, videoPlayer]);
 
   const { mutate: createPost, isPending: isCreating } = useCreatePost();
   const { mutate: createPostByUrl, isPending: isCreatingByUrl } =

@@ -1,6 +1,6 @@
 import api from '@/api/axiosInstance';
 import { getShortErrorMessage } from '@/lib/error';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 export const useCreatePost = () => {
@@ -126,8 +126,8 @@ export const useGetMyPosts = (options?: {
     queryKey: ['myPosts'],
     queryFn: async () => {
       try {
-        const fetchAll = options?.fetchAll ?? true;
-        const limit = options?.limit ?? 50;
+        const fetchAll = options?.fetchAll ?? false;
+        const limit = options?.limit ?? 20;
         const maxPages = options?.maxPages ?? 10;
 
         if (!fetchAll) {
@@ -174,6 +174,38 @@ export const useGetMyPosts = (options?: {
   });
 };
 
+export const useGetMyPostsInfinite = (options?: {
+  enabled?: boolean;
+  limit?: number;
+}) => {
+  return useInfiniteQuery({
+    queryKey: ['myPosts', 'infinite', options?.limit ?? 20],
+    queryFn: async ({ pageParam = 1 }) => {
+      try {
+        const limit = options?.limit ?? 20;
+        const res = await api.get(`/api/posts/mine?page=${pageParam}&limit=${limit}`);
+        const data = res?.data || res;
+        return data ?? { posts: [], page: pageParam, totalPages: 1 };
+      } catch (error: any) {
+        console.warn('API Error in useGetMyPostsInfinite:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Fetch Failed',
+          text2: 'Could not load your posts.',
+        });
+        return { posts: [], page: pageParam, totalPages: 1 };
+      }
+    },
+    getNextPageParam: (lastPage: any) => {
+      const page = lastPage?.page ?? 1;
+      const totalPages = lastPage?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
+    enabled: options?.enabled,
+  });
+};
+
 export const useDeletePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -200,16 +232,18 @@ export const useDeletePost = () => {
   });
 };
 
-export const useGetAllSavePost = () => {
-  return useQuery({
-    queryKey: ['saved-posts'],
-    queryFn: async () => {
+export const useGetAllSavePost = (options?: { limit?: number }) => {
+  return useInfiniteQuery({
+    queryKey: ['saved-posts', options?.limit ?? 10],
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const res = await api.get('/api/saved-posts?page=1&limit=5');
-        if (res === undefined || res === null) {
-          return { posts: [] };
+        const limit = options?.limit ?? 10;
+        const res = await api.get(`/api/saved-posts?page=${pageParam}&limit=${limit}`);
+        const data = res?.data || res;
+        if (data === undefined || data === null) {
+          return { posts: [], page: pageParam, totalPages: 1 };
         }
-        return res;
+        return data;
       } catch (error: any) {
         console.error('API Error in useGetAllSavePost:', error);
         Toast.show({
@@ -217,22 +251,28 @@ export const useGetAllSavePost = () => {
           text1: 'Fetch Failed',
           text2: 'Could not load saved posts.',
         });
-        return { posts: [] };
+        return { posts: [], page: pageParam, totalPages: 1 };
       }
     },
+    getNextPageParam: (lastPage: any) => {
+      const page = lastPage?.page ?? 1;
+      const totalPages = lastPage?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
   });
 };
 
-export const useGetScheduledPosts = () => {
-  return useQuery({
-    queryKey: ['scheduled-posts'],
-    queryFn: async () => {
+export const useGetScheduledPosts = (options?: { limit?: number }) => {
+  return useInfiniteQuery({
+    queryKey: ['scheduled-posts', options?.limit ?? 10],
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const res = await api.get('/api/posts/scheduled');
-        // Handle Axios response properly
+        const limit = options?.limit ?? 10;
+        const res = await api.get(`/api/posts/scheduled?page=${pageParam}&limit=${limit}`);
         const data = res?.data || res;
         if (data === undefined || data === null) {
-          return { posts: [] };
+          return { posts: [], page: pageParam, totalPages: 1 };
         }
         return data;
       } catch (error: any) {
@@ -242,9 +282,15 @@ export const useGetScheduledPosts = () => {
           text1: 'Fetch Failed',
           text2: 'Could not load scheduled posts.',
         });
-        return { posts: [] };
+        return { posts: [], page: pageParam, totalPages: 1 };
       }
     },
+    getNextPageParam: (lastPage: any) => {
+      const page = lastPage?.page ?? 1;
+      const totalPages = lastPage?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
   });
 };
 

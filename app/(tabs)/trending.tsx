@@ -1,6 +1,6 @@
 import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useGetMyPosts } from '@/hooks/app/post';
+import { useGetMyPostsInfinite } from '@/hooks/app/post';
 import { useGetTrendingPost } from '@/hooks/app/trending';
 import {
   useGetActiveUblasts,
@@ -14,7 +14,7 @@ import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -28,6 +28,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { useIsFocused } from '@react-navigation/native';
 
 type TabType = 'manual' | 'active' | 'organic';
 
@@ -36,6 +37,7 @@ const TrendingScreen = () => {
   const isLight = mode === 'light';
   const { user } = useAuthStore();
   const { language } = useLanguageStore();
+  const isFocused = useIsFocused();
   const [selectedTab, setSelectedTab] = useState<TabType>('active');
   const { data: t } = useTranslateTexts({
     texts: [
@@ -70,22 +72,36 @@ const TrendingScreen = () => {
   const tx = (i: number, fallback: string) =>
     t?.translations?.[i] || fallback;
 
-  const { data, isLoading, isRefetching, refetch } = useGetTrendingPost(
-    selectedTab,
-    { enabled: !!user }
-  );
+  const {
+    data,
+    isLoading,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetTrendingPost(selectedTab, { enabled: !!user });
 
   const {
     data: activeData,
     isLoading: isActiveLoading,
     refetch: refetchActive,
-  } = useGetActiveUblasts({ enabled: !!user && selectedTab === 'active' });
+    fetchNextPage: fetchNextActive,
+    hasNextPage: hasNextActive,
+    isFetchingNextPage: isFetchingNextActive,
+  } = useGetActiveUblasts({ enabled: !!user && selectedTab === 'active', limit: 12 });
 
   const { data: eligibilityData, isLoading: isEligibilityLoading } =
     useGetUblastEligibility({ enabled: !!user });
 
-  const { data: myPostsData } = useGetMyPosts({
+  const {
+    data: myPostsData,
+    fetchNextPage: fetchNextMyPosts,
+    hasNextPage: hasNextMyPosts,
+    isFetchingNextPage: isFetchingNextMyPosts,
+  } = useGetMyPostsInfinite({
     enabled: !!user && selectedTab === 'active',
+    limit: 20,
   });
 
   const [isEligible, setIsEligible] = useState(true);
@@ -96,9 +112,14 @@ const TrendingScreen = () => {
     }
   }, [eligibilityData]);
 
-  const trendingData = data?.[selectedTab] || [];
-  const activeUblasts = activeData?.ublasts || data?.active || [];
-  const myPosts = (myPostsData as any)?.posts || [];
+  const trendingData =
+    data?.pages?.flatMap((page: any) => page?.[selectedTab] || []) || [];
+  const activeUblasts =
+    activeData?.pages?.flatMap((page: any) => page?.ublasts || []) ||
+    data?.pages?.flatMap((page: any) => page?.active || []) ||
+    [];
+  const myPosts =
+    myPostsData?.pages?.flatMap((page: any) => page?.posts || []) || [];
 
   const sharedByUblastId = useMemo(() => {
     const map = new Map<string, any>();
@@ -136,6 +157,16 @@ const TrendingScreen = () => {
           };
         })
     : [];
+
+  const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 });
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    const ids = new Set<string>();
+    viewableItems.forEach((vi: any) => {
+      if (vi?.item?._id) ids.add(vi.item._id);
+    });
+    setVisibleIds(ids);
+  });
 
   const renderHeader = () => (
     <View>
@@ -231,7 +262,15 @@ const TrendingScreen = () => {
     </View>
   );
 
-  const UblastCard = ({ item }: { item: any }) => {
+  const UblastCard = ({
+    item,
+    isVisible,
+    isFocused,
+  }: {
+    item: any;
+    isVisible: boolean;
+    isFocused: boolean;
+  }) => {
     const { mutate: shareUblast, isPending } = useShareUblast();
     const [isShareBusy, setIsShareBusy] = useState(false);
     const hasShared = Boolean(item?.viewerHasShared);
@@ -250,10 +289,16 @@ const TrendingScreen = () => {
     const mediaType = item?.mediaType;
     const player = useVideoPlayer(mediaUrl, p => {
       p.loop = true;
-      if (mediaType === 'video') {
-        p.play();
-      }
     });
+
+    useEffect(() => {
+      if (mediaType !== 'video' && mediaType !== 'audio') return;
+      if (isVisible && isFocused) {
+        if (mediaType === 'video') player.play();
+      } else {
+        player.pause();
+      }
+    }, [isVisible, isFocused, mediaType, player]);
 
     return (
       <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mx-5 mt-4 overflow-hidden'>
@@ -501,16 +546,24 @@ const TrendingScreen = () => {
                       post={sharedPost}
                       currentUserId={user?.id}
                       className='mt-4 mx-5'
+                      isVisible={isFocused && visibleIds.has(sharedPost._id)}
                     />
                   );
                 }
-                return <UblastCard item={item} />;
+                return (
+                  <UblastCard
+                    item={item}
+                    isVisible={visibleIds.has(item._id)}
+                    isFocused={isFocused}
+                  />
+                );
               }
               return (
                 <PostCard
                   post={item}
                   currentUserId={user?.id}
                   className='mt-4 mx-5'
+                  isVisible={isFocused && visibleIds.has(item._id)}
                 />
               );
             }}
@@ -518,6 +571,8 @@ const TrendingScreen = () => {
             ListHeaderComponent={renderHeader()}
             contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
+            viewabilityConfig={viewabilityConfig.current}
+            onViewableItemsChanged={onViewableItemsChanged.current}
             refreshing={selectedTab === 'active' ? isActiveLoading : isRefetching}
             onRefresh={() => {
               if (selectedTab === 'active') {
@@ -526,6 +581,21 @@ const TrendingScreen = () => {
                 refetch();
               }
             }}
+            onEndReached={() => {
+              if (selectedTab === 'active') {
+                if (hasNextActive && !isFetchingNextActive) {
+                  fetchNextActive();
+                }
+                if (hasNextMyPosts && !isFetchingNextMyPosts) {
+                  fetchNextMyPosts();
+                }
+                return;
+              }
+              if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+              }
+            }}
+            onEndReachedThreshold={0.4}
             ListEmptyComponent={
               <View className='mt-10 items-center mx-6'>
                 <Ionicons name='file-tray-outline' size={48} color='#666' />
@@ -536,6 +606,17 @@ const TrendingScreen = () => {
                   {tx(12, 'Check back later for new content')}
                 </Text>
               </View>
+            }
+            ListFooterComponent={
+              (selectedTab === 'active'
+                ? isFetchingNextActive || isFetchingNextMyPosts
+                : isFetchingNextPage) ? (
+                <View className='py-4 items-center'>
+                  <ActivityIndicator size='small' color={isLight ? 'black' : 'white'} />
+                </View>
+              ) : (
+                <View className='h-8' />
+              )
             }
           />
         </KeyboardAvoidingView>

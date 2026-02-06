@@ -1,6 +1,6 @@
 import api from '@/api/axiosInstance';
 import { getShortErrorMessage } from '@/lib/error';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 type CreateUCutsPayload = {
@@ -48,15 +48,16 @@ export const useCreateUCuts = () => {
   });
 };
 
-export const useGetUCutsFeed = () => {
-  return useQuery({
-    queryKey: ['ucuts-feed'],
-    queryFn: async () => {
+export const useGetUCutsFeed = (options?: { limit?: number }) => {
+  return useInfiniteQuery({
+    queryKey: ['ucuts-feed', options?.limit ?? 20],
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const res = await api.get('/api/ucuts/feed');
+        const limit = options?.limit ?? 20;
+        const res = await api.get(`/api/ucuts/feed?page=${pageParam}&limit=${limit}`);
         const data = res?.data || res;
         if (!data || !data.ucuts) {
-          return { ucuts: [], page: 1, totalPages: 1, totalCount: 0 };
+          return { ucuts: [], page: pageParam, totalPages: 1, totalCount: 0 };
         }
         return data;
       } catch (error: any) {
@@ -65,9 +66,15 @@ export const useGetUCutsFeed = () => {
           text1: 'Fetch Failed',
           text2: getShortErrorMessage(error, 'Request failed.'),
         });
-        return { ucuts: [], page: 1, totalPages: 1, totalCount: 0 };
+        return { ucuts: [], page: pageParam, totalPages: 1, totalCount: 0 };
       }
     },
+    getNextPageParam: (lastPage: any) => {
+      const page = lastPage?.page ?? 1;
+      const totalPages = lastPage?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
   });
 };
 
@@ -140,16 +147,17 @@ export const useCommentUCuts = () => {
 
 export const useGetUCutsComments = (
   ucutId: string,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean; limit?: number }
 ) => {
-  return useQuery({
-    queryKey: ['ucuts-comments', ucutId],
-    queryFn: async () => {
+  return useInfiniteQuery({
+    queryKey: ['ucuts-comments', ucutId, options?.limit ?? 20],
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const res = await api.get(`/api/ucuts/${ucutId}/comments`);
+        const limit = options?.limit ?? 20;
+        const res = await api.get(`/api/ucuts/${ucutId}/comments?page=${pageParam}&limit=${limit}`);
         const data = res?.data || res;
         if (!data) {
-          return { comments: [] };
+          return { comments: [], page: pageParam, totalPages: 1 };
         }
         return data;
       } catch (error: any) {
@@ -158,9 +166,15 @@ export const useGetUCutsComments = (
           text1: 'Fetch Failed',
           text2: getShortErrorMessage(error, 'Request failed.'),
         });
-        return { comments: [] };
+        return { comments: [], page: pageParam, totalPages: 1 };
       }
     },
+    getNextPageParam: (lastPage: any) => {
+      const page = lastPage?.page ?? 1;
+      const totalPages = lastPage?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
     enabled: options?.enabled,
   });
 };

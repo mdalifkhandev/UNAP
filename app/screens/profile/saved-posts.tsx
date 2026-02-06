@@ -6,7 +6,7 @@ import useAuthStore from '@/store/auth.store';
 import useLanguageStore from '@/store/language.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -16,10 +16,20 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 
 const SavedPosts = () => {
-  const { data, isLoading, refetch, isRefetching } = useGetAllSavePost();
+  const {
+    data,
+    isLoading,
+    refetch,
+    isRefetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetAllSavePost({ limit: 10 });
   const { user } = useAuthStore();
+  const isFocused = useIsFocused();
   const { language } = useLanguageStore();
   const { data: t } = useTranslateTexts({
     texts: [
@@ -36,7 +46,12 @@ const SavedPosts = () => {
 
   // Handle both bookmarks structure and direct posts array
   // @ts-ignore
-  const posts = data?.bookmarks?.map((b: any) => b.post) || data?.posts || (Array.isArray(data) ? data : []);
+  const posts =
+    data?.pages?.flatMap((page: any) => {
+      if (page?.bookmarks) return page.bookmarks.map((b: any) => b.post);
+      if (page?.posts) return page.posts;
+      return Array.isArray(page) ? page : [];
+    }) || [];
 
   const renderHeader = () => (
     <View className='flex-row items-center mx-6 mt-3 mb-6'>
@@ -49,6 +64,15 @@ const SavedPosts = () => {
     </View>
   );
 
+  const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    const next = new Set(
+      viewableItems.map((v: any) => v?.item?._id).filter(Boolean)
+    );
+    setVisibleIds(next);
+  }).current;
+
   return (
     <GradientBackground>
       <SafeAreaView className='flex-1' edges={['top', 'left', 'right']}>
@@ -59,11 +83,25 @@ const SavedPosts = () => {
           <FlatList
             data={posts}
             renderItem={({ item }) => (
-              <PostCard post={item} className='mt-0 mb-6 mx-4' currentUserId={user?.id} isSavedScreen={true} />
+              <PostCard
+                post={item}
+                className='mt-0 mb-6 mx-4'
+                currentUserId={user?.id}
+                isSavedScreen={true}
+                isVisible={isFocused && visibleIds.has(item?._id)}
+              />
             )}
             keyExtractor={item => item?._id || Math.random().toString()}
             ListHeaderComponent={renderHeader}
             showsVerticalScrollIndicator={false}
+            onEndReached={() => {
+              if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+              }
+            }}
+            onEndReachedThreshold={0.4}
+            viewabilityConfig={viewabilityConfig}
+            onViewableItemsChanged={onViewableItemsChanged}
             refreshing={isRefetching}
             onRefresh={refetch}
             ListEmptyComponent={

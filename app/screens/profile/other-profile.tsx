@@ -28,7 +28,6 @@ const VideoGridItem = ({ uri }: { uri: string }) => {
   const player = useVideoPlayer(uri, player => {
     player.muted = true;
     player.loop = true;
-    player.play();
   });
 
   return (

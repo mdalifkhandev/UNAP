@@ -12,6 +12,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { useIsFocused } from '@react-navigation/native';
 
 const CreatePostCard = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -116,9 +117,13 @@ const CreatePostCard = () => {
   const previewPlayer = useVideoPlayer(selectedImage || '', player => {
     if (selectedMediaType === 'video') {
       player.loop = true;
-      player.play();
     }
   });
+  React.useEffect(() => {
+    if (!isFocused) {
+      previewPlayer.pause();
+    }
+  }, [isFocused, previewPlayer]);
 
   return (
     <View className='p-6 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mt-6 flex-row gap-5'>
@@ -210,3 +215,4 @@ const CreatePostCard = () => {
 };
 
 export default CreatePostCard;
+  const isFocused = useIsFocused();

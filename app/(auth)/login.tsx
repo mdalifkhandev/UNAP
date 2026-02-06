@@ -25,7 +25,7 @@ import Toast from 'react-native-toast-message';
 const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const { mutate } = useUserLogin();
-  const { setUser, user } = useAuthStore();
+  const { setUser, setRememberPreference, user } = useAuthStore();
 
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
@@ -61,10 +61,6 @@ const Login = () => {
       return;
     }
 
-    if (!rememberMe) {
-      alert('Please agree to Remember Me');
-      return;
-    }
     const user = {
       phoneNumber,
       email,
@@ -80,7 +76,7 @@ const Login = () => {
         });
         const user = {
           //@ts-ignore
-          refreshToken: data?.refreshToken,
+          refreshToken: rememberMe ? data?.refreshToken : null,
           //@ts-ignore
           token: data?.token,
           //@ts-ignore
@@ -93,6 +89,7 @@ const Login = () => {
           id: data?.user.id,
         };
         setUser(user);
+        setRememberPreference(rememberMe);
         router.push('/(tabs)/trending');
       },
       onError: error => {

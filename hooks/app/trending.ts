@@ -1,17 +1,24 @@
 import api from '@/api/axiosInstance';
-import { getShortErrorMessage } from '@/lib/error';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 export const useGetTrendingPost = (
   selectedTab: string,
   options?: { enabled?: boolean }
 ) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['trendingPost', selectedTab],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const res = await api.get(`/api/trending?section=${selectedTab}`);
+        let url = `/api/trending?section=${selectedTab}`;
+        if (selectedTab === 'manual') {
+          url += `&manualPage=${pageParam}&manualLimit=10`;
+        } else if (selectedTab === 'organic') {
+          url += `&organicPage=${pageParam}&organicLimit=10`;
+        } else if (selectedTab === 'items') {
+          url += `&itemsPage=${pageParam}&itemsLimit=10`;
+        }
+        const res = await api.get(url);
         const data = res?.data || res;
         if (data === undefined || data === null) {
           return { [selectedTab]: [] };
@@ -27,6 +34,22 @@ export const useGetTrendingPost = (
         return { [selectedTab]: [] };
       }
     },
+    getNextPageParam: (lastPage: any) => {
+      const meta = lastPage?.meta || {};
+      const key =
+        selectedTab === 'manual'
+          ? 'manual'
+          : selectedTab === 'organic'
+            ? 'organic'
+            : selectedTab === 'items'
+              ? 'items'
+              : null;
+      if (!key) return undefined;
+      const page = meta?.[key]?.page ?? 1;
+      const totalPages = meta?.[key]?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
     enabled: options?.enabled,
+    initialPageParam: 1,
   });
 };

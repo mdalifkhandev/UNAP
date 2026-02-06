@@ -61,7 +61,15 @@ const ChatScreen = () => {
   const senderId = params.senderId as string;
   const receiverId = params.receiverId as string;
 
-  const { data, isLoading, isError, error } = useGetAllMessages(userId);
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetAllMessages(userId, { limit: 20 });
   const { mutateAsync: sendMessage, isPending: isSendingMessage } =
     useChattingSendMessage();
   const { mutate: markAsRead } = useMarkMessagesAsRead();
@@ -73,7 +81,8 @@ const ChatScreen = () => {
   const isReceiverOnline = isUserOnline(receiverId || userId);
 
   // @ts-ignore
-  const messages = data?.messages || [];
+  const pages = data?.pages || [];
+  const messages = [...pages].reverse().flatMap((page: any) => page?.messages || []);
   const messageTexts = messages.map((msg: any) => String(msg?.text || ''));
   const { data: translatedMessages } = useTranslateTexts({
     texts: messageTexts,
@@ -129,11 +138,26 @@ const ChatScreen = () => {
     }
   }, [userId, markAsRead]);
 
+  const prevCountRef = useRef(0);
+  const loadingOlderRef = useRef(false);
   useEffect(() => {
-    setTimeout(() => {
-      flatRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-  }, [messages]);
+    if (isFetchingNextPage) return;
+    if (messages.length === 0) {
+      prevCountRef.current = 0;
+      return;
+    }
+    if (loadingOlderRef.current) {
+      prevCountRef.current = messages.length;
+      loadingOlderRef.current = false;
+      return;
+    }
+    if (messages.length > prevCountRef.current) {
+      setTimeout(() => {
+        flatRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+    prevCountRef.current = messages.length;
+  }, [messages.length, isFetchingNextPage]);
 
   const renderMessage = ({ item, index }: any) => {
     const isCurrentUser = item.senderId === senderId;
@@ -284,10 +308,19 @@ const ChatScreen = () => {
               `${item._id || item.id || `message-${index}`}`
             }
             renderItem={renderMessage}
-            onContentSizeChange={() =>
-              flatRef.current?.scrollToEnd({ animated: true })
-            }
             showsVerticalScrollIndicator={false}
+            maintainVisibleContentPosition={{ minIndexForVisible: 1 }}
+            onScroll={({ nativeEvent }) => {
+              const canScroll =
+                nativeEvent.contentSize.height > nativeEvent.layoutMeasurement.height;
+              if (canScroll && nativeEvent.contentOffset.y <= 50) {
+                if (hasNextPage && !isFetchingNextPage) {
+                  loadingOlderRef.current = true;
+                  fetchNextPage();
+                }
+              }
+            }}
+            scrollEventThrottle={200}
           />
 
           {/* Input */}

@@ -3,7 +3,6 @@ import { getShortErrorMessage } from '@/lib/error';
 import {
   useInfiniteQuery,
   useMutation,
-  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
@@ -291,13 +290,20 @@ export const useUserUnLike = () => {
   });
 };
 
-export const useUserGetComment = (id: string) => {
-  return useQuery({
-    queryKey: ['comment', id],
-    queryFn: async () => {
-      const res = await api.get(`/api/comments?postId=${id}`);
-      return res || { comments: [] };
+export const useUserGetComment = (id: string, options?: { limit?: number }) => {
+  return useInfiniteQuery({
+    queryKey: ['comment', id, options?.limit ?? 5],
+    queryFn: async ({ pageParam = 1 }) => {
+      const limit = options?.limit ?? 5;
+      const res = await api.get(`/api/comments?postId=${id}&page=${pageParam}&limit=${limit}`);
+      return res || { comments: [], page: pageParam, totalPages: 1 };
     },
+    getNextPageParam: (lastPage: any) => {
+      const page = lastPage?.page ?? 1;
+      const totalPages = lastPage?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
     enabled: !!id,
   });
 };

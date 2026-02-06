@@ -1,5 +1,5 @@
 import api from '@/api/axiosInstance';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useGetAllChatList = () => {
   return useQuery({
@@ -11,16 +11,23 @@ export const useGetAllChatList = () => {
   });
 };
 
-export const useGetAllMessages=(userId:string)=>{
-  return useQuery({
-    queryKey:['chat', userId],
-    queryFn:async()=>{
-      const res=await api.get(`/api/chats/${userId}/messages?page=1&limit=10`);
+export const useGetAllMessages = (userId: string, options?: { limit?: number }) => {
+  return useInfiniteQuery({
+    queryKey: ['chat', userId, options?.limit ?? 20],
+    queryFn: async ({ pageParam = 1 }) => {
+      const limit = options?.limit ?? 20;
+      const res = await api.get(`/api/chats/${userId}/messages?page=${pageParam}&limit=${limit}`);
       return res;
     },
+    getNextPageParam: (lastPage: any) => {
+      const page = lastPage?.page ?? 1;
+      const totalPages = lastPage?.totalPages ?? 1;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
     enabled: !!userId,
-  })
-}
+  });
+};
 
 export const useChattingSendMessage = () => {
   const queryClientInstance = useQueryClient();

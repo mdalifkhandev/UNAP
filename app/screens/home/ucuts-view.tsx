@@ -26,10 +26,19 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
-const StoryItem = ({ item }: { item: any }) => {
+const StoryItem = ({
+  item,
+  isVisible,
+  isFocused,
+}: {
+  item: any;
+  isVisible: boolean;
+  isFocused: boolean;
+}) => {
   const { user } = useAuthStore();
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
@@ -43,10 +52,17 @@ const StoryItem = ({ item }: { item: any }) => {
   const { mutateAsync: commentUCut, isPending: isCommenting } =
     useCommentUCuts();
   const { mutateAsync: deleteUCut, isPending: isDeleting } = useDeleteUCuts();
-  const { data: commentsData } = useGetUCutsComments(item.ucutId, {
+  const {
+    data: commentsData,
+    fetchNextPage: fetchNextComments,
+    hasNextPage: hasNextComments,
+    isFetchingNextPage: isFetchingNextComments,
+  } = useGetUCutsComments(item.ucutId, {
     enabled: commentsOpen && !!item.ucutId,
+    limit: 20,
   });
-  const comments = (commentsData as any)?.comments || [];
+  const comments =
+    commentsData?.pages?.flatMap((page: any) => page?.comments || []) || [];
   const { data: profileData } = useGetMyProfile();
   const { language: storedLanguage } = useLanguageStore();
   // @ts-ignore
@@ -81,10 +97,17 @@ const StoryItem = ({ item }: { item: any }) => {
     mediaTypePlayer => {
       if (item.mediaType === 'video') {
         mediaTypePlayer.loop = true;
-        mediaTypePlayer.play();
       }
     }
   );
+  useEffect(() => {
+    if (item.mediaType !== 'video') return;
+    if (isVisible && isFocused) {
+      player.play();
+    } else {
+      player.pause();
+    }
+  }, [isVisible, isFocused, item.mediaType, player]);
 
   useEffect(() => {
     setLiked(!!item.viewerHasLiked);
@@ -291,6 +314,12 @@ const StoryItem = ({ item }: { item: any }) => {
                     </View>
                   </View>
                 )}
+                onEndReached={() => {
+                  if (hasNextComments && !isFetchingNextComments) {
+                    fetchNextComments();
+                  }
+                }}
+                onEndReachedThreshold={0.3}
                 ListEmptyComponent={
                   <View className='py-6 items-center'>
                     <Text className='text-black/60 dark:text-white/70 text-sm'>
@@ -310,9 +339,22 @@ const StoryItem = ({ item }: { item: any }) => {
 const StoryView = () => {
   const { user } = useAuthStore();
   const { ownerId } = useLocalSearchParams<{ ownerId?: string }>();
-  const { data } = useGetUCutsFeed();
-  const ucuts = data?.ucuts ?? [];
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetUCutsFeed({ limit: 20 });
+  const ucuts = data?.pages?.flatMap((page: any) => page?.ucuts || []) || [];
   const listRef = useRef<FlatList<any>>(null);
+  const didInitialScroll = useRef(false);
+  const isFocused = useIsFocused();
+  const [visibleId, setVisibleId] = useState<string | null>(null);
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 80 });
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    const firstVisible = viewableItems?.[0]?.item?.id || null;
+    setVisibleId(firstVisible);
+  });
 
   const segments = useMemo(() => {
     const groups = new Map<
@@ -394,23 +436,42 @@ const StoryView = () => {
 
   useEffect(() => {
     if (!segments.length) return;
+    if (didInitialScroll.current) return;
     listRef.current?.scrollToIndex({
       index: startIndex,
       animated: false,
     });
+    didInitialScroll.current = true;
   }, [segments.length, startIndex]);
+  useEffect(() => {
+    if (!isFocused) setVisibleId(null);
+  }, [isFocused]);
 
   return (
     <View className='flex-1 bg-black'>
       <FlatList
         ref={listRef}
         data={segments}
-        renderItem={({ item }) => <StoryItem item={item} />}
+        renderItem={({ item }) => (
+          <StoryItem
+            item={item}
+            isVisible={isFocused && visibleId === item.id}
+            isFocused={isFocused}
+          />
+        )}
         keyExtractor={item => item.id}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         initialScrollIndex={startIndex}
+        viewabilityConfig={viewabilityConfig.current}
+        onViewableItemsChanged={onViewableItemsChanged.current}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
         onScrollToIndexFailed={() => {
           listRef.current?.scrollToIndex({ index: 0, animated: false });
         }}

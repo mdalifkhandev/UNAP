@@ -1,7 +1,7 @@
 import ShadowButton from '@/components/button/ShadowButton';
 import PostCard from '@/components/card/PostCard';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useDeletePost, useGetMyPosts } from '@/hooks/app/post';
+import { useDeletePost, useGetMyPostsInfinite } from '@/hooks/app/post';
 import { useGetMyProfile } from '@/hooks/app/profile';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
@@ -30,7 +30,6 @@ const VideoGridItem = ({ uri }: { uri: string }) => {
   const player = useVideoPlayer(uri, player => {
     player.muted = true;
     player.loop = true;
-    player.play();
   });
 
   return (
@@ -105,8 +104,15 @@ const Profiles = () => {
           : null; // 'all' will use myPosts hook
 
   // Get all posts for the 'all' tab
-  const { data: myPostsData } = useGetMyPosts();
-  const allPosts = myPostsData?.posts || [];
+  const {
+    data: myPostsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isMyPostsLoading,
+  } = useGetMyPostsInfinite({ limit: 10, enabled: selectedType === 'all' });
+  const allPosts =
+    myPostsData?.pages?.flatMap((page: any) => page?.posts || []) || [];
   const { mutate: deletePost } = useDeletePost();
 
   const [showShareModal, setShowShareModal] = useState(false);
@@ -135,6 +141,22 @@ const Profiles = () => {
           <ScrollView
             contentContainerStyle={{ paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
+            onScroll={({ nativeEvent }) => {
+              const paddingToBottom = 200;
+              const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+              const canScroll =
+                contentSize.height > layoutMeasurement.height + 20;
+              if (!canScroll) return;
+              if (
+                layoutMeasurement.height + contentOffset.y >=
+                contentSize.height - paddingToBottom
+              ) {
+                if (hasNextPage && !isFetchingNextPage) {
+                  fetchNextPage();
+                }
+              }
+            }}
+            scrollEventThrottle={200}
           >
             {/* profile picture */}
             <View className='flex-row gap-4 mt-4 items-center mx-6'>
@@ -291,11 +313,11 @@ const Profiles = () => {
                         showOwnerActions={true}
                       />
                     ))
-                  ) : (
+                  ) : !isMyPostsLoading ? (
                     <Text className='text-primary dark:text-white font-roboto-regular text-center mt-8'>
                       {tx(14, 'No posts found')}
                     </Text>
-                  )}
+                  ) : null}
                 </View>
               ) : (
                 <View className='flex-row flex-wrap'>

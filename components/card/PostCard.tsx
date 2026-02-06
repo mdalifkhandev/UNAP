@@ -25,6 +25,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  FlatList,
   Modal,
   Text,
   TextInput,
@@ -75,6 +76,7 @@ const PostCard = ({
   showOwnerActions = false, // Only show Edit/Delete on Profile screen
   hideFollowButton = false, // Hide follow button for UBlast submissions
   hideActions = false, // Hide like/comment/share/bookmark actions
+  isVisible, // Optional: control auto play/pause for video
 }: {
   className?: string;
   img?: any;
@@ -85,6 +87,7 @@ const PostCard = ({
   showOwnerActions?: boolean;
   hideFollowButton?: boolean;
   hideActions?: boolean;
+  isVisible?: boolean;
 }) => {
   const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
@@ -96,7 +99,12 @@ const PostCard = ({
   const [commentText, setCommentText] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const { data: commentData } = useUserGetComment(post?._id || '');
+  const {
+    data: commentData,
+    fetchNextPage: fetchNextComments,
+    hasNextPage: hasNextComments,
+    isFetchingNextPage: isFetchingNextComments,
+  } = useUserGetComment(post?._id || '', { limit: 5 });
   const { mutate: addComment } = useUserCreateComment();
   const { mutate: deleteComment } = useDeleteComment();
 
@@ -139,6 +147,21 @@ const PostCard = ({
     // @ts-ignore
     post?.viewerHasBookmarked,
   ]);
+
+  useEffect(() => {
+    if (isVisible === undefined) return;
+    if (post?.mediaType === 'video') {
+      if (isVisible) {
+        player.play();
+      } else {
+        player.pause();
+      }
+      return;
+    }
+    if (post?.mediaType === 'audio' && !isVisible) {
+      player.pause();
+    }
+  }, [isVisible, post?.mediaType, player]);
 
   const handleLikeToggle = () => {
     if (!post?._id) return;
@@ -276,7 +299,8 @@ const PostCard = ({
   // Check if current user is the author
   const isOwner = currentUserId && post?.author?.id === currentUserId;
 
-  const comments = (commentData as any)?.comments || [];
+  const comments =
+    commentData?.pages?.flatMap((page: any) => page?.comments || []) || [];
   // @ts-ignore
   const preferredLanguage =
     (profileData as any)?.profile?.preferredLanguage || storedLanguage;
@@ -657,62 +681,76 @@ const PostCard = ({
 
           {/* Comments List */}
           {comments.length > 0 ? (
-            comments.map((comment: any, index: number) => (
-              <View key={comment._id} className='mb-4'>
-                <View className='flex-row gap-2'>
-                  <Image
-                    source={
-                      comment.profile?.profileImageUrl ||
-                      'https://via.placeholder.com/40' ||
-                      comment.user?.profileImageUrl
-                    }
-                    style={{ width: 32, height: 32, borderRadius: 100 }}
-                  />
-                  <View className='flex-1'>
-                    <View className='bg-[#F0F2F5] dark:bg-white/5 p-3 rounded-2xl'>
-                      <Text className='text-primary dark:text-white text-sm font-roboto-semibold mb-1'>
-                        {comment.profile?.displayName ||
-                          comment.user?.name ||
-                          uiTexts(23, 'Anonymous')}
-                      </Text>
-                      <Text className='text-primary dark:text-white text-sm font-roboto-regular'>
-                        {translatedComments?.translations?.[index] ||
-                          comment.text}
-                      </Text>
-                    </View>
-                    <View className='flex-row gap-4 mt-1 px-2'>
-                      <TouchableOpacity>
-                        <Text className='text-secondary dark:text-white/80 text-xs font-roboto-medium'>
-                          {uiTexts(0, 'Like')}
+            <FlatList
+              data={comments}
+              keyExtractor={(comment: any, index: number) =>
+                comment?._id || `comment-${index}`
+              }
+              renderItem={({ item: comment, index }) => (
+                <View className='mb-4'>
+                  <View className='flex-row gap-2'>
+                    <Image
+                      source={
+                        comment.profile?.profileImageUrl ||
+                        'https://via.placeholder.com/40' ||
+                        comment.user?.profileImageUrl
+                      }
+                      style={{ width: 32, height: 32, borderRadius: 100 }}
+                    />
+                    <View className='flex-1'>
+                      <View className='bg-[#F0F2F5] dark:bg-white/5 p-3 rounded-2xl'>
+                        <Text className='text-primary dark:text-white text-sm font-roboto-semibold mb-1'>
+                          {comment.profile?.displayName ||
+                            comment.user?.name ||
+                            uiTexts(23, 'Anonymous')}
                         </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity>
-                        <Text className='text-secondary dark:text-white/80 text-xs font-roboto-medium'>
-                          {uiTexts(1, 'Reply')}
+                        <Text className='text-primary dark:text-white text-sm font-roboto-regular'>
+                          {translatedComments?.translations?.[index] ||
+                            comment.text}
                         </Text>
-                      </TouchableOpacity>
-                      {/* Only show delete if user owns the comment */}
-                      {(comment.user?._id === currentUserId ||
-                        comment.user?.id === currentUserId) && (
-                        <TouchableOpacity
-                          onPress={() => handleDeleteComment(comment._id)}
-                        >
-                          <Text className='text-red-400 text-xs font-roboto-medium'>
-                            {uiTexts(2, 'Delete')}
+                      </View>
+                      <View className='flex-row gap-4 mt-1 px-2'>
+                        <TouchableOpacity>
+                          <Text className='text-secondary dark:text-white/80 text-xs font-roboto-medium'>
+                            {uiTexts(0, 'Like')}
                           </Text>
                         </TouchableOpacity>
-                      )}
-                      <Text className='text-secondary dark:text-white/80/50 text-xs font-roboto-regular ml-auto'>
-                        {new Date(comment.createdAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </Text>
+                        <TouchableOpacity>
+                          <Text className='text-secondary dark:text-white/80 text-xs font-roboto-medium'>
+                            {uiTexts(1, 'Reply')}
+                          </Text>
+                        </TouchableOpacity>
+                        {(comment.user?._id === currentUserId ||
+                          comment.user?.id === currentUserId) && (
+                          <TouchableOpacity
+                            onPress={() => handleDeleteComment(comment._id)}
+                          >
+                            <Text className='text-red-400 text-xs font-roboto-medium'>
+                              {uiTexts(2, 'Delete')}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                        <Text className='text-secondary dark:text-white/80/50 text-xs font-roboto-regular ml-auto'>
+                          {new Date(comment.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
-              </View>
-            ))
+              )}
+              style={{ maxHeight: 260 }}
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={false}
+              onEndReached={() => {
+                if (hasNextComments && !isFetchingNextComments) {
+                  fetchNextComments();
+                }
+              }}
+              onEndReachedThreshold={0.3}
+            />
           ) : (
             <View className='bg-[#F0F2F5] dark:bg-white/5 p-4 rounded-2xl items-center'>
               <Text className='text-secondary dark:text-white/80 text-sm font-roboto-regular italic'>

@@ -101,8 +101,11 @@ const StorySection = () => {
     add: tx(1, 'Add to UCuts'),
     user: tx(2, 'User'),
   };
-  const { data } = useGetUCutsFeed();
-  const ucuts = data?.ucuts ?? [];
+  const { data } = useGetUCutsFeed({ limit: 20 });
+  const ucuts =
+    data?.pages?.flatMap((page: any) => page?.ucuts || []) ||
+    data?.ucuts ||
+    [];
 
   const stories: Story[] = useMemo(() => {
     const groups = new Map<

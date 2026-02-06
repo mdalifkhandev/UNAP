@@ -11,6 +11,21 @@ const api = axios.create({
   },
 });
 
+let isRedirectingToLogin = false;
+
+const getErrorMessage = (err: unknown) => {
+  if (!err) return 'Unknown error';
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object' && 'message' in err) {
+    return String((err as { message?: unknown }).message);
+  }
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return 'Unknown error';
+  }
+};
+
 api.interceptors.request.use(
   async config => {
     const token = getAuth().user?.token;
@@ -26,13 +41,76 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   response => response.data,
-  error => {
-    console.log('API Error:', error?.response?.data || error.message);
+  async error => {
+    console.log('API Error:', error?.response?.data || getErrorMessage(error));
 
-    if (error.response?.status === 401) {
-      console.log('Authentication error - please log in again');
+    const originalRequest = error.config || {};
+    const status = error.response?.status;
+    const isRefreshCall =
+      typeof originalRequest?.url === 'string' &&
+      originalRequest.url.includes('/api/auth/refresh');
+
+    if (status === 401 && !originalRequest._retry && !isRefreshCall) {
+      const authState = getAuth();
+      const refreshToken = authState.user?.refreshToken;
+      const rememberMe = authState.rememberMe;
+      const hasAccessToken = Boolean(authState.user?.token);
+
+      if (!refreshToken || !rememberMe) {
+        if (hasAccessToken) {
+          useAuthStore.getState().clearAuth();
+          if (!isRedirectingToLogin) {
+            isRedirectingToLogin = true;
+            router.replace('/(auth)/login');
+            setTimeout(() => {
+              isRedirectingToLogin = false;
+            }, 1000);
+          }
+        }
+        return Promise.reject(error);
+      }
+
+      originalRequest._retry = true;
+
+      try {
+        const refreshClient = axios.create({
+          baseURL: api.defaults.baseURL,
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const res = await refreshClient.post('/api/auth/refresh', {
+          refreshToken,
+        });
+        const data = res?.data || {};
+        const newToken = data?.token;
+        const newRefresh = data?.refreshToken || refreshToken;
+        const user = data?.user;
+
+        if (newToken) {
+          const current = getAuth().user;
+          const mergedUser = {
+            ...(current || {}),
+            ...(user || {}),
+            token: newToken,
+            refreshToken: newRefresh,
+          };
+          useAuthStore.getState().setUser(mergedUser as any);
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        }
+      } catch (refreshErr) {
+        console.log('Refresh token failed:', getErrorMessage(refreshErr));
+      }
+
       useAuthStore.getState().clearAuth();
-      router.replace('/(auth)/login');
+      if (!isRedirectingToLogin) {
+        isRedirectingToLogin = true;
+        router.replace('/(auth)/login');
+        setTimeout(() => {
+          isRedirectingToLogin = false;
+        }, 1000);
+      }
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

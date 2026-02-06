@@ -11,7 +11,7 @@ import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -23,6 +23,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
+import { useIsFocused } from '@react-navigation/native';
 
 interface Author {
   email: string;
@@ -65,6 +66,7 @@ const Home = () => {
   const { language } = useLanguageStore();
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
+  const isFocused = useIsFocused();
   const queryClient = useQueryClient();
   const { data: t } = useTranslateTexts({
     texts: ["What's on your mind?", 'No posts found'],
@@ -75,6 +77,15 @@ const Home = () => {
     t?.translations?.[i] || fallback;
 
   const posts = data?.pages.flatMap((page: any) => page.posts || []) || [];
+  const [visiblePostIds, setVisiblePostIds] = useState<Set<string>>(new Set());
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 });
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    const ids = new Set<string>();
+    viewableItems.forEach((vi: any) => {
+      if (vi?.item?._id) ids.add(vi.item._id);
+    });
+    setVisiblePostIds(ids);
+  });
 
   const renderHeader = () => (
     <View>
@@ -134,7 +145,12 @@ const Home = () => {
   const renderPost = ({ item, index }: { item: Post; index: number }) => {
     return (
       <View>
-        <PostCard post={item} className='mt-4' currentUserId={user?.id} />
+        <PostCard
+          post={item}
+          className='mt-4'
+          currentUserId={user?.id}
+          isVisible={isFocused && visiblePostIds.has(item._id)}
+        />
         {index === 1 && (
           <>
             <OfficePostCard className='mt-4' />
@@ -184,6 +200,8 @@ const Home = () => {
             data={posts}
             renderItem={renderPost}
             keyExtractor={item => item._id}
+            viewabilityConfig={viewabilityConfig.current}
+            onViewableItemsChanged={onViewableItemsChanged.current}
             ListHeaderComponent={renderHeader}
             ListFooterComponent={renderFooter}
             onEndReached={() => {

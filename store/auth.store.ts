@@ -8,7 +8,7 @@ type TUser = {
   email: string;
   id: string;
   phoneNumber: string;
-  refreshToken: string;
+  refreshToken?: string | null;
   token: string;
 };
 
@@ -17,8 +17,10 @@ type AuthStore = {
   email: string | null;
   user: TUser | null;
   resetToken: string | null;
+  rememberMe: boolean;
   setEmail: (email: string) => void;
   setUser: (user: TUser) => void;
+  setRememberPreference: (remember: boolean) => void;
   setResetToken: (token: string) => void;
   clearAuth: () => void;
 };
@@ -51,10 +53,13 @@ const useAuthStore = create<AuthStore>()(
       email: null,
       user: null,
       resetToken: null,
+      rememberMe: false,
       setEmail: (email: string) => set({ email }),
       setUser: (user: TUser) => set({ user }),
+      setRememberPreference: (remember: boolean) => set({ rememberMe: remember }),
       setResetToken: (token: string) => set({ resetToken: token }),
-      clearAuth: () => set({ email: null, user: null, resetToken: null }),
+      clearAuth: () =>
+        set({ email: null, user: null, resetToken: null, rememberMe: false }),
     }),
     {
       name: "auth-storage",

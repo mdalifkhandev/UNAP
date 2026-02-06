@@ -25,6 +25,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 
 const { height, width } = Dimensions.get('window');
 
@@ -55,7 +56,7 @@ type UclipPost = {
   viewerHasSaved: boolean;
 };
 
-const UclipItem = ({ item }: { item: UclipPost }) => {
+const UclipItem = ({ item, isVisible }: { item: UclipPost; isVisible: boolean }) => {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
   const [liked, setLiked] = useState(!!item.viewerHasLiked);
@@ -106,16 +107,25 @@ const UclipItem = ({ item }: { item: UclipPost }) => {
 
   const player = useVideoPlayer(item.mediaUrl || '', p => {
     p.loop = true;
-    p.play();
   });
 
   React.useEffect(() => {
+    if (!isVisible) {
+      player.pause();
+      return;
+    }
+    setIsPaused(false);
+    player.play();
+  }, [isVisible, player]);
+
+  React.useEffect(() => {
+    if (!isVisible) return;
     if (isPaused) {
       player.pause();
     } else {
       player.play();
     }
-  }, [isPaused, player]);
+  }, [isPaused, isVisible, player]);
 
   const formatCount = (value: number) => {
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
@@ -326,21 +336,35 @@ const UclipItem = ({ item }: { item: UclipPost }) => {
 const uclips = () => {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
+  const isFocused = useIsFocused();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useGetUclips(10);
   const clips = data?.pages.flatMap((page: any) => page?.posts || []) || [];
+  const [visibleId, setVisibleId] = useState<string | null>(null);
+  const viewabilityConfig = React.useRef({ itemVisiblePercentThreshold: 80 });
+  const onViewableItemsChanged = React.useRef(({ viewableItems }: any) => {
+    const firstVisible = viewableItems?.[0]?.item?._id || null;
+    setVisibleId(firstVisible);
+  });
+  React.useEffect(() => {
+    if (!isFocused) setVisibleId(null);
+  }, [isFocused]);
 
   return (
     <GradientBackground>
       <View className='flex-1'>
         <FlatList
           data={clips}
-          renderItem={({ item }) => <UclipItem item={item} />}
+          renderItem={({ item }) => (
+            <UclipItem item={item} isVisible={isFocused && visibleId === item._id} />
+          )}
           keyExtractor={item => item._id}
           pagingEnabled
           showsVerticalScrollIndicator={false}
           snapToAlignment='start'
           decelerationRate='fast'
+          viewabilityConfig={viewabilityConfig.current}
+          onViewableItemsChanged={onViewableItemsChanged.current}
           onEndReached={() => {
             if (hasNextPage && !isFetchingNextPage) {
               fetchNextPage();
