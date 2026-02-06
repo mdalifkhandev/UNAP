@@ -26,8 +26,9 @@ export const useUploadVideoToCloudinary = () => {
       signature: SignatureResponse;
       uri: string;
       fileName?: string | null;
+      onProgress?: (percent: number) => void;
     }) => {
-      const { signature, uri, fileName } = payload;
+      const { signature, uri, fileName, onProgress } = payload;
       const form = new FormData();
       form.append('file', {
         uri,
@@ -40,15 +41,31 @@ export const useUploadVideoToCloudinary = () => {
       form.append('folder', signature.folder || 'mister/posts');
 
       const uploadUrl = `https://api.cloudinary.com/v1_1/${signature.cloudName}/video/upload`;
-      const res = await fetch(uploadUrl, {
-        method: 'POST',
-        body: form,
+
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl);
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              resolve(JSON.parse(xhr.responseText));
+            } catch (err) {
+              reject(new Error('Cloud upload response parse failed'));
+            }
+            return;
+          }
+          reject(new Error(xhr.responseText || 'Cloud upload failed'));
+        };
+        xhr.onerror = () => reject(new Error('Cloud upload failed'));
+        if (xhr.upload && onProgress) {
+          xhr.upload.onprogress = (event) => {
+            if (!event.lengthComputable) return;
+            const percent = Math.round((event.loaded / event.total) * 100);
+            onProgress(percent);
+          };
+        }
+        xhr.send(form as any);
       });
-      if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg || 'Cloud upload failed');
-      }
-      return res.json();
     },
   });
 };

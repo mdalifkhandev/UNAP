@@ -8,6 +8,11 @@ export function connectSocket(): Socket | null {
 
   return io(api.defaults.baseURL?.replace('/api', '') || 'http://10.10.11.18:4000', {
     auth: { token: auth.user.token },
+    transports: ['websocket'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    timeout: 10000,
   });
 }
 

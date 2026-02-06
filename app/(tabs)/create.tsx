@@ -83,6 +83,7 @@ const CreatePost = () => {
   const [videoSize, setVideoSize] = useState<number | null>(null);
   const [videoName, setVideoName] = useState<string | null>(null);
   const [videoPlayerUri, setVideoPlayerUri] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const videoPlayer = useVideoPlayer(videoPlayerUri || '', player => {
     player.loop = true;
     player.play();
@@ -158,6 +159,7 @@ const CreatePost = () => {
       'UPost',
       'Post Update Failed',
       'Done',
+      'Uploading video',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
@@ -282,6 +284,7 @@ const CreatePost = () => {
     } else if (video && !isRemote(video)) {
       if (!isUclip && videoSize && videoSize > BIG_VIDEO_BYTES) {
         try {
+          setUploadProgress(0);
           const signatureData = await requestSignature({
             folder: 'mister/posts',
             resourceType: 'video',
@@ -290,6 +293,7 @@ const CreatePost = () => {
             signature: signatureData,
             uri: video,
             fileName: videoName,
+            onProgress: (percent) => setUploadProgress(percent),
           });
           const mediaUrl =
             uploadRes?.secure_url || uploadRes?.url || uploadRes?.playback_url;
@@ -314,6 +318,7 @@ const CreatePost = () => {
                 setVideoPlayerUri(null);
                 setAudio(null);
                 setDescription('');
+                setUploadProgress(null);
                 setIsFacebook(false);
                 setIsInstagram(false);
                 setIsTwitter(false);
@@ -337,6 +342,7 @@ const CreatePost = () => {
                   text1: tx(31, 'Post Creation Failed'),
                   text2: getShortErrorMessage(error, 'Request failed.'),
                 });
+                setUploadProgress(null);
               },
             }
           );
@@ -347,6 +353,7 @@ const CreatePost = () => {
             text1: tx(32, 'Upload Failed'),
             text2: err?.message || tx(33, 'Cloud upload failed'),
           });
+          setUploadProgress(null);
           return;
         }
       }
@@ -397,6 +404,7 @@ const CreatePost = () => {
               setVideoPlayerUri(null);
               setAudio(null);
               setDescription('');
+              setUploadProgress(null);
               setIsFacebook(false);
               setIsInstagram(false);
               setIsScheduleMode(false);
@@ -408,6 +416,7 @@ const CreatePost = () => {
                 text1: tx(43, 'Post Update Failed'),
                 text2: getShortErrorMessage(error, 'Request failed.'),
               });
+              setUploadProgress(null);
             },
           }
         );
@@ -421,6 +430,7 @@ const CreatePost = () => {
               setVideoPlayerUri(null);
               setAudio(null);
               setDescription('');
+              setUploadProgress(null);
               setIsFacebook(false);
               setIsInstagram(false);
               setIsScheduleMode(false);
@@ -433,6 +443,7 @@ const CreatePost = () => {
                 text1: tx(43, 'Post Update Failed'),
                 text2: getShortErrorMessage(error, 'Request failed.'),
               });
+              setUploadProgress(null);
             },
           }
         );
@@ -445,6 +456,7 @@ const CreatePost = () => {
           setVideoPlayerUri(null);
           setAudio(null);
           setDescription('');
+          setUploadProgress(null);
           setIsFacebook(false);
           setIsInstagram(false);
           setIsScheduleMode(false);
@@ -462,6 +474,7 @@ const CreatePost = () => {
             text1: tx(31, 'Post Creation Failed'),
             text2: getShortErrorMessage(error, 'Request failed.'),
           });
+          setUploadProgress(null);
         },
       });
     }
@@ -622,6 +635,16 @@ const CreatePost = () => {
 
           {/* border */}
           <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
+
+          {isUploadingVideo && uploadProgress !== null && (
+            <View className='px-6 mt-3'>
+              <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg p-3'>
+                <Text className='text-black dark:text-white text-sm'>
+                  {tx(45, 'Uploading video')}: {uploadProgress}%
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* Schedule Toggle */}
           {!isPublishedConfig && (

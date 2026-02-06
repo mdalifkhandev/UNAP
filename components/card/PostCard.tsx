@@ -237,9 +237,12 @@ const PostCard = ({
     setShowShareModal(true);
   };
 
-  const handleShareTarget = (target: 'facebook' | 'instagram' | 'feed') => {
+  const handleShareTarget = (target: 'facebook' | 'instagram' | 'feed' | 'story') => {
     if (!post?._id) return;
     if (target === 'feed') {
+      sharePost({ postId: post._id });
+    } else if (target === 'story') {
+      // Backend doesn't support story for posts; fallback to feed for now
       sharePost({ postId: post._id });
     } else {
       sharePost({ postId: post._id, target });
@@ -323,6 +326,7 @@ const PostCard = ({
       'Share to Facebook',
       'Share to Instagram',
       'Share to Feed',
+      'Share to Story',
     ],
     targetLang: uiLanguage,
     enabled: !!uiLanguage && uiLanguage !== 'EN',
@@ -370,6 +374,14 @@ const PostCard = ({
                 >
                   <Text className='text-black dark:text-white font-roboto-medium'>
                     {uiTexts(26, 'Share to Feed')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleShareTarget('story')}
+                  className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mt-3'
+                >
+                  <Text className='text-black dark:text-white font-roboto-medium'>
+                    {uiTexts(27, 'Share to Story')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity

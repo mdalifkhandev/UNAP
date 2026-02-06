@@ -13,6 +13,7 @@ import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -21,7 +22,9 @@ import {
   Platform,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -50,6 +53,16 @@ const TrendingScreen = () => {
       'No posts found',
       'Check back later for new content',
       'Share by',
+      'Share Required',
+      'Share to Feed first to enable likes and comments.',
+      'Official UBlast',
+      'Tap to play audio',
+      'Share UBlast',
+      'Share to Feed',
+      'Share to Story',
+      'Share to Facebook',
+      'Share to Instagram',
+      'Cancel',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
@@ -220,16 +233,27 @@ const TrendingScreen = () => {
 
   const UblastCard = ({ item }: { item: any }) => {
     const { mutate: shareUblast, isPending } = useShareUblast();
+    const [isShareBusy, setIsShareBusy] = useState(false);
     const hasShared = Boolean(item?.viewerHasShared);
     const dueAt = item?.dueAt ? new Date(item.dueAt) : null;
     const isLightTheme = isLight;
     const handleDisabledAction = () => {
       Toast.show({
         type: 'info',
-        text1: 'Share Required',
-        text2: 'Share to Feed first to enable likes and comments.',
+        text1: tx(14, 'Share Required'),
+        text2: tx(15, 'Share to Feed first to enable likes and comments.'),
       });
     };
+
+    const [showShareTypeModal, setShowShareTypeModal] = useState(false);
+    const mediaUrl = item?.mediaUrl || '';
+    const mediaType = item?.mediaType;
+    const player = useVideoPlayer(mediaUrl, p => {
+      p.loop = true;
+      if (mediaType === 'video') {
+        p.play();
+      }
+    });
 
     return (
       <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mx-5 mt-4 overflow-hidden'>
@@ -245,22 +269,48 @@ const TrendingScreen = () => {
                 {item?.title || 'UBlast'}
               </Text>
               <Text className='font-roboto-regular text-sm text-secondary dark:text-white/80'>
-                Official UBlast
+                {tx(16, 'Official UBlast')}
               </Text>
             </View>
           </View>
         </View>
 
-        {item?.mediaType === 'image' && item?.mediaUrl ? (
+        {mediaType === 'image' && mediaUrl ? (
           <Image
-            source={{ uri: item.mediaUrl }}
+            source={{ uri: mediaUrl }}
             style={{ width: '100%', height: 220 }}
             contentFit='cover'
           />
+        ) : mediaType === 'video' && mediaUrl ? (
+          <VideoView
+            style={{ width: '100%', height: 220 }}
+            player={player}
+            nativeControls={false}
+            contentFit='cover'
+          />
+        ) : mediaType === 'audio' ? (
+          <View className='h-[220px] items-center justify-center bg-black/10 dark:bg-white/5'>
+            <TouchableOpacity
+              className='bg-black/20 dark:bg-white/10 p-4 rounded-full'
+              onPress={() => {
+                if (player.playing) player.pause();
+                else player.play();
+              }}
+            >
+              <Ionicons
+                name={player.playing ? 'pause' : 'play'}
+                size={28}
+                color={isLightTheme ? 'black' : 'white'}
+              />
+            </TouchableOpacity>
+            <Text className='mt-3 text-black/70 dark:text-white/70'>
+              {tx(17, 'Tap to play audio')}
+            </Text>
+          </View>
         ) : (
           <View className='h-[220px] items-center justify-center bg-black/10 dark:bg-white/5'>
             <Ionicons
-              name={item?.mediaType === 'audio' ? 'musical-notes' : 'play-circle'}
+              name={mediaType === 'audio' ? 'musical-notes' : 'play-circle'}
               size={48}
               color={isLightTheme ? 'black' : 'white'}
             />
@@ -286,15 +336,15 @@ const TrendingScreen = () => {
             <TouchableOpacity
               onPress={() => {
                 if (!item?._id) return;
-                shareUblast({ ublastId: item._id, shareType: 'feed' });
+                setShowShareTypeModal(true);
               }}
-              disabled={hasShared || isPending}
+              disabled={hasShared || isPending || isShareBusy}
             >
               <Ionicons
                 name='share-social-outline'
                 size={24}
                 color={isLightTheme ? 'black' : 'white'}
-                style={{ opacity: hasShared || isPending ? 0.5 : 1 }}
+                style={{ opacity: hasShared || isPending || isShareBusy ? 0.5 : 1 }}
               />
             </TouchableOpacity>
           </View>
@@ -306,12 +356,110 @@ const TrendingScreen = () => {
               {item.content}
             </Text>
           )}
+
           {dueAt && (
             <Text className='font-roboto-semibold text-sm text-secondary dark:text-white/80 mt-2.5'>
               {tx(13, 'Share by')} {dueAt.toLocaleString()}
             </Text>
           )}
         </View>
+
+        <Modal
+          visible={showShareTypeModal}
+          transparent
+          animationType='fade'
+          onRequestClose={() => setShowShareTypeModal(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setShowShareTypeModal(false)}>
+            <View className='flex-1 bg-black/50 justify-end'>
+              <TouchableWithoutFeedback>
+                <View className='bg-white dark:bg-[#111111] p-6 rounded-t-3xl'>
+                  <Text className='text-black dark:text-white font-roboto-semibold text-lg mb-4'>
+                    {tx(18, 'Share UBlast')}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (!item?._id) return;
+                      setIsShareBusy(true);
+                      shareUblast({ ublastId: item._id, shareType: 'feed' });
+                      setShowShareTypeModal(false);
+                      setIsShareBusy(false);
+                    }}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                    disabled={isPending || isShareBusy}
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {isPending || isShareBusy ? 'Sharing...' : tx(19, 'Share to Feed')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (!item?._id) return;
+                      setIsShareBusy(true);
+                      shareUblast({ ublastId: item._id, shareType: 'story' });
+                      setShowShareTypeModal(false);
+                      setIsShareBusy(false);
+                    }}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                    disabled={isPending || isShareBusy}
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {isPending || isShareBusy ? 'Sharing...' : tx(20, 'Share to Story')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (!item?._id) return;
+                      setIsShareBusy(true);
+                      shareUblast({ ublastId: item._id, shareType: 'feed' });
+                      setShowShareTypeModal(false);
+                      setIsShareBusy(false);
+                      Toast.show({
+                        type: 'info',
+                        text1: 'Facebook',
+                        text2: 'Shared to feed (Facebook integration pending).',
+                      });
+                    }}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                    disabled={isPending || isShareBusy}
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {isPending || isShareBusy ? 'Sharing...' : tx(21, 'Share to Facebook')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (!item?._id) return;
+                      setIsShareBusy(true);
+                      shareUblast({ ublastId: item._id, shareType: 'feed' });
+                      setShowShareTypeModal(false);
+                      setIsShareBusy(false);
+                      Toast.show({
+                        type: 'info',
+                        text1: 'Instagram',
+                        text2: 'Shared to feed (Instagram integration pending).',
+                      });
+                    }}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                    disabled={isPending || isShareBusy}
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {isPending || isShareBusy ? 'Sharing...' : tx(22, 'Share to Instagram')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setShowShareTypeModal(false)}
+                    className='mt-2 py-3 px-4 rounded-xl border border-black/10 dark:border-white/10'
+                  >
+                    <Text className='text-center text-black dark:text-white font-roboto-medium'>
+                      {tx(23, 'Cancel')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       </View>
     );
   };

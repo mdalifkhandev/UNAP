@@ -47,7 +47,7 @@ const ChatsList = () => {
   const isLight = mode === 'light';
   const { data, isLoading, isError, error } = useGetAllChatList();
   const { language } = useLanguageStore();
-  const { isUserOnline } = useSocketPresence();
+  const { isUserOnline, isConnected } = useSocketPresence();
   const { data: t } = useTranslateTexts({
     texts: [
       'Loading...',
@@ -57,6 +57,7 @@ const ChatsList = () => {
       'Search chats...',
       'Online',
       'Offline',
+      'Connecting...',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
@@ -138,6 +139,13 @@ const ChatsList = () => {
             <Text className='font-roboto-bold text-primary dark:text-white text-2xl text-center flex-1'>
               {tx(3, 'Chat')}
             </Text>
+            {!isConnected && (
+              <View className='px-2 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40'>
+                <Text className='text-yellow-700 dark:text-yellow-300 text-xs'>
+                  {tx(7, 'Connecting...')}
+                </Text>
+              </View>
+            )}
             <TouchableOpacity
               onPress={() => router.push('/screens/home/notification')}
             >

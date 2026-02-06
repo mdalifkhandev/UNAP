@@ -47,6 +47,7 @@ const ChatScreen = () => {
       'Offline',
       'Type a message...',
       'Send',
+      'Connecting...',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
@@ -68,7 +69,7 @@ const ChatScreen = () => {
     userId,
     conversationId
   );
-  const { isUserOnline } = useSocketPresence();
+  const { isUserOnline, isConnected: isPresenceConnected } = useSocketPresence();
   const isReceiverOnline = isUserOnline(receiverId || userId);
 
   // @ts-ignore
@@ -259,6 +260,13 @@ const ChatScreen = () => {
                 </View>
               </View>
             </View>
+            {!isPresenceConnected && (
+              <View className='px-2 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 mr-2'>
+                <Text className='text-yellow-700 dark:text-yellow-300 text-xs'>
+                  {tx(7, 'Connecting...')}
+                </Text>
+              </View>
+            )}
             <TouchableOpacity onPress={() => setShowMenu(true)}>
               <Entypo
                 name='dots-three-horizontal'

@@ -116,18 +116,50 @@ export const useUnsavePost = () => {
   });
 };
 
-export const useGetMyPosts = (options?: { enabled?: boolean }) => {
+export const useGetMyPosts = (options?: {
+  enabled?: boolean;
+  fetchAll?: boolean;
+  limit?: number;
+  maxPages?: number;
+}) => {
   return useQuery({
     queryKey: ['myPosts'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/posts/mine');
-        // Handle Axios response properly
-        const data = res?.data || res;
-        if (data === undefined || data === null) {
-          return { posts: [] };
+        const fetchAll = options?.fetchAll ?? true;
+        const limit = options?.limit ?? 50;
+        const maxPages = options?.maxPages ?? 10;
+
+        if (!fetchAll) {
+          const res = await api.get(`/api/posts/mine?page=1&limit=${limit}`);
+          const data = res?.data || res;
+          if (data === undefined || data === null) {
+            return { posts: [] };
+          }
+          return data;
         }
-        return data;
+
+        const allPosts: any[] = [];
+        let page = 1;
+        let totalPages = 1;
+
+        while (page <= totalPages && page <= maxPages) {
+          const res = await api.get(`/api/posts/mine?page=${page}&limit=${limit}`);
+          const data = res?.data || res;
+          const posts = data?.posts || [];
+          totalPages = data?.totalPages || totalPages;
+          allPosts.push(...posts);
+
+          if (!posts.length) break;
+          page += 1;
+        }
+
+        return {
+          posts: allPosts,
+          page: 1,
+          totalPages,
+          totalCount: allPosts.length,
+        };
       } catch (error: any) {
         console.warn('API Error in useGetMyPosts:', error);
         Toast.show({

@@ -123,12 +123,29 @@ export const useGetActiveUblasts = (options?: { enabled?: boolean }) => {
     queryKey: ['ublast-active'],
     queryFn: async () => {
       try {
-        const res = await api.get('/api/ublasts/active?page=1&limit=20');
-        const data = res?.data || res;
-        if (!data || !data.ublasts) {
-          return { ublasts: [] };
+        const limit = 20;
+        const maxPages = 10;
+        const all: any[] = [];
+        let page = 1;
+        let totalPages = 1;
+
+        while (page <= totalPages && page <= maxPages) {
+          const res = await api.get(`/api/ublasts/active?page=${page}&limit=${limit}`);
+          const data = res?.data || res;
+          const ublasts = data?.ublasts || [];
+          totalPages = data?.totalPages || totalPages;
+          all.push(...ublasts);
+
+          if (!ublasts.length) break;
+          page += 1;
         }
-        return data;
+
+        return {
+          ublasts: all,
+          page: 1,
+          totalPages,
+          totalCount: all.length,
+        };
       } catch (error: any) {
         console.error('API Error in useGetActiveUblasts:', error);
         Toast.show({
@@ -153,6 +170,12 @@ export const useShareUblast = () => {
       ublastId: string;
       shareType?: 'feed' | 'story';
     }) => {
+      // Ensure profile exists before sharing (backend requires it)
+      const profileRes = await api.get('/api/profile/me');
+      const profile = profileRes?.data?.profile || profileRes?.profile;
+      if (!profile) {
+        throw new Error('Complete your profile before sharing.');
+      }
       const res = await api.post(`/api/ublasts/${ublastId}/share`, { shareType });
       return res;
     },

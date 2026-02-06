@@ -11,6 +11,7 @@ type PresencePayload = {
 
 export const useSocketPresence = () => {
   const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set());
+  const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<any>(null);
 
   useEffect(() => {
@@ -44,9 +45,14 @@ export const useSocketPresence = () => {
     };
 
     socket.on('connect', () => {
+      setIsConnected(true);
       if (myId) {
         socket.emit('presence:join', { userId: myId });
       }
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
     });
 
     socket.on('presence:list', (payload: PresencePayload | string[]) => {
@@ -85,5 +91,5 @@ export const useSocketPresence = () => {
   const isUserOnline = (userId?: string | null) =>
     !!userId && onlineIds.has(userId);
 
-  return { onlineIds, isUserOnline };
+  return { onlineIds, isUserOnline, isConnected };
 };
