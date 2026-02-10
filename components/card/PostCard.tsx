@@ -26,7 +26,10 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   FlatList,
+  Linking,
   Modal,
+  ScrollView,
+  Share,
   Text,
   TextInput,
   TouchableOpacity,
@@ -260,12 +263,67 @@ const PostCard = ({
     setShowShareModal(true);
   };
 
-  const handleShareTarget = (target: 'facebook' | 'instagram' | 'feed' | 'story') => {
+  const buildSharePayload = () => {
+    const description = post?.description?.trim() || '';
+    const mediaUrl = post?.mediaUrl?.trim() || '';
+    const message = [description, mediaUrl].filter(Boolean).join('\n');
+    return { description, mediaUrl, message };
+  };
+
+  const openFacebookShare = async () => {
+    const { description, mediaUrl, message } = buildSharePayload();
+    const fallbackUrl = mediaUrl || 'https://www.facebook.com';
+    const webShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+      fallbackUrl
+    )}${description ? `&quote=${encodeURIComponent(description)}` : ''}`;
+
+    try {
+      const canOpenFacebook = await Linking.canOpenURL('fb://');
+      if (canOpenFacebook) {
+        const appShareUrl = `fb://facewebmodal/f?href=${encodeURIComponent(webShareUrl)}`;
+        await Linking.openURL(appShareUrl);
+        return true;
+      }
+      await Linking.openURL(webShareUrl);
+      return true;
+    } catch {
+      try {
+        await Share.share({ message, url: mediaUrl || undefined });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  };
+
+  const handleShareTarget = async (
+    target:
+      | 'facebook'
+      | 'instagram'
+      | 'feed'
+      | 'story'
+      | 'twitter'
+      | 'tiktok'
+      | 'youtube'
+      | 'snapchat'
+      | 'spotify'
+  ) => {
     if (!post?._id) return;
     if (target === 'feed') {
       sharePost({ postId: post._id });
     } else if (target === 'story') {
       // Backend doesn't support story for posts; fallback to feed for now
+      sharePost({ postId: post._id });
+    } else if (target === 'facebook') {
+      const opened = await openFacebookShare();
+      if (!opened) {
+        Toast.show({
+          type: 'error',
+          text1: 'Facebook share failed',
+          text2: 'Could not open Facebook share.',
+        });
+      }
+      // Do not use LATE for Facebook; keep in-app share only.
       sharePost({ postId: post._id });
     } else {
       sharePost({ postId: post._id, target });
@@ -351,6 +409,11 @@ const PostCard = ({
       'Share to Instagram',
       'Share to Feed',
       'Share to Story',
+      'Share to Twitter',
+      'Share to TikTok',
+      'Share to YouTube',
+      'Share to Snapchat',
+      'Share to Spotify',
     ],
     targetLang: uiLanguage,
     enabled: !!uiLanguage && uiLanguage !== 'EN',
@@ -376,38 +439,83 @@ const PostCard = ({
                 <Text className='text-black dark:text-white font-roboto-semibold text-lg mb-4'>
                   {uiTexts(5, 'Share Post')}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => handleShareTarget('facebook')}
-                  className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                <ScrollView
+                  style={{ maxHeight: 380 }}
+                  showsVerticalScrollIndicator={false}
                 >
-                  <Text className='text-black dark:text-white font-roboto-medium'>
-                    {uiTexts(24, 'Share to Facebook')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleShareTarget('instagram')}
-                  className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
-                >
-                  <Text className='text-black dark:text-white font-roboto-medium'>
-                    {uiTexts(25, 'Share to Instagram')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleShareTarget('feed')}
-                  className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10'
-                >
-                  <Text className='text-black dark:text-white font-roboto-medium'>
-                    {uiTexts(26, 'Share to Feed')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleShareTarget('story')}
-                  className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mt-3'
-                >
-                  <Text className='text-black dark:text-white font-roboto-medium'>
-                    {uiTexts(27, 'Share to Story')}
-                  </Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('feed')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(26, 'Share to Feed')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('story')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(27, 'Share to Story')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('facebook')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(24, 'Share to Facebook')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('instagram')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(25, 'Share to Instagram')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('twitter')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(28, 'Share to Twitter')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('tiktok')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(29, 'Share to TikTok')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('youtube')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(30, 'Share to YouTube')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('snapchat')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(31, 'Share to Snapchat')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('spotify')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-1'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(32, 'Share to Spotify')}
+                    </Text>
+                  </TouchableOpacity>
+                </ScrollView>
                 <TouchableOpacity
                   onPress={() => setShowShareModal(false)}
                   className='mt-4 py-3 px-4 rounded-xl border border-black/10 dark:border-white/10'
@@ -684,7 +792,7 @@ const PostCard = ({
             <FlatList
               data={comments}
               keyExtractor={(comment: any, index: number) =>
-                comment?._id || `comment-${index}`
+                `${comment?._id || 'comment'}-${index}`
               }
               renderItem={({ item: comment, index }) => (
                 <View className='mb-4'>

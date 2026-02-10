@@ -14,7 +14,7 @@ import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -296,7 +296,7 @@ const UclipItem = ({ item, isVisible }: { item: UclipPost; isVisible: boolean })
                 </Text>
               ) : (
                 comments.map((c: any, index: number) => (
-                  <View key={c._id} className='mb-3'>
+                  <View key={`${c?._id || 'comment'}-${index}`} className='mb-3'>
                     <Text className='text-black dark:text-white font-roboto-semibold'>
                       {c?.profile?.displayName || c?.user?.name || 'User'}
                     </Text>
@@ -333,13 +333,21 @@ const UclipItem = ({ item, isVisible }: { item: UclipPost; isVisible: boolean })
   );
 };
 
-const uclips = () => {
-  const { mode } = useThemeStore();
-  const isLight = mode === 'light';
+const Uclips = () => {
   const isFocused = useIsFocused();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useGetUclips(10);
-  const clips = data?.pages.flatMap((page: any) => page?.posts || []) || [];
+  const clips = useMemo(() => {
+    const all = data?.pages.flatMap((page: any) => page?.posts || []) || [];
+    const seen = new Set<string>();
+    return all.filter((item: any) => {
+      const id = String(item?._id || '');
+      if (!id) return false;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [data]);
   const [visibleId, setVisibleId] = useState<string | null>(null);
   const viewabilityConfig = React.useRef({ itemVisiblePercentThreshold: 80 });
   const onViewableItemsChanged = React.useRef(({ viewableItems }: any) => {
@@ -358,7 +366,9 @@ const uclips = () => {
           renderItem={({ item }) => (
             <UclipItem item={item} isVisible={isFocused && visibleId === item._id} />
           )}
-          keyExtractor={item => item._id}
+          keyExtractor={(item, index) =>
+            item?._id ? String(item._id) : `uclip-${index}`
+          }
           pagingEnabled
           showsVerticalScrollIndicator={false}
           snapToAlignment='start'
@@ -386,4 +396,4 @@ const uclips = () => {
   );
 };
 
-export default uclips;
+export default Uclips;

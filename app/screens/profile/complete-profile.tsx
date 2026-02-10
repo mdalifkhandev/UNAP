@@ -9,13 +9,16 @@ import {
 import { useCompleteProfile, useGetMyProfile } from '@/hooks/app/profile';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import { getShortErrorMessage } from '@/lib/error';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
+import * as Linking from 'expo-linking';
 import * as ImagePicker from 'expo-image-picker';
 import * as WebBrowser from 'expo-web-browser';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  AppState,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -46,6 +49,9 @@ const CompleteProfile = () => {
   const [connectingPlatform, setConnectingPlatform] = useState<string | null>(
     null
   );
+  const [instagramConnectMessage, setInstagramConnectMessage] = useState<
+    'connected' | 'already' | null
+  >(null);
 
   const { data: profileData } = useGetMyProfile();
   // @ts-ignore
@@ -83,15 +89,82 @@ const CompleteProfile = () => {
     t?.translations?.[i] || fallback;
 
   const connectedPlatforms = new Set(
-    (accountsData?.accounts || []).map((acc: any) => acc.platform)
+    (accountsData?.accounts || []).map((acc: any) =>
+      String(acc?.platform || '').toLowerCase()
+    )
+  );
+  const instagramAccount = (accountsData?.accounts || []).find(
+    (acc: any) => String(acc?.platform || '').toLowerCase() === 'instagram'
   );
 
   const isConnected = (platform: string) =>
-    connectedPlatforms.has(platform);
+    connectedPlatforms.has(String(platform).toLowerCase());
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        refetchAccounts();
+      }
+    });
+    return () => sub.remove();
+  }, [refetchAccounts]);
+
+  const tryOpenTikTokAuthInApp = async (url: string): Promise<boolean> => {
+    const directTry = async () => {
+      await Linking.openURL(url);
+      return true;
+    };
+
+    if (Platform.OS !== 'android') {
+      try {
+        return await directTry();
+      } catch {
+        return false;
+      }
+    }
+
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname.toLowerCase();
+      const isTikTokLink = host.includes('tiktok.com') || host.includes('tiktokv.com');
+
+      if (isTikTokLink) {
+        const path = `${parsed.host}${parsed.pathname}${parsed.search}${parsed.hash}`;
+        const fallback = encodeURIComponent(url);
+        const intentUrl =
+          `intent://${path}` +
+          `#Intent;scheme=https;package=com.zhiliaoapp.musically;` +
+          `S.browser_fallback_url=${fallback};end`;
+
+        await Linking.openURL(intentUrl);
+        return true;
+      }
+    } catch {
+      // Ignore parse errors and fallback to direct URL open.
+    }
+
+    try {
+      return await directTry();
+    } catch {
+      return false;
+    }
+  };
 
   const handleConnectPlatform = async (platform: string) => {
     try {
+      const normalizedPlatform = String(platform).toLowerCase();
       setConnectingPlatform(platform);
+
+      if (normalizedPlatform === 'instagram' && isConnected('instagram')) {
+        setInstagramConnectMessage('already');
+        Toast.show({
+          type: 'info',
+          text1: 'Already Connected',
+          text2: 'Instagram is already connected.',
+        });
+        return;
+      }
+
       if (isConnected(platform)) {
         await disconnectAccount(platform);
         await refetchAccounts();
@@ -103,18 +176,58 @@ const CompleteProfile = () => {
         return;
       }
 
-      const res = await connectAccount({ platform });
+      const redirectUri = Linking.createURL('screens/profile/complete-profile');
+      const res = await connectAccount({ platform, appRedirectUri: redirectUri });
       const url = res?.authUrl || res?.url;
       if (!url) {
         throw new Error('Missing authorization URL');
       }
-      await WebBrowser.openBrowserAsync(url);
-      await refetchAccounts();
-      Toast.show({
-        type: 'success',
-        text1: tx(17, 'Connected'),
-        text2: `${platform} connected.`,
-      });
+
+      // For TikTok, prefer direct open so OS can hand off to TikTok app when available.
+      if (normalizedPlatform === 'tiktok') {
+        const opened = await tryOpenTikTokAuthInApp(url);
+        if (opened) {
+          Toast.show({
+            type: 'info',
+            text1: 'TikTok Authorization',
+            text2: 'Complete authorization in TikTok, then return to UNAP.',
+          });
+          return;
+        }
+        // Fallback to auth session below.
+      }
+
+      const authResult = await WebBrowser.openAuthSessionAsync(url, redirectUri);
+      if (authResult.type === 'success' && authResult.url) {
+        const parsed = Linking.parse(authResult.url);
+        const params = (parsed?.queryParams || {}) as Record<string, string>;
+        const status = String(params.status || '').toLowerCase();
+        const connected = String(params.connected || '').toLowerCase();
+        const alreadyConnected = String(params.alreadyConnected || '') === '1';
+
+        if (status === 'error') {
+          throw new Error(params.error || 'Connection failed.');
+        }
+
+        await refetchAccounts();
+        if (connected === 'instagram') {
+          setInstagramConnectMessage(alreadyConnected ? 'already' : 'connected');
+        }
+
+        Toast.show({
+          type: 'success',
+          text1: alreadyConnected ? 'Already Connected' : tx(17, 'Connected'),
+          text2: alreadyConnected
+            ? `${platform} is already connected.`
+            : `${platform} connected.`,
+        });
+      } else {
+        Toast.show({
+          type: 'info',
+          text1: 'Connection Cancelled',
+          text2: `Please complete ${platform} authorization.`,
+        });
+      }
     } catch (err: any) {
       Toast.show({
         type: 'error',
@@ -400,7 +513,7 @@ const CompleteProfile = () => {
                   connectingPlatform === 'instagram'
                     ? tx(18, 'Connecting...')
                     : isConnected('instagram')
-                      ? `${tx(16, 'Connected')} Instagram`
+                      ? 'Already Connected'
                       : tx(7, 'Connect Instagram')
                 }
                 textColor='black'
@@ -408,6 +521,25 @@ const CompleteProfile = () => {
                 onPress={() => handleConnectPlatform('instagram')}
                 className='mt-8 mx-6'
               />
+              {isConnected('instagram') && (
+                <View className='mt-3 mx-6 flex-row items-center justify-center rounded-xl border border-green-500/40 bg-green-500/10 py-2 px-3'>
+                  <AntDesign name='instagram' size={16} color='#22C55E' />
+                  <Text className='ml-2 text-green-600 dark:text-green-400 font-roboto-medium text-sm'>
+                    {instagramConnectMessage === 'already'
+                      ? 'Already Connected'
+                      : 'Connected to Instagram'}
+                    {instagramAccount?.username
+                      ? ` @${instagramAccount.username}`
+                      : ''}
+                  </Text>
+                  <Feather
+                    name='check-circle'
+                    size={16}
+                    color='#22C55E'
+                    style={{ marginLeft: 8 }}
+                  />
+                </View>
+              )}
 
               {/* YouTube */}
               <ShadowButton
@@ -436,21 +568,6 @@ const CompleteProfile = () => {
                 textColor='black'
                 backGroundColor='gray'
                 onPress={() => handleConnectPlatform('tiktok')}
-                className='mt-8 mx-6'
-              />
-
-              {/* Facebook */}
-              <ShadowButton
-                text={
-                  connectingPlatform === 'facebook'
-                    ? tx(18, 'Connecting...')
-                    : isConnected('facebook')
-                      ? `${tx(16, 'Connected')} Facebook`
-                      : tx(10, 'Connect Facebook')
-                }
-                textColor='black'
-                backGroundColor='gray'
-                onPress={() => handleConnectPlatform('facebook')}
                 className='mt-8 mx-6'
               />
 

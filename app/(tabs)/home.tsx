@@ -11,7 +11,7 @@ import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -76,7 +76,17 @@ const Home = () => {
   const tx = (i: number, fallback: string) =>
     t?.translations?.[i] || fallback;
 
-  const posts = data?.pages.flatMap((page: any) => page.posts || []) || [];
+  const posts = useMemo(() => {
+    const all = data?.pages.flatMap((page: any) => page.posts || []) || [];
+    const seen = new Set<string>();
+    return all.filter((item: any) => {
+      const id = String(item?._id || '');
+      if (!id) return false;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [data]);
   const [visiblePostIds, setVisiblePostIds] = useState<Set<string>>(new Set());
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 });
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
@@ -199,7 +209,9 @@ const Home = () => {
           <FlatList
             data={posts}
             renderItem={renderPost}
-            keyExtractor={item => item._id}
+            keyExtractor={(item, index) =>
+              item?._id ? String(item._id) : `home-${index}`
+            }
             viewabilityConfig={viewabilityConfig.current}
             onViewableItemsChanged={onViewableItemsChanged.current}
             ListHeaderComponent={renderHeader}

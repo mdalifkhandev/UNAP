@@ -15,8 +15,17 @@ export const useGetAccounts = () => {
 
 export const useConnectAccount = () => {
   return useMutation({
-    mutationFn: async ({ platform }: { platform: string }) => {
-      const res = await api.post('/api/accounts/connect-late', { platform });
+    mutationFn: async ({
+      platform,
+      appRedirectUri,
+    }: {
+      platform: string;
+      appRedirectUri?: string;
+    }) => {
+      const res = await api.post('/api/accounts/connect-late', {
+        platform,
+        appRedirectUri,
+      });
       return res?.data || res;
     },
     onError: (error: any) => {

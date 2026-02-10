@@ -398,7 +398,15 @@ export const useSharePost = () => {
       target,
     }: {
       postId: string;
-      target?: 'facebook' | 'instagram' | 'feed';
+      target?:
+        | 'facebook'
+        | 'instagram'
+        | 'feed'
+        | 'twitter'
+        | 'tiktok'
+        | 'youtube'
+        | 'snapchat'
+        | 'spotify';
     }) => {
       // Backend expects postId for post shares (id is treated as ublast first).
       const payload: any = { postId };

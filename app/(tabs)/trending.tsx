@@ -112,14 +112,31 @@ const TrendingScreen = () => {
     }
   }, [eligibilityData]);
 
-  const trendingData =
-    data?.pages?.flatMap((page: any) => page?.[selectedTab] || []) || [];
-  const activeUblasts =
-    activeData?.pages?.flatMap((page: any) => page?.ublasts || []) ||
-    data?.pages?.flatMap((page: any) => page?.active || []) ||
-    [];
-  const myPosts =
-    myPostsData?.pages?.flatMap((page: any) => page?.posts || []) || [];
+  const trendingData = useMemo(
+    () => data?.pages?.flatMap((page: any) => page?.[selectedTab] || []) || [],
+    [data, selectedTab]
+  );
+  const activeUblastsRaw = useMemo(
+    () =>
+      activeData?.pages?.flatMap((page: any) => page?.ublasts || []) ||
+      data?.pages?.flatMap((page: any) => page?.active || []) ||
+      [],
+    [activeData, data]
+  );
+  const activeUblasts = useMemo(() => {
+    const seen = new Set<string>();
+    return activeUblastsRaw.filter((item: any) => {
+      const id = String(item?._id || '');
+      if (!id) return false;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [activeUblastsRaw]);
+  const myPosts = useMemo(
+    () => myPostsData?.pages?.flatMap((page: any) => page?.posts || []) || [],
+    [myPostsData]
+  );
 
   const sharedByUblastId = useMemo(() => {
     const map = new Map<string, any>();
@@ -131,32 +148,40 @@ const TrendingScreen = () => {
     return map;
   }, [myPosts]);
 
-  const filteredPosts = Array.isArray(trendingData)
-    ? trendingData
-        .filter((item: any) => item)
-        .map((item: any) => {
-          const post = item.post || item;
-
-          return {
-            ...post,
-            author: post.author || {
-              id: post.userId || '',
-              email: '',
-              name: '',
-            },
-            profile: post.profile || {
-              displayName: '',
-              profileImageUrl: '',
-              role: '',
-              username: '',
-            },
-            commentCount: post.commentCount || 0,
-            likeCount: post.likeCount || 0,
-            viewerHasLiked: post.viewerHasLiked || false,
-            viewerIsFollowing: post.viewerIsFollowing || false,
-          };
-        })
-    : [];
+  const filteredPosts = useMemo(() => {
+    if (!Array.isArray(trendingData)) return [];
+    const seen = new Set<string>();
+    return trendingData
+      .filter((item: any) => item)
+      .map((item: any) => {
+        const post = item.post || item;
+        return {
+          ...post,
+          author: post.author || {
+            id: post.userId || '',
+            email: '',
+            name: '',
+          },
+          profile: post.profile || {
+            displayName: '',
+            profileImageUrl: '',
+            role: '',
+            username: '',
+          },
+          commentCount: post.commentCount || 0,
+          likeCount: post.likeCount || 0,
+          viewerHasLiked: post.viewerHasLiked || false,
+          viewerIsFollowing: post.viewerIsFollowing || false,
+        };
+      })
+      .filter((post: any) => {
+        const id = String(post?._id || '');
+        if (!id) return false;
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      });
+  }, [trendingData]);
 
   const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 });
@@ -567,7 +592,9 @@ const TrendingScreen = () => {
                 />
               );
             }}
-            keyExtractor={(item: any) => item._id}
+            keyExtractor={(item: any, index: number) =>
+              item?._id ? String(item._id) : `trending-${index}`
+            }
             ListHeaderComponent={renderHeader()}
             contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
