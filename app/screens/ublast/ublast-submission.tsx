@@ -535,9 +535,15 @@ const UBlastSubmission = () => {
               <Text className='text-black dark:text-white font-roboto-bold text-xl mb-4'>
                 {tx(10, 'Your UBlast Submissions')}
               </Text>
-              <View className='space-y-4'>
-                {submissions.map((post: any) => (
-                  <View key={post._id} className='relative'>
+              <View>
+                {submissions.map((post: any, index: number) => (
+                  <View
+                    key={post._id}
+                    className='relative'
+                    style={{
+                      marginBottom: index === submissions.length - 1 ? 0 : 14,
+                    }}
+                  >
                     <PostCard
                       post={post}
                       showOwnerActions={true}
