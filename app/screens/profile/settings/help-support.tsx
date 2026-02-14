@@ -41,14 +41,14 @@ const HelpSupport = () => {
               {tx(0, 'Help & Support')}
             </Text>
           </View>
-          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 72, marginHorizontal: 24 }}
           >
             <TouchableOpacity
               onPress={() => router.push('/screens/profile/settings/faq')}
-              className='flex-row  justify-between py-3 px-5 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-2xl mt-6 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
+              className='flex-row  justify-between py-3 px-5 border border-black/20 dark:border-[#FFFFFF0D] rounded-2xl mt-6 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
             >
               <Text className='text-primary dark:text-white font-roboto-semibold'>
                 {tx(1, 'Faq')}

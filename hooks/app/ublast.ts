@@ -156,6 +156,138 @@ export const useGetActiveUblasts = (options?: { enabled?: boolean; limit?: numbe
   });
 };
 
+export const useGetUblastOffers = (options?: {
+  enabled?: boolean;
+  fetchAll?: boolean;
+  limit?: number;
+  maxPages?: number;
+}) => {
+  return useQuery({
+    queryKey: ['ublast-offers', options?.limit ?? 20, options?.fetchAll ?? true],
+    queryFn: async () => {
+      try {
+        const fetchAll = options?.fetchAll ?? true;
+        const limit = options?.limit ?? 20;
+        const maxPages = options?.maxPages ?? 10;
+
+        if (!fetchAll) {
+          const res = await api.get(`/api/ublast-offers?page=1&limit=${limit}`);
+          return res?.data || res || { offers: [], page: 1, totalPages: 1, totalCount: 0 };
+        }
+
+        const offers: any[] = [];
+        let page = 1;
+        let totalPages = 1;
+        let totalCount = 0;
+
+        while (page <= totalPages && page <= maxPages) {
+          const res = await api.get(`/api/ublast-offers?page=${page}&limit=${limit}`);
+          const data = res?.data || res || {};
+          offers.push(...(data?.offers || []));
+          totalPages = data?.totalPages || totalPages;
+          totalCount = data?.totalCount || totalCount;
+          if (!(data?.offers || []).length) break;
+          page += 1;
+        }
+
+        return {
+          offers,
+          page: 1,
+          totalPages,
+          totalCount: totalCount || offers.length,
+        };
+      } catch (error: any) {
+        console.error('API Error in useGetUblastOffers:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Fetch Failed',
+          text2: getShortErrorMessage(error, 'Could not load offers.'),
+        });
+        return { offers: [], page: 1, totalPages: 1, totalCount: 0 };
+      }
+    },
+    enabled: options?.enabled,
+  });
+};
+
+export const usePayUblastOffer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ offerId }: { offerId: string }) => {
+      const res = await api.post(`/api/ublast-offers/${offerId}/pay`);
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['ublast-offers'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Payment Ready',
+        text2: data?.clientSecret
+          ? 'Payment intent created.'
+          : data?.message || 'Payment intent created.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Payment Failed',
+        text2: getShortErrorMessage(error, 'Could not create payment intent.'),
+      });
+    },
+  });
+};
+
+export const useCheckoutUblastOffer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ offerId }: { offerId: string }) => {
+      const res = await api.post(`/api/ublast-offers/${offerId}/checkout`);
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['ublast-offers'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Checkout Created',
+        text2: data?.url ? 'Redirecting to checkout...' : 'Checkout session created.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Checkout Failed',
+        text2: getShortErrorMessage(error, 'Could not create checkout session.'),
+      });
+    },
+  });
+};
+
+export const useCancelUblastOffer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ offerId }: { offerId: string }) => {
+      const res = await api.post(`/api/ublast-offers/${offerId}/cancel`);
+      return res;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['ublast-offers'] });
+      queryClient.invalidateQueries({ queryKey: ['ublast-active'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Offer Cancelled',
+        text2: data?.message || 'Offer cancelled successfully.',
+      });
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Cancel Failed',
+        text2: getShortErrorMessage(error, 'Could not cancel offer.'),
+      });
+    },
+  });
+};
+
 export const useShareUblast = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -168,7 +300,8 @@ export const useShareUblast = () => {
     }) => {
       // Ensure profile exists before sharing (backend requires it)
       const profileRes = await api.get('/api/profile/me');
-      const profile = profileRes?.data?.profile || profileRes?.profile;
+      const profilePayload = (profileRes as any)?.data || profileRes;
+      const profile = profilePayload?.profile;
       if (!profile) {
         throw new Error('Complete your profile before sharing.');
       }

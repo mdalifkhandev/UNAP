@@ -3,16 +3,21 @@ import GradientBackground from '@/components/main/GradientBackground';
 import { useGetMyPostsInfinite } from '@/hooks/app/post';
 import { useGetTrendingPost } from '@/hooks/app/trending';
 import {
+  useCancelUblastOffer,
+  useCheckoutUblastOffer,
   useGetActiveUblasts,
+  useGetUblastOffers,
   useGetUblastEligibility,
   useShareUblast,
 } from '@/hooks/app/ublast';
+import { getShortErrorMessage } from '@/lib/error';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
 import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
+import * as WebBrowser from 'expo-web-browser';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -20,6 +25,7 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -64,7 +70,25 @@ const TrendingScreen = () => {
       'Share to Story',
       'Share to Facebook',
       'Share to Instagram',
+      'Share to Twitter',
+      'Share to TikTok',
+      'Share to YouTube',
+      'Share to Snapchat',
+      'Share to Spotify',
       'Cancel',
+      'Offer Payment Required',
+      'Pay to unlock this UBlast before sharing.',
+      'Status',
+      'Price',
+      'Checkout',
+      'Create Payment Intent',
+      'Cancel Offer',
+      'Paid',
+      'Pending',
+      'Cancelled',
+      'Expired',
+      'Sharing...',
+      'Pay',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
@@ -104,6 +128,16 @@ const TrendingScreen = () => {
     limit: 20,
   });
 
+  const {
+    data: offersData,
+    refetch: refetchOffers,
+  } = useGetUblastOffers({
+    enabled: !!user && selectedTab === 'active',
+    fetchAll: true,
+    limit: 50,
+    maxPages: 20,
+  });
+
   const [isEligible, setIsEligible] = useState(true);
 
   useEffect(() => {
@@ -111,6 +145,11 @@ const TrendingScreen = () => {
       setIsEligible((eligibilityData as any).eligible);
     }
   }, [eligibilityData]);
+
+  useEffect(() => {
+    if (!isFocused || selectedTab !== 'active') return;
+    refetchOffers();
+  }, [isFocused, selectedTab, refetchOffers]);
 
   const trendingData = useMemo(
     () => data?.pages?.flatMap((page: any) => page?.[selectedTab] || []) || [],
@@ -147,6 +186,21 @@ const TrendingScreen = () => {
     });
     return map;
   }, [myPosts]);
+
+  const offersByUblastId = useMemo(() => {
+    const map = new Map<string, any>();
+    const offers = offersData?.offers || [];
+    offers.forEach((offer: any) => {
+      const ublastId =
+        offer?.ublastId?._id ||
+        offer?.ublastId?.id ||
+        offer?.ublastId ||
+        null;
+      if (!ublastId) return;
+      map.set(String(ublastId), offer);
+    });
+    return map;
+  }, [offersData]);
 
   const filteredPosts = useMemo(() => {
     if (!Array.isArray(trendingData)) return [];
@@ -296,10 +350,44 @@ const TrendingScreen = () => {
     isVisible: boolean;
     isFocused: boolean;
   }) => {
-    const { mutate: shareUblast, isPending } = useShareUblast();
+    type ExternalShareTarget =
+      | 'facebook'
+      | 'instagram'
+      | 'twitter'
+      | 'tiktok'
+      | 'youtube'
+      | 'snapchat'
+      | 'spotify';
+    const { mutateAsync: shareUblast, isPending: isSharePending } = useShareUblast();
+    const { mutateAsync: checkoutOffer, isPending: isCheckoutPending } = useCheckoutUblastOffer();
+    const { mutateAsync: cancelOffer, isPending: isCancelPending } = useCancelUblastOffer();
     const [isShareBusy, setIsShareBusy] = useState(false);
+    const [showShareTypeModal, setShowShareTypeModal] = useState(false);
     const hasShared = Boolean(item?.viewerHasShared);
     const dueAt = item?.dueAt ? new Date(item.dueAt) : null;
+    const currentOffer = offersByUblastId.get(String(item?._id));
+    const isOfferRequired = item?.rewardType === 'offer';
+    const offerStatusRaw = String(currentOffer?.status || 'pending').toLowerCase();
+    const isOfferPaid = offerStatusRaw === 'paid';
+    const canShare = !isOfferRequired || isOfferPaid;
+    const showOfferActionButtons =
+      isOfferRequired && !isOfferPaid && offerStatusRaw === 'pending';
+    const isBusy =
+      isShareBusy || isSharePending || isCheckoutPending || isCancelPending;
+    const offerPriceText =
+      typeof currentOffer?.priceCents === 'number'
+        ? `${(currentOffer.priceCents / 100).toFixed(2)} ${String(
+            currentOffer?.currency || 'usd'
+          ).toUpperCase()}`
+        : '--';
+    const statusLabel =
+      offerStatusRaw === 'paid'
+        ? tx(36, 'Paid')
+        : offerStatusRaw === 'cancelled'
+          ? tx(38, 'Cancelled')
+          : offerStatusRaw === 'expired'
+            ? tx(39, 'Expired')
+            : tx(37, 'Pending');
     const isLightTheme = isLight;
     const handleDisabledAction = () => {
       Toast.show({
@@ -309,7 +397,6 @@ const TrendingScreen = () => {
       });
     };
 
-    const [showShareTypeModal, setShowShareTypeModal] = useState(false);
     const mediaUrl = item?.mediaUrl || '';
     const mediaType = item?.mediaType;
     const player = useVideoPlayer(mediaUrl, p => {
@@ -319,11 +406,87 @@ const TrendingScreen = () => {
     useEffect(() => {
       if (mediaType !== 'video' && mediaType !== 'audio') return;
       if (isVisible && isFocused) {
-        if (mediaType === 'video') player.play();
+      if (mediaType === 'video') player.play();
       } else {
         player.pause();
       }
     }, [isVisible, isFocused, mediaType, player]);
+
+    const handleShare = async (shareType: 'feed' | 'story', external?: ExternalShareTarget) => {
+      if (!item?._id) return;
+      if (!canShare) {
+        Toast.show({
+          type: 'info',
+          text1: tx(29, 'Offer Payment Required'),
+          text2: tx(30, 'Pay to unlock this UBlast before sharing.'),
+        });
+        return;
+      }
+      setIsShareBusy(true);
+      try {
+        await shareUblast({ ublastId: item._id, shareType });
+        if (external) {
+          const label =
+            external === 'facebook'
+              ? 'Facebook'
+              : external === 'instagram'
+                ? 'Instagram'
+                : external === 'twitter'
+                  ? 'Twitter'
+                  : external === 'tiktok'
+                    ? 'TikTok'
+                    : external === 'youtube'
+                      ? 'YouTube'
+                      : external === 'snapchat'
+                        ? 'Snapchat'
+                        : 'Spotify';
+          Toast.show({
+            type: 'info',
+            text1: label,
+            text2: `Shared to feed (${label} integration pending).`,
+          });
+        }
+        setShowShareTypeModal(false);
+      } catch (error: any) {
+        const message = getShortErrorMessage(error, 'Share failed.');
+        if (message.toLowerCase().includes('payment required')) {
+          Toast.show({
+            type: 'info',
+            text1: tx(29, 'Offer Payment Required'),
+            text2: tx(30, 'Pay to unlock this UBlast before sharing.'),
+          });
+        }
+      } finally {
+        setIsShareBusy(false);
+      }
+    };
+
+    const handleCheckout = async () => {
+      if (!currentOffer?._id) return;
+      try {
+        const data = await checkoutOffer({ offerId: currentOffer._id });
+        const checkoutUrl = data?.url || data?.data?.url;
+        if (checkoutUrl) {
+          await WebBrowser.openBrowserAsync(checkoutUrl);
+        }
+        setTimeout(() => {
+          refetchOffers();
+          refetchActive();
+        }, 1500);
+      } catch (error) {
+        console.log('Checkout error:', error);
+      }
+    };
+
+    const handleCancelOffer = async () => {
+      if (!currentOffer?._id) return;
+      try {
+        await cancelOffer({ offerId: currentOffer._id });
+        setShowShareTypeModal(false);
+      } catch (error) {
+        console.log('Cancel offer error:', error);
+      }
+    };
 
     return (
       <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl mx-5 mt-4 overflow-hidden'>
@@ -403,20 +566,43 @@ const TrendingScreen = () => {
                 color={isLightTheme ? 'black' : 'white'}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                if (!item?._id) return;
-                setShowShareTypeModal(true);
-              }}
-              disabled={hasShared || isPending || isShareBusy}
-            >
-              <Ionicons
-                name='share-social-outline'
-                size={24}
-                color={isLightTheme ? 'black' : 'white'}
-                style={{ opacity: hasShared || isPending || isShareBusy ? 0.5 : 1 }}
-              />
-            </TouchableOpacity>
+            {showOfferActionButtons ? (
+              <>
+                <TouchableOpacity
+                  onPress={handleCheckout}
+                  className='py-1.5 px-3 rounded-lg bg-black/10 dark:bg-white/10'
+                  disabled={isBusy || !currentOffer?._id}
+                >
+                  <Text className='text-black dark:text-white font-roboto-medium text-xs'>
+                    {isCheckoutPending ? tx(40, 'Sharing...') : tx(41, 'Pay')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleCancelOffer}
+                  className='py-1.5 px-3 rounded-lg bg-black/10 dark:bg-white/10'
+                  disabled={isBusy || !currentOffer?._id}
+                >
+                  <Text className='text-black dark:text-white font-roboto-medium text-xs'>
+                    {isCancelPending ? tx(40, 'Sharing...') : tx(28, 'Cancel')}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity
+                onPress={() => {
+                  if (!item?._id) return;
+                  setShowShareTypeModal(true);
+                }}
+                disabled={hasShared || isBusy || !canShare}
+              >
+                <Ionicons
+                  name='share-social-outline'
+                  size={24}
+                  color={isLightTheme ? 'black' : 'white'}
+                  style={{ opacity: hasShared || isBusy || !canShare ? 0.5 : 1 }}
+                />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -425,6 +611,17 @@ const TrendingScreen = () => {
             <Text className='font-roboto-regular text-primary dark:text-white'>
               {item.content}
             </Text>
+          )}
+
+          {isOfferRequired && (
+            <View className='mt-2.5'>
+              <Text className='font-roboto-semibold text-sm text-secondary dark:text-white/80'>
+                {tx(31, 'Status')}: {statusLabel}
+              </Text>
+              <Text className='font-roboto-semibold text-sm text-secondary dark:text-white/80 mt-1'>
+                {tx(32, 'Price')}: {offerPriceText}
+              </Text>
+            </View>
           )}
 
           {dueAt && (
@@ -447,82 +644,98 @@ const TrendingScreen = () => {
                   <Text className='text-black dark:text-white font-roboto-semibold text-lg mb-4'>
                     {tx(18, 'Share UBlast')}
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (!item?._id) return;
-                      setIsShareBusy(true);
-                      shareUblast({ ublastId: item._id, shareType: 'feed' });
-                      setShowShareTypeModal(false);
-                      setIsShareBusy(false);
-                    }}
-                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
-                    disabled={isPending || isShareBusy}
+                  <ScrollView
+                    style={{ maxHeight: 380 }}
+                    showsVerticalScrollIndicator={false}
                   >
-                    <Text className='text-black dark:text-white font-roboto-medium'>
-                      {isPending || isShareBusy ? 'Sharing...' : tx(19, 'Share to Feed')}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (!item?._id) return;
-                      setIsShareBusy(true);
-                      shareUblast({ ublastId: item._id, shareType: 'story' });
-                      setShowShareTypeModal(false);
-                      setIsShareBusy(false);
-                    }}
-                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
-                    disabled={isPending || isShareBusy}
-                  >
-                    <Text className='text-black dark:text-white font-roboto-medium'>
-                      {isPending || isShareBusy ? 'Sharing...' : tx(20, 'Share to Story')}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (!item?._id) return;
-                      setIsShareBusy(true);
-                      shareUblast({ ublastId: item._id, shareType: 'feed' });
-                      setShowShareTypeModal(false);
-                      setIsShareBusy(false);
-                      Toast.show({
-                        type: 'info',
-                        text1: 'Facebook',
-                        text2: 'Shared to feed (Facebook integration pending).',
-                      });
-                    }}
-                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
-                    disabled={isPending || isShareBusy}
-                  >
-                    <Text className='text-black dark:text-white font-roboto-medium'>
-                      {isPending || isShareBusy ? 'Sharing...' : tx(21, 'Share to Facebook')}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (!item?._id) return;
-                      setIsShareBusy(true);
-                      shareUblast({ ublastId: item._id, shareType: 'feed' });
-                      setShowShareTypeModal(false);
-                      setIsShareBusy(false);
-                      Toast.show({
-                        type: 'info',
-                        text1: 'Instagram',
-                        text2: 'Shared to feed (Instagram integration pending).',
-                      });
-                    }}
-                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
-                    disabled={isPending || isShareBusy}
-                  >
-                    <Text className='text-black dark:text-white font-roboto-medium'>
-                      {isPending || isShareBusy ? 'Sharing...' : tx(22, 'Share to Instagram')}
-                    </Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleShare('feed')}
+                      className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                      disabled={isBusy}
+                    >
+                      <Text className='text-black dark:text-white font-roboto-medium'>
+                        {isShareBusy || isSharePending ? tx(40, 'Sharing...') : tx(19, 'Share to Feed')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleShare('story')}
+                      className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                      disabled={isBusy}
+                    >
+                      <Text className='text-black dark:text-white font-roboto-medium'>
+                        {isShareBusy || isSharePending ? tx(40, 'Sharing...') : tx(20, 'Share to Story')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleShare('feed', 'facebook')}
+                      className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                      disabled={isBusy}
+                    >
+                      <Text className='text-black dark:text-white font-roboto-medium'>
+                        {isShareBusy || isSharePending ? tx(40, 'Sharing...') : tx(21, 'Share to Facebook')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleShare('feed', 'instagram')}
+                      className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                      disabled={isBusy}
+                    >
+                      <Text className='text-black dark:text-white font-roboto-medium'>
+                        {isShareBusy || isSharePending ? tx(40, 'Sharing...') : tx(22, 'Share to Instagram')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleShare('feed', 'twitter')}
+                      className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                      disabled={isBusy}
+                    >
+                      <Text className='text-black dark:text-white font-roboto-medium'>
+                        {isShareBusy || isSharePending ? tx(40, 'Sharing...') : tx(23, 'Share to Twitter')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleShare('feed', 'tiktok')}
+                      className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                      disabled={isBusy}
+                    >
+                      <Text className='text-black dark:text-white font-roboto-medium'>
+                        {isShareBusy || isSharePending ? tx(40, 'Sharing...') : tx(24, 'Share to TikTok')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleShare('feed', 'youtube')}
+                      className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                      disabled={isBusy}
+                    >
+                      <Text className='text-black dark:text-white font-roboto-medium'>
+                        {isShareBusy || isSharePending ? tx(40, 'Sharing...') : tx(25, 'Share to YouTube')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleShare('feed', 'snapchat')}
+                      className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                      disabled={isBusy}
+                    >
+                      <Text className='text-black dark:text-white font-roboto-medium'>
+                        {isShareBusy || isSharePending ? tx(40, 'Sharing...') : tx(26, 'Share to Snapchat')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleShare('feed', 'spotify')}
+                      className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-1'
+                      disabled={isBusy}
+                    >
+                      <Text className='text-black dark:text-white font-roboto-medium'>
+                        {isShareBusy || isSharePending ? tx(40, 'Sharing...') : tx(27, 'Share to Spotify')}
+                      </Text>
+                    </TouchableOpacity>
+                  </ScrollView>
                   <TouchableOpacity
                     onPress={() => setShowShareTypeModal(false)}
                     className='mt-2 py-3 px-4 rounded-xl border border-black/10 dark:border-white/10'
                   >
                     <Text className='text-center text-black dark:text-white font-roboto-medium'>
-                      {tx(23, 'Cancel')}
+                      {tx(28, 'Cancel')}
                     </Text>
                   </TouchableOpacity>
                 </View>
