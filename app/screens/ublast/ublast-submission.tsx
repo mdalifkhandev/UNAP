@@ -349,7 +349,7 @@ const UBlastSubmission = () => {
           <View style={{ width: 24 }} />
         </View>
 
-        <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
+        <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
 
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24 }}
@@ -372,7 +372,7 @@ const UBlastSubmission = () => {
           scrollEventThrottle={200}
         >
           {/* UBlast Submission Form */}
-          <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl p-6 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] mb-6'>
+          <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl p-6 border border-black/20 dark:border-[#FFFFFF0D] mb-6'>
             {/* Media Preview */}
             <MediaPreview
               photo={photo}
@@ -552,7 +552,7 @@ const UBlastSubmission = () => {
                     />
                     {/* Edit Button in Top Right */}
                     <TouchableOpacity
-                      className='absolute top-4 right-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1.5 rounded-full border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'
+                      className='absolute top-4 right-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1.5 rounded-full border border-black/20 dark:border-[#FFFFFF0D]'
                       onPress={() => handleEditPost(post)}
                     >
                       <Text className='text-black dark:text-white font-roboto-medium text-xs'>

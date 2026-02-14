@@ -11,9 +11,9 @@ import { useSocketChat } from '@/hooks/app/useSocketChat';
 import { useSocketPresence } from '@/hooks/app/useSocketPresence';
 import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
+import useAuthStore from '@/store/auth.store';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
-import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -27,13 +27,14 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const ChatScreen = () => {
   const flatRef = useRef<FlatList>(null);
   const params = useLocalSearchParams();
   const [showMenu, setShowMenu] = useState(false);
   const [message, setMessage] = useState('');
-  const queryClient = useQueryClient();
+  const authUserId = useAuthStore(state => state.user?.id);
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
   const iconColor = isLight ? 'black' : 'white';
@@ -58,8 +59,10 @@ const ChatScreen = () => {
   const userImage = params.userImage as string | undefined;
   const userId = params.userId as string;
   const conversationId = params.conversationId as string;
-  const senderId = params.senderId as string;
+  const senderIdParam = params.senderId as string;
   const receiverId = params.receiverId as string;
+  const peerUserId = receiverId || userId;
+  const myUserId = authUserId || senderIdParam;
 
   const {
     data,
@@ -78,10 +81,12 @@ const ChatScreen = () => {
     conversationId
   );
   const { isUserOnline, isConnected: isPresenceConnected } = useSocketPresence();
-  const isReceiverOnline = isUserOnline(receiverId || userId);
 
   // @ts-ignore
   const pages = data?.pages || [];
+  const participantIsOnline = Boolean(pages?.[0]?.participant?.isOnline);
+  const isReceiverOnline = isUserOnline(peerUserId) || participantIsOnline;
+  const isBlockedByMe = Boolean(pages?.[0]?.participant?.blockedByMe);
   const messages = [...pages].reverse().flatMap((page: any) => page?.messages || []);
   const messageTexts = messages.map((msg: any) => String(msg?.text || ''));
   const { data: translatedMessages } = useTranslateTexts({
@@ -95,38 +100,34 @@ const ChatScreen = () => {
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
-    const tempMessage = {
-      _id: `temp-${Date.now()}`,
-      senderId: senderId,
-      text: message.trim(),
-      createdAt: new Date().toISOString(),
-      isTemp: true, // Mark as temporary
-    };
-
     try {
+      if (!peerUserId) {
+        Toast.show({
+          type: 'error',
+          text1: 'Send Failed',
+          text2: 'Receiver not found.',
+        });
+        return;
+      }
+
       // Add temporary message immediately for better UX
       if (isConnected) {
         // Use socket for real-time messaging
-        await sendSocketMessage(receiverId, message);
+        await sendSocketMessage(peerUserId, message.trim());
       } else {
         // Fallback to REST API
         await sendMessage({
-          data: { text: message },
-          userId: receiverId,
+          data: { text: message.trim() },
+          userId: peerUserId,
         });
       }
       setMessage(''); // Clear input after sending
     } catch (error) {
       console.error('Failed to send message:', error);
-      // Remove temporary message on error
-      queryClient.setQueryData(['chat', userId], (oldData: any) => {
-        if (!oldData?.messages) return oldData;
-        return {
-          ...oldData,
-          messages: oldData.messages.filter(
-            (msg: any) => msg._id !== tempMessage._id
-          ),
-        };
+      Toast.show({
+        type: 'error',
+        text1: 'Send Failed',
+        text2: 'Could not send message.',
       });
     }
   };
@@ -160,7 +161,7 @@ const ChatScreen = () => {
   }, [messages.length, isFetchingNextPage]);
 
   const renderMessage = ({ item, index }: any) => {
-    const isCurrentUser = item.senderId === senderId;
+    const isCurrentUser = item.senderId === myUserId;
 
     /** ================= RIGHT SIDE (ME) ================= */
     if (isCurrentUser) {
@@ -366,7 +367,12 @@ const ChatScreen = () => {
           </View>
         </KeyboardAvoidingView>
 
-        <ChatSettings showMenu={showMenu} setShowMenu={setShowMenu} />
+        <ChatSettings
+          showMenu={showMenu}
+          setShowMenu={setShowMenu}
+          userId={peerUserId}
+          isBlockedByMe={isBlockedByMe}
+        />
       </SafeAreaView>
     </GradientBackground>
   );

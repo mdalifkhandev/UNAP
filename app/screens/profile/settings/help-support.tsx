@@ -3,8 +3,9 @@ import GradientBackground from '@/components/main/GradientBackground';
 import Entypo from '@expo/vector-icons/Entypo';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import useLanguageStore from '@/store/language.store';
+import useThemeStore from '@/store/theme.store';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -16,9 +17,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HelpSupport = () => {
-  const [isEmailOn, setIsEmailOn] = useState(false);
-  const [isSMSOn, setIsSMSOn] = useState(true);
   const { language } = useLanguageStore();
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
+  const iconColor = isLight ? 'black' : 'white';
   const { data: t } = useTranslateTexts({
     texts: ['Help & Support', 'Faq', 'Contact Us'],
     targetLang: language,
@@ -55,10 +57,13 @@ const HelpSupport = () => {
                 name='chevron-small-right'
                 className='mt-2.5'
                 size={26}
-                color='black'
+                color={iconColor}
               />
             </TouchableOpacity>
-            <View className='flex-row  justify-between py-3 px-5 border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-2xl mt-3 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'>
+            <TouchableOpacity
+              onPress={() => router.push('/screens/profile/settings/contact-support')}
+              className='flex-row justify-between py-3 px-5 border border-black/20 dark:border-[#FFFFFF0D] rounded-2xl mt-3 items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
+            >
               <Text className='text-primary dark:text-white font-roboto-semibold'>
                 {tx(2, 'Contact Us')}
               </Text>
@@ -66,9 +71,9 @@ const HelpSupport = () => {
                 name='chevron-small-right'
                 className='mt-2.5'
                 size={26}
-                color='black'
+                color={iconColor}
               />
-            </View>
+            </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

@@ -39,19 +39,41 @@ export const useSocketChat = (
     socket.on(
       'message:new',
       (payload: { message: Message; conversationId: string }) => {
-        // console.log('New message received:', payload);
+        // For first message in a new chat, currentConversationId may be empty.
+        const belongsToCurrentConversation =
+          !currentConversationId || payload.conversationId === currentConversationId;
 
-        // Only update if this message belongs to current conversation
-        if (payload.conversationId === currentConversationId) {
-          // Update messages in current chat
-          queryClient.setQueryData(['chat', currentUserId], (oldData: any) => {
-            if (!oldData?.messages) return oldData;
+        if (belongsToCurrentConversation) {
+          queryClient.setQueriesData(
+            { queryKey: ['chat', currentUserId], exact: false },
+            (oldData: any) => {
+              if (!oldData?.pages || !Array.isArray(oldData.pages)) return oldData;
 
-            return {
-              ...oldData,
-              messages: [...oldData.messages, payload.message],
-            };
-          });
+              // Prevent duplicate insertion if query was already refreshed.
+              const exists = oldData.pages.some((page: any) =>
+                (page?.messages || []).some(
+                  (msg: any) => String(msg?._id || '') === String(payload.message._id || '')
+                )
+              );
+              if (exists) return oldData;
+
+              const lastIndex = oldData.pages.length - 1;
+              const nextPages = oldData.pages.map((page: any, index: number) => {
+                if (index !== lastIndex) return page;
+                const messages = Array.isArray(page?.messages) ? page.messages : [];
+                return {
+                  ...page,
+                  messages: [...messages, payload.message],
+                  totalCount:
+                    typeof page?.totalCount === 'number'
+                      ? page.totalCount + 1
+                      : page?.totalCount,
+                };
+              });
+
+              return { ...oldData, pages: nextPages };
+            }
+          );
         }
 
         // Always update chat list to show new last message
@@ -96,6 +118,7 @@ export const useSocketChat = (
           // Don't add message here - let the 'message:new' event handle it
           // This prevents duplicate messages
           // Update chat list
+          queryClient.invalidateQueries({ queryKey: ['chat', currentUserId], exact: false });
           queryClient.invalidateQueries({ queryKey: ['chatlist'] });
 
           resolve(ack.message);

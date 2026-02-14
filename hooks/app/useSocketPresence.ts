@@ -6,6 +6,7 @@ type PresencePayload = {
   userId?: string;
   id?: string;
   status?: 'online' | 'offline';
+  online?: boolean;
   onlineUserIds?: string[];
 };
 
@@ -23,14 +24,14 @@ export const useSocketPresence = () => {
     const myId = auth.user?.id;
 
     const setOnlineList = (ids: string[]) => {
-      setOnlineIds(new Set(ids.filter(Boolean)));
+      setOnlineIds(new Set((ids || []).filter(Boolean).map((id) => String(id))));
     };
 
     const addOnline = (id?: string) => {
       if (!id) return;
       setOnlineIds(prev => {
         const next = new Set(prev);
-        next.add(id);
+        next.add(String(id));
         return next;
       });
     };
@@ -39,7 +40,7 @@ export const useSocketPresence = () => {
       if (!id) return;
       setOnlineIds(prev => {
         const next = new Set(prev);
-        next.delete(id);
+        next.delete(String(id));
         return next;
       });
     };
@@ -68,8 +69,8 @@ export const useSocketPresence = () => {
     socket.on('presence:update', (payload: PresencePayload) => {
       const id = payload?.userId || payload?.id;
       if (!id) return;
-      if (payload?.status === 'online') addOnline(id);
-      if (payload?.status === 'offline') removeOnline(id);
+      if (payload?.status === 'online' || payload?.online === true) addOnline(id);
+      if (payload?.status === 'offline' || payload?.online === false) removeOnline(id);
     });
 
     socket.on('user:online', (payload: PresencePayload) => {
@@ -89,7 +90,7 @@ export const useSocketPresence = () => {
   }, []);
 
   const isUserOnline = (userId?: string | null) =>
-    !!userId && onlineIds.has(userId);
+    !!userId && onlineIds.has(String(userId));
 
   return { onlineIds, isUserOnline, isConnected };
 };

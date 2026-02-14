@@ -58,6 +58,7 @@ const Settings = () => {
       'Log Out',
       'Delete Account',
       'Options',
+      'Help & Support',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
@@ -259,6 +260,30 @@ const Settings = () => {
                 />
                 <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
                   {tx(7, 'Faq')}
+                </Text>
+              </View>
+              <Entypo
+                name='chevron-small-right'
+                className='mt-3.5'
+                size={26}
+                color={iconColor}
+              />
+            </TouchableOpacity>
+
+            {/* Help & Support */}
+            <TouchableOpacity
+              onPress={() => router.push('/screens/profile/settings/help-support')}
+              className='flex-row justify-between items-center mt-4'
+            >
+              <View className='flex-row gap-2'>
+                <Feather
+                  name='life-buoy'
+                  size={24}
+                  color={iconColor}
+                  className='mt-3'
+                />
+                <Text className='mx-3 mt-3 text-primary dark:text-white font-roboto-regular text-lg'>
+                  {tx(16, 'Help & Support')}
                 </Text>
               </View>
               <Entypo
