@@ -3,9 +3,8 @@ import ShadowButton from '@/components/button/ShadowButton';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useGetMyProfile, useUpdateProfile } from '@/hooks/app/profile';
+import { useGetAccounts } from '@/hooks/app/accounts';
 import { useTranslateTexts } from '@/hooks/app/translate';
-import AntDesign from '@expo/vector-icons/AntDesign';
-import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -42,6 +41,7 @@ const EditProfile = () => {
   // @ts-ignore
   const profile = profileData?.profile;
   const { mutate: updateProfile, isPending: loading } = useUpdateProfile();
+  const { data: accountsData } = useGetAccounts();
   const { data: t } = useTranslateTexts({
     texts: [
       'Edit profile',
@@ -56,12 +56,31 @@ const EditProfile = () => {
       'Save',
       'Tell us about yourself and your music...',
       'Singer',
+      'Connected',
+      'Not Connected',
+      'Social Accounts',
     ],
     targetLang: profile?.preferredLanguage,
     enabled: !!profile?.preferredLanguage,
   });
   const tx = (i: number, fallback: string) =>
     t?.translations?.[i] || fallback;
+
+  const connectedPlatforms = new Set(
+    (accountsData?.accounts || []).map((acc: any) =>
+      String(acc?.platform || '').toLowerCase()
+    )
+  );
+  const isConnected = (platform: string) =>
+    connectedPlatforms.has(String(platform).toLowerCase());
+  const socialPlatforms = [
+    'Instagram',
+    'YouTube',
+    'TikTok',
+    'Facebook',
+    'Twitter',
+    'Spotify',
+  ];
 
   useEffect(() => {
     if (profile) {
@@ -321,49 +340,39 @@ const EditProfile = () => {
                 onChangeText={setBio}
               />
 
-              {/* Instagram */}
-              <Text className='text-primary dark:text-white mt-3'>
-                {tx(6, 'Instagram')}
-              </Text>
-              <View className='rounded-xl px-4 py-1 flex-row items-center border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D] mt-1.5 gap-2'>
-                <AntDesign name='instagram' size={20} color='#fff' />
-                <TextInput
-                  placeholder='@username'
-                  placeholderTextColor='white'
-                  className='flex-1 text-primary dark:text-white'
-                  value={instagram}
-                  onChangeText={setInstagram}
-                />
-              </View>
-
-              {/* YouTube */}
-              <Text className='text-primary dark:text-white mt-3'>
-                {tx(7, 'YouTube')}
-              </Text>
-              <View className='rounded-xl px-4 py-1 flex-row items-center border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D] mt-1.5 gap-2'>
-                <AntDesign name='youtube' size={20} color='black' />
-                <TextInput
-                  placeholder='Channel URL'
-                  placeholderTextColor='white'
-                  className='flex-1 text-primary dark:text-white'
-                  value={youtube}
-                  onChangeText={setYoutube}
-                />
-              </View>
-
-              {/* Spotify */}
-              <Text className='text-primary dark:text-white mt-3'>
-                {tx(8, 'Spotify')}
-              </Text>
-              <View className='rounded-xl px-4 py-1 flex-row items-center border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D] mt-1.5 gap-2'>
-                <Feather name='music' size={20} color='black' />
-                <TextInput
-                  placeholder='Artist URL'
-                  placeholderTextColor='white'
-                  className='flex-1 text-primary dark:text-white'
-                  value={spotify}
-                  onChangeText={setSpotify}
-                />
+              {/* Social Accounts Status */}
+              <View className='mt-6 rounded-2xl bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-4 border border-black/10 dark:border-[#FFFFFF0D]'>
+                <Text className='text-primary dark:text-white font-roboto-semibold text-base mb-3'>
+                  {tx(14, 'Social Accounts')}
+                </Text>
+                {socialPlatforms.map(platform => {
+                  const connected = isConnected(platform);
+                  return (
+                    <View
+                      key={platform}
+                      className='flex-row items-center justify-between py-2 border-b border-black/10 dark:border-[#FFFFFF0D]'
+                    >
+                      <Text className='text-primary dark:text-white'>
+                        {platform}
+                      </Text>
+                      <View
+                        className={`px-3 py-1 rounded-full ${
+                          connected
+                            ? 'bg-green-500/10 border border-green-500/40'
+                            : 'bg-gray-500/10 border border-gray-500/40'
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs ${
+                            connected ? 'text-green-600' : 'text-gray-500'
+                          }`}
+                        >
+                          {connected ? tx(12, 'Connected') : tx(13, 'Not Connected')}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             </View>
 

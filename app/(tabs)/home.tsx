@@ -50,6 +50,7 @@ export interface Post {
   profile: Profile;
   viewerHasLiked: boolean;
   viewerIsFollowing: boolean;
+  ublastId?: string;
 }
 
 const Home = () => {
@@ -155,15 +156,23 @@ const Home = () => {
   const renderPost = ({ item, index }: { item: Post; index: number }) => {
     return (
       <View>
-        <PostCard
-          post={item}
-          className='mt-4'
-          currentUserId={user?.id}
-          isVisible={isFocused && visiblePostIds.has(item._id)}
-        />
+        {item?.ublastId ? (
+          <OfficePostCard
+            post={item}
+            className='mt-4'
+            currentUserId={user?.id}
+            isVisible={isFocused && visiblePostIds.has(item._id)}
+          />
+        ) : (
+          <PostCard
+            post={item}
+            className='mt-4'
+            currentUserId={user?.id}
+            isVisible={isFocused && visiblePostIds.has(item._id)}
+          />
+        )}
         {index === 1 && (
           <>
-            <OfficePostCard className='mt-4' />
             <SuggestedArtistsCard className='mt-4' />
           </>
         )}

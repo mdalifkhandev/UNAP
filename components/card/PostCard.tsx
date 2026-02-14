@@ -19,6 +19,7 @@ import { useGetMyProfile } from '@/hooks/app/profile';
 import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -80,6 +81,7 @@ const PostCard = ({
   hideFollowButton = false, // Hide follow button for UBlast submissions
   hideActions = false, // Hide like/comment/share/bookmark actions
   isVisible, // Optional: control auto play/pause for video
+  officeVariant = false,
 }: {
   className?: string;
   img?: any;
@@ -91,6 +93,7 @@ const PostCard = ({
   hideFollowButton?: boolean;
   hideActions?: boolean;
   isVisible?: boolean;
+  officeVariant?: boolean;
 }) => {
   const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
@@ -422,6 +425,34 @@ const PostCard = ({
   const uiTexts = (index: number, fallback: string) =>
     translatedUI?.translations?.[index] || fallback;
 
+  const { data: translatedOffice } = useTranslateTexts({
+    texts: ['UNAP Official', 'Share required:', 'Share window expired'],
+    targetLang: uiLanguage,
+    enabled: !!uiLanguage && uiLanguage !== 'EN',
+  });
+
+  const officeTexts = (index: number, fallback: string) =>
+    translatedOffice?.translations?.[index] || fallback;
+
+  const getShareRemaining = () => {
+    const createdAt = post?.createdAt ? new Date(post.createdAt) : null;
+    if (!createdAt || Number.isNaN(createdAt.getTime())) return null;
+    const windowHours = 72;
+    const expiresAt = new Date(createdAt.getTime() + windowHours * 60 * 60 * 1000);
+    const msLeft = expiresAt.getTime() - Date.now();
+    if (msLeft <= 0) return { expired: true, text: officeTexts(2, 'Share window expired') };
+    const totalMinutes = Math.ceil(msLeft / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const parts = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    parts.push(`${minutes}m`);
+    return {
+      expired: false,
+      text: `${officeTexts(1, 'Share required:')} ${parts.join(' ')} remaining`,
+    };
+  };
+
   return (
     <View
       className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl ${className}`}
@@ -550,17 +581,37 @@ const PostCard = ({
             contentFit='cover'
           />
           <View>
-            <Text className='font-roboto-semibold text-sm text-primary dark:text-white'>
-              {authorName}
-            </Text>
-            {isScheduled ? (
-              <Text className='font-roboto-medium text-xs text-blue-400'>
-                {uiTexts(22, 'Scheduled:')} {scheduledTime}
-              </Text>
+            {officeVariant ? (
+              <>
+                <View className='flex-row gap-2 items-center'>
+                  <MaterialCommunityIcons
+                    name='check-decagram'
+                    size={18}
+                    color={iconColor}
+                  />
+                  <Text className='font-roboto-semibold text-sm text-primary dark:text-white'>
+                    {officeTexts(0, authorName)}
+                  </Text>
+                </View>
+                <Text className='font-roboto-regular text-sm text-primary dark:text-white mt-2.5'>
+                  {timestamp}
+                </Text>
+              </>
             ) : (
-              <Text className='font-roboto-regular text-sm text-secondary dark:text-white/80'>
-                {authorProfession}
-              </Text>
+              <>
+                <Text className='font-roboto-semibold text-sm text-primary dark:text-white'>
+                  {authorName}
+                </Text>
+                {isScheduled ? (
+                  <Text className='font-roboto-medium text-xs text-blue-400'>
+                    {uiTexts(22, 'Scheduled:')} {scheduledTime}
+                  </Text>
+                ) : (
+                  <Text className='font-roboto-regular text-sm text-secondary dark:text-white/80'>
+                    {authorProfession}
+                  </Text>
+                )}
+              </>
             )}
           </View>
         </TouchableOpacity>
@@ -642,6 +693,19 @@ const PostCard = ({
           </TouchableOpacity>
         ) : null}
       </View>
+
+      {officeVariant && (
+        <View className='flex-row items-center justify-center gap-4 pb-2.5'>
+          <MaterialCommunityIcons
+            name='clock-time-four-outline'
+            size={24}
+            color={iconColor}
+          />
+          <Text className='text-red-500 text-center'>
+            {getShareRemaining()?.text || officeTexts(1, 'Share required:')}
+          </Text>
+        </View>
+      )}
 
       {/* post media content  */}
       <View>

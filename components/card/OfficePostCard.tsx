@@ -1,132 +1,25 @@
-import { Ionicons } from '@expo/vector-icons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Image } from 'expo-image';
-import { router } from 'expo-router';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import useThemeStore from '@/store/theme.store';
-import { useTranslateTexts } from '@/hooks/app/translate';
-import useLanguageStore from '@/store/language.store';
+import PostCard from '@/components/card/PostCard';
 
-const OfficePostCard = ({ className }: { className?: string }) => {
-  const { mode } = useThemeStore();
-  const iconColor = mode === 'light' ? '#9CA3AF' : 'white';
-  const { language } = useLanguageStore();
-  const { data: t } = useTranslateTexts({
-    texts: [
-      'UNAP Official',
-      'Follow',
-      'Share required: 2 hour remaining',
-      'New Release Alert! Check out "Summer Vibes" by @ArtistName - Out now on all platforms!',
-      'Support your fellow UNAP artists by sharing this release. Remember, you have 72 hours to share!',
-    ],
-    targetLang: language,
-    enabled: !!language && language !== 'EN',
-  });
-  const tx = (i: number, fallback: string) =>
-    t?.translations?.[i] || fallback;
-
+const OfficePostCard = ({
+  className,
+  post,
+  currentUserId,
+  isVisible,
+}: {
+  className?: string;
+  post?: any;
+  currentUserId?: string;
+  isVisible?: boolean;
+}) => {
   return (
-    <View
-      className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl ${className} `}
-    >
-      {/* post header */}
-      <View className='p-4 flex-row justify-between items-center'>
-        <TouchableOpacity
-          onPress={() => router.push('/(tabs)/profile')}
-          className='flex-row gap-3'
-        >
-          <Image
-            source={require('@/assets/images/profile.png')}
-            style={{ width: 40, height: 40 }}
-            contentFit='contain'
-          />
-          <View>
-            <View className='flex-row gap-3'>
-              <MaterialCommunityIcons
-                name='check-decagram'
-                size={20}
-                color={iconColor}
-              />
-              <Text className='font-roboto-semibold text-sm text-primary dark:text-white'>
-                {tx(0, 'UNAP Official')}
-              </Text>
-            </View>
-            <Text className='font-roboto-regular text-sm text-primary dark:text-white mt-2.5'>
-              2h ago
-            </Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity className='py-2 px-6 rounded-full items-center justify-center'>
-          <Text className='font-roboto-semibold text-primary dark:text-white'>
-            {tx(1, 'Follow')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* time notis */}
-
-      <View className='flex-row items-center justify-center gap-4 pb-2.5'>
-        <MaterialCommunityIcons
-          name='clock-time-four-outline'
-          size={24}
-          color={iconColor}
-        />
-        <Text className='text-red-500 text-center'>
-          {tx(2, 'Share required: 2 hour remaining')}
-        </Text>
-      </View>
-
-      {/* post image  */}
-      <Image
-        source={require('@/assets/images/post.png')}
-        style={{
-          width: '100%',
-          height: 345,
-        }}
-        contentFit='cover'
-      />
-
-      {/* like comment sheire */}
-      <View className='p-3 flex-row justify-between items-center'>
-        <View className='flex-row gap-4'>
-          <TouchableOpacity>
-            <Ionicons name='heart-outline' size={26} color={iconColor} />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name='chatbubble-outline' size={24} color={iconColor} />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons
-              name='share-social-outline'
-              size={24}
-              color={iconColor}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity>
-          {/* <Feather name="bookmark" size={24} color="black" /> */}
-          <Ionicons name='bookmark-outline' size={24} color={iconColor} />
-        </TouchableOpacity>
-      </View>
-
-      {/* post description */}
-      <View className='px-6 '>
-        <Text className='font-roboto-regular text-primary dark:text-white'>
-          🎵 {tx(3, 'New Release Alert! Check out "Summer Vibes" by @ArtistName - Out now on all platforms!')}
-          {'\n '}
-          {'\n '}
-          {tx(
-            4,
-            'Support your fellow UNAP artists by sharing this release. Remember, you have 72 hours to share!'
-          )}
-        </Text>
-        <Text className='font-roboto-semibold text-sm text-primary dark:text-white mt-2.5 mb-6'>
-          6h ago
-        </Text>
-      </View>
-    </View>
+    <PostCard
+      post={post}
+      className={className}
+      currentUserId={currentUserId}
+      isVisible={isVisible}
+      officeVariant
+    />
   );
 };
 
