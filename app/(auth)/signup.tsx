@@ -2,15 +2,23 @@ import BackButton from '@/components/button/BackButton';
 import ShadowButton from '@/components/button/ShadowButton';
 import Inpute from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
+import api from '@/api/axiosInstance';
 import { useUserRegister } from '@/hooks/app/auth';
+import { getShortErrorMessage } from '@/lib/error';
+import {
+  observeAuthState,
+  signInWithFacebook,
+  signInWithGoogle,
+} from '@/services/socialAuth';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
 import useLanguageStore from '@/store/language.store';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -22,13 +30,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 const Signup = () => {
-  const socialIcons = {
-    google: require('@/assets/images/google.svg'),
-    apple: require('@/assets/images/apple.svg'),
-    instagram: require('@/assets/images/instagram.svg'),
-  };
-
-  const { setEmail, email, user } = useAuthStore();
+  type ProviderKey = 'google' | 'facebook';
+  const [socialLoading, setSocialLoading] = useState<ProviderKey | null>(null);
+  const { setEmail, setUser, setRememberPreference, user } = useAuthStore();
   const { language } = useLanguageStore();
   const { data: t } = useTranslateTexts({
     texts: [
@@ -63,7 +67,121 @@ const Signup = () => {
     confirmPassword: '',
   });
 
-  const { mutate, isPaused, error } = useUserRegister();
+  const { mutate } = useUserRegister();
+
+  const logPretty = (label: string, value: any) => {
+    try {
+      const payload = value?.toJSON?.() ?? value;
+      console.log(label, JSON.stringify(payload, null, 2));
+    } catch {
+      console.log(label, value);
+    }
+  };
+
+  const mapFirebaseUserToAuthUser = async (firebaseUser: any) => {
+    const idToken = await firebaseUser.getIdToken();
+    const data: any = await api.post('/api/auth/firebase', {
+      idToken,
+      name: firebaseUser?.displayName || undefined,
+      phoneNumber: firebaseUser?.phoneNumber || undefined,
+      photoURL: firebaseUser?.photoURL || undefined,
+    });
+    if (!data?.token) {
+      throw new Error(data?.error || 'Backend token issue after Firebase signup.');
+    }
+
+    return {
+      authUser: {
+        id: data?.user?.id || firebaseUser.uid,
+        name:
+          data?.user?.name ||
+          firebaseUser.displayName ||
+          (typeof firebaseUser.email === 'string'
+            ? firebaseUser.email.split('@')[0]
+            : 'User'),
+        email: data?.user?.email || firebaseUser.email || '',
+        phoneNumber: data?.user?.phoneNumber || firebaseUser.phoneNumber || '',
+        token: data?.token,
+        refreshToken: data?.refreshToken || null,
+      },
+      isFirstLogin: Boolean(data?.isFirstLogin),
+      needsProfileCompletion: Boolean(data?.needsProfileCompletion),
+    };
+  };
+
+  const signupActions: Record<ProviderKey, () => Promise<unknown>> = {
+    google: signInWithGoogle,
+    facebook: signInWithFacebook,
+  };
+
+  useEffect(() => {
+    const unsubscribe = observeAuthState(async firebaseUser => {
+      if (!firebaseUser) return;
+      if (user?.id === firebaseUser.uid && user?.token) return;
+
+      try {
+        const { authUser, isFirstLogin, needsProfileCompletion } =
+          await mapFirebaseUserToAuthUser(firebaseUser);
+        setUser(authUser as any);
+        setRememberPreference(true);
+        if (isFirstLogin || needsProfileCompletion) {
+          router.replace('/screens/profile/complete-profile');
+        } else {
+          router.replace('/(tabs)/trending');
+        }
+      } catch {
+        // Ignore silent restore failure on mount
+      }
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [setRememberPreference, setUser, user?.id, user?.token]);
+
+  const handleSocialSignup = async (provider: ProviderKey) => {
+    if (socialLoading) return;
+
+    setRememberPreference(true);
+    setSocialLoading(provider);
+    try {
+      const result: any = await signupActions[provider]();
+      logPretty('[Signup][social] raw result =>', result);
+      const firebaseUser = result?.user;
+      if (!firebaseUser) throw new Error('Social signup failed.');
+
+      logPretty('[Signup][social] firebaseUser =>', firebaseUser);
+      try {
+        const tokenResult = await firebaseUser.getIdTokenResult?.();
+        logPretty('[Signup][social] tokenResult =>', tokenResult);
+      } catch (e) {
+        console.log('[Signup][social] tokenResult error =>', e);
+      }
+
+      const { authUser, isFirstLogin, needsProfileCompletion } =
+        await mapFirebaseUserToAuthUser(firebaseUser);
+      setUser(authUser as any);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Signup Successful',
+        text2: `Signed in with ${provider === 'google' ? 'Google' : 'Facebook'}.`,
+      });
+      if (isFirstLogin || needsProfileCompletion) {
+        router.replace('/screens/profile/complete-profile');
+      } else {
+        router.replace('/(tabs)/trending');
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Signup Failed',
+        text2: getShortErrorMessage(error, 'Social signup failed.'),
+      });
+    } finally {
+      setSocialLoading(null);
+    }
+  };
 
   const handleChange = (key: string, value: string) => {
     setFormData(prev => ({
@@ -227,19 +345,33 @@ const Signup = () => {
 
               {/* social with login */}
               <View className='mt-6 flex-row gap-6'>
-                {Object.keys(socialIcons).map(item => (
-                  <TouchableOpacity
-                    key={item}
-                    className='flex-1 p-3 border border-black/20 dark:border-[#FFFFFF0D] rounded-xl items-center'
-                  >
-                    <Image
-                      source={socialIcons[item as keyof typeof socialIcons]}
-                      style={{ width: 24, height: 24 }}
-                      contentFit='contain'
-                    />
-                  </TouchableOpacity>
-                ))}
+                <TouchableOpacity
+                  onPress={() => handleSocialSignup('google')}
+                  disabled={!!socialLoading}
+                  className='flex-1 p-3 border border-black/20 dark:border-[#FFFFFF0D] rounded-xl items-center'
+                >
+                  <Image
+                    source={require('@/assets/images/google.svg')}
+                    style={{ width: 24, height: 24 }}
+                    contentFit='contain'
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleSocialSignup('facebook')}
+                  disabled={!!socialLoading}
+                  className='flex-1 p-3 border border-black/20 dark:border-[#FFFFFF0D] rounded-xl items-center'
+                >
+                  <Feather name='facebook' size={24} color='#1877F2' />
+                </TouchableOpacity>
               </View>
+              {socialLoading && (
+                <View className='mt-3 flex-row items-center justify-center gap-2'>
+                  <ActivityIndicator size='small' color='#111827' />
+                  <Text className='text-secondary dark:text-white/80 text-xs'>
+                    Opening {socialLoading === 'google' ? 'Google' : 'Facebook'}...
+                  </Text>
+                </View>
+              )}
             </View>
           </ScrollView>
         </SafeAreaView>

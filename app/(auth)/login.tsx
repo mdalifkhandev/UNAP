@@ -2,17 +2,24 @@ import BackButton from '@/components/button/BackButton';
 import ShadowButton from '@/components/button/ShadowButton';
 import Inpute from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
+import api from '@/api/axiosInstance';
 import { useUserLogin } from '@/hooks/app/auth';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import { getShortErrorMessage } from '@/lib/error';
+import {
+  observeAuthState,
+  signInWithFacebook,
+  signInWithGoogle,
+} from '@/services/socialAuth';
 import useAuthStore from '@/store/auth.store';
 import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Feather from '@expo/vector-icons/Feather';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Text,
@@ -23,7 +30,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 const Login = () => {
+  type ProviderKey = 'google' | 'facebook';
   const [rememberMe, setRememberMe] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<ProviderKey | null>(null);
   const { mutate } = useUserLogin();
   const { setUser, setRememberPreference, user } = useAuthStore();
 
@@ -55,6 +64,162 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const logPretty = (label: string, value: any) => {
+    try {
+      const payload = value?.toJSON?.() ?? value;
+      console.log(label, JSON.stringify(payload, null, 2));
+    } catch {
+      console.log(label, value);
+    }
+  };
+
+  const buildFlatFirebaseLog = (firebaseUser: any, authUser?: any) => {
+    const provider = firebaseUser?.providerData?.[0] || {};
+    const enrolledFactors = Array.isArray(firebaseUser?.multiFactor?.enrolledFactors)
+      ? firebaseUser.multiFactor.enrolledFactors
+      : [];
+
+    return {
+      uid: firebaseUser?.uid || '',
+      email: firebaseUser?.email || '',
+      name: firebaseUser?.displayName || '',
+      photoURL: firebaseUser?.photoURL || null,
+      phoneNumber: firebaseUser?.phoneNumber || null,
+      emailVerified: Boolean(firebaseUser?.emailVerified),
+      isAnonymous: Boolean(firebaseUser?.isAnonymous),
+      tenantId: firebaseUser?.tenantId || null,
+      providerId: provider?.providerId || firebaseUser?.providerId || null,
+      providerUid: provider?.uid || null,
+      creationTime: firebaseUser?.metadata?.creationTime || null,
+      lastSignInTime: firebaseUser?.metadata?.lastSignInTime || null,
+      enrolledFactors: enrolledFactors.length,
+      token: authUser?.token ? `${String(authUser.token).slice(0, 20)}...` : null,
+      refreshToken: authUser?.refreshToken
+        ? `${String(authUser.refreshToken).slice(0, 20)}...`
+        : null,
+    };
+  };
+
+  const mapFirebaseUserToAuthUser = async (
+    firebaseUser: any,
+    keepRefreshToken: boolean
+  ) => {
+    const idToken = await firebaseUser.getIdToken();
+    const data: any = await api.post('/api/auth/firebase', {
+      idToken,
+      name: firebaseUser?.displayName || undefined,
+      phoneNumber: firebaseUser?.phoneNumber || undefined,
+      photoURL: firebaseUser?.photoURL || undefined,
+    });
+    if (!data?.token) {
+      throw new Error(data?.error || 'Backend token issue after Firebase login.');
+    }
+
+    return {
+      authUser: {
+        id: data?.user?.id || firebaseUser.uid,
+        name:
+          data?.user?.name ||
+          firebaseUser.displayName ||
+          (typeof firebaseUser.email === 'string'
+            ? firebaseUser.email.split('@')[0]
+            : 'User'),
+        email: data?.user?.email || firebaseUser.email || '',
+        phoneNumber: data?.user?.phoneNumber || firebaseUser.phoneNumber || '',
+        token: data?.token,
+        refreshToken: keepRefreshToken ? data?.refreshToken || null : null,
+      },
+      isFirstLogin: Boolean(data?.isFirstLogin),
+      needsProfileCompletion: Boolean(data?.needsProfileCompletion),
+    };
+  };
+
+  const loginActions: Record<ProviderKey, () => Promise<unknown>> = {
+    google: signInWithGoogle,
+    facebook: signInWithFacebook,
+  };
+
+  useEffect(() => {
+    const unsubscribe = observeAuthState(async firebaseUser => {
+      if (!firebaseUser) return;
+      if (user?.id === firebaseUser.uid && user?.token) return;
+
+      try {
+        const { authUser, isFirstLogin, needsProfileCompletion } =
+          await mapFirebaseUserToAuthUser(
+          firebaseUser,
+          rememberMe
+        );
+        console.log(
+          '[Login][observeAuthState][flat] =>',
+          JSON.stringify(buildFlatFirebaseLog(firebaseUser, authUser), null, 2)
+        );
+        logPretty('[Login][observeAuthState][backend] =>', authUser);
+        setUser(authUser as any);
+        setRememberPreference(rememberMe);
+        if (isFirstLogin || needsProfileCompletion) {
+          router.replace('/screens/profile/complete-profile');
+        } else {
+          router.replace('/(tabs)/trending');
+        }
+      } catch {
+        // Ignore silent restore failure on mount
+      }
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [rememberMe, setRememberPreference, setUser, user?.id, user?.token]);
+
+  const handleSocialLogin = async (provider: ProviderKey) => {
+    if (socialLoading) return;
+
+    setRememberPreference(rememberMe);
+    setSocialLoading(provider);
+    try {
+      const result: any = await loginActions[provider]();
+      logPretty('[Login][social] raw result =>', result);
+      const firebaseUser = result?.user;
+      if (!firebaseUser) throw new Error('Social login failed.');
+
+      try {
+        const tokenResult = await firebaseUser.getIdTokenResult?.();
+        logPretty('[Login][social] tokenResult =>', tokenResult);
+      } catch (e) {
+        console.log('[Login][social] tokenResult error =>', e);
+      }
+
+      const { authUser, isFirstLogin, needsProfileCompletion } =
+        await mapFirebaseUserToAuthUser(firebaseUser, rememberMe);
+      console.log(
+        '[Login][social][flat] =>',
+        JSON.stringify(buildFlatFirebaseLog(firebaseUser, authUser), null, 2)
+      );
+      logPretty('[Login][social][backend] =>', authUser);
+      setUser(authUser as any);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Login Successful',
+        text2: `Signed in with ${provider === 'google' ? 'Google' : 'Facebook'}.`,
+      });
+      if (isFirstLogin || needsProfileCompletion) {
+        router.replace('/screens/profile/complete-profile');
+      } else {
+        router.replace('/(tabs)/trending');
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Login Failed',
+        text2: getShortErrorMessage(error, 'Social login failed.'),
+      });
+    } finally {
+      setSocialLoading(null);
+    }
+  };
+
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) {
       alert('Please fill all fields');
@@ -69,6 +234,14 @@ const Login = () => {
 
     mutate(user, {
       onSuccess: data => {
+        console.log('[Login][email-password] API response:', {
+          user: data?.user || null,
+          token: data?.token ? `${String(data.token).slice(0, 20)}...` : null,
+          refreshToken: data?.refreshToken
+            ? `${String(data.refreshToken).slice(0, 20)}...`
+            : null,
+          message: data?.message || null,
+        });
         Toast.show({
           type: 'success',
           text1: 'Login Successful',
@@ -88,6 +261,13 @@ const Login = () => {
           //@ts-ignore
           id: data?.user.id,
         };
+        console.log('[Login][email-password] Saved auth user:', {
+          ...user,
+          token: user?.token ? `${String(user.token).slice(0, 20)}...` : null,
+          refreshToken: user?.refreshToken
+            ? `${String(user.refreshToken).slice(0, 20)}...`
+            : null,
+        });
         setUser(user);
         setRememberPreference(rememberMe);
         router.push('/(tabs)/trending');
@@ -207,32 +387,33 @@ const Login = () => {
                 {tx(10, 'Or continue with')}
               </Text>
               <View className='mt-6 flex-row justify-between items-center gap-6'>
-                <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>
+                <TouchableOpacity
+                  onPress={() => handleSocialLogin('google')}
+                  disabled={!!socialLoading}
+                  className='border border-black/20 dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'
+                >
                   <Image
                     source={require('@/assets/images/google.svg')}
                     contentFit='contain'
                     style={{ height: 24, width: 24 }}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>
-                  <Image
-                    source={require('@/assets/images/apple.svg')}
-                    contentFit='contain'
-                    style={{
-                      height: 24,
-                      width: 24,
-                      tintColor: isLight ? 'black' : 'white',
-                    }}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity className='border border-black/20 dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'>
-                  <Image
-                    source={require('@/assets/images/instagram.svg')}
-                    contentFit='contain'
-                    style={{ height: 24, width: 24 }}
-                  />
+                <TouchableOpacity
+                  onPress={() => handleSocialLogin('facebook')}
+                  disabled={!!socialLoading}
+                  className='border border-black/20 dark:border-[#FFFFFF0D] rounded-xl flex-1 p-3 bg-transparent items-center'
+                >
+                  <Feather name='facebook' size={24} color={isLight ? '#1877F2' : '#FFFFFF'} />
                 </TouchableOpacity>
               </View>
+              {socialLoading && (
+                <View className='mt-3 flex-row items-center justify-center gap-2'>
+                  <ActivityIndicator size='small' color={isLight ? '#000000' : '#ffffff'} />
+                  <Text className='text-secondary dark:text-white/80 text-xs'>
+                    Opening {socialLoading === 'google' ? 'Google' : 'Facebook'}...
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </SafeAreaView>

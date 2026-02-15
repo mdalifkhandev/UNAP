@@ -4,11 +4,12 @@ import axios from 'axios';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
+const API_BASE_URL = 'https://marlene-unlarcenous-nonmunicipally.ngrok-free.dev';
+
+export const SOCIAL_AUTH_BASE_URL = API_BASE_URL;
+
 const api = axios.create({
-  // baseURL: 'http://10.10.11.18:4000',
-  // baseURL: 'https://ungustatory-erringly-ralph.ngrok-free.dev',
-  baseURL: 'https://marlene-unlarcenous-nonmunicipally.ngrok-free.dev',
-  // baseURL: 'https://rurally-unparticular-lilliana.ngrok-free.dev',
+  baseURL: API_BASE_URL,
 
   headers: {
     'Content-Type': 'application/json',

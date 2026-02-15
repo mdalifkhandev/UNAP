@@ -4,6 +4,7 @@ import GradientBackground from '@/components/main/GradientBackground';
 import useAuthStore from '@/store/auth.store';
 import useThemeStore from '@/store/theme.store';
 import { useUpdateProfileLanguage } from '@/hooks/app/profile';
+import { signOutCurrentUser } from '@/services/socialAuth';
 import useLanguageStore from '@/store/language.store';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -111,9 +112,15 @@ const Settings = () => {
       langOptions.find(opt => opt.code === language);
     return match?.name || normalized;
   }, [language, langOptions]);
-  const hendleLogout = () => {
-    clearAuth();
-    router.push('/(auth)/login');
+  const hendleLogout = async () => {
+    try {
+      await signOutCurrentUser();
+    } catch (error) {
+      console.log('Sign out warning:', error);
+    } finally {
+      clearAuth();
+      router.replace('/(auth)/login');
+    }
   };
 
   return (
