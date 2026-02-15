@@ -105,7 +105,7 @@ const TrendingScreen = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useGetTrendingPost(selectedTab, { enabled: !!user });
+  } = useGetTrendingPost(selectedTab, { enabled: !!user?.token });
 
   const {
     data: activeData,
@@ -114,10 +114,10 @@ const TrendingScreen = () => {
     fetchNextPage: fetchNextActive,
     hasNextPage: hasNextActive,
     isFetchingNextPage: isFetchingNextActive,
-  } = useGetActiveUblasts({ enabled: !!user && selectedTab === 'active', limit: 12 });
+  } = useGetActiveUblasts({ enabled: !!user?.token && selectedTab === 'active', limit: 12 });
 
   const { data: eligibilityData, isLoading: isEligibilityLoading } =
-    useGetUblastEligibility({ enabled: !!user });
+    useGetUblastEligibility({ enabled: !!user?.token });
 
   const {
     data: myPostsData,
@@ -125,7 +125,7 @@ const TrendingScreen = () => {
     hasNextPage: hasNextMyPosts,
     isFetchingNextPage: isFetchingNextMyPosts,
   } = useGetMyPostsInfinite({
-    enabled: !!user && selectedTab === 'active',
+    enabled: !!user?.token && selectedTab === 'active',
     limit: 20,
   });
 
@@ -133,7 +133,7 @@ const TrendingScreen = () => {
     data: offersData,
     refetch: refetchOffers,
   } = useGetUblastOffers({
-    enabled: !!user && selectedTab === 'active',
+    enabled: !!user?.token && selectedTab === 'active',
     fetchAll: true,
     limit: 50,
     maxPages: 20,

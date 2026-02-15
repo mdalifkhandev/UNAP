@@ -54,6 +54,7 @@ export const useSocketPresence = () => {
 
     socket.on('disconnect', () => {
       setIsConnected(false);
+      setOnlineIds(new Set());
     });
 
     socket.on('presence:list', (payload: PresencePayload | string[]) => {

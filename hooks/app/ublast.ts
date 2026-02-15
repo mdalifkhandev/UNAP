@@ -1,5 +1,5 @@
 import api from '@/api/axiosInstance';
-import { getShortErrorMessage } from '@/lib/error';
+import { getShortErrorMessage, isAuthError } from '@/lib/error';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -11,6 +11,7 @@ export const useGetUblastEligibility = (options?: { enabled?: boolean }) => {
         const res = await api.get('/api/ublasts/eligibility');
         return res;
       } catch (error: any) {
+        if (isAuthError(error)) return null;
         console.error('API Error in useGetUblastEligibility:', error);
         Toast.show({
           type: 'error',
@@ -71,6 +72,9 @@ export const useGetUBlastPosts = () => {
         }
         return data;
       } catch (error: any) {
+        if (isAuthError(error)) {
+          return { submissions: [], page: pageParam, totalPages: 1 };
+        }
         console.error('API Error in useGetUBlastPosts:', error);
         Toast.show({
           type: 'error',
@@ -137,6 +141,9 @@ export const useGetActiveUblasts = (options?: { enabled?: boolean; limit?: numbe
         }
         return data;
       } catch (error: any) {
+        if (isAuthError(error)) {
+          return { ublasts: [], page: pageParam, totalPages: 1 };
+        }
         console.error('API Error in useGetActiveUblasts:', error);
         Toast.show({
           type: 'error',
@@ -197,6 +204,9 @@ export const useGetUblastOffers = (options?: {
           totalCount: totalCount || offers.length,
         };
       } catch (error: any) {
+        if (isAuthError(error)) {
+          return { offers: [], page: 1, totalPages: 1, totalCount: 0 };
+        }
         console.error('API Error in useGetUblastOffers:', error);
         Toast.show({
           type: 'error',

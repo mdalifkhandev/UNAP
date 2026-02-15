@@ -294,16 +294,34 @@ const StoryItem = ({
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item: c, index }: { item: any; index: number }) => (
                   <View className='flex-row gap-3 py-3 border-b border-black/10 dark:border-white/10'>
-                    <Image
-                      source={{
-                        uri:
-                          c?.user?.profileImageUrl ||
-                          c?.profileImageUrl ||
-                          'https://via.placeholder.com/150',
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        const commentUserId = String(
+                          c?.user?.id || c?.user?._id || c?.userId || ''
+                        );
+                        if (!commentUserId) return;
+                        if (String(commentUserId) === String(user?.id || '')) {
+                          router.push('/(tabs)/profile');
+                          return;
+                        }
+                        router.push({
+                          pathname: '/screens/profile/other-profile',
+                          params: { id: commentUserId },
+                        });
                       }}
-                      style={{ width: 36, height: 36, borderRadius: 18 }}
-                      contentFit='cover'
-                    />
+                    >
+                      <Image
+                        source={{
+                          uri:
+                            c?.user?.profileImageUrl ||
+                            c?.profileImageUrl ||
+                            'https://via.placeholder.com/150',
+                        }}
+                        style={{ width: 36, height: 36, borderRadius: 18 }}
+                        contentFit='cover'
+                      />
+                    </TouchableOpacity>
                     <View className='flex-1'>
                       <Text className='text-black dark:text-white text-sm font-semibold'>
                         {c?.user?.name || c?.name || 'User'}

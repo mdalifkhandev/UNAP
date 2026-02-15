@@ -27,7 +27,6 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
-  FlatList,
   Linking,
   Modal,
   Platform,
@@ -229,6 +228,23 @@ const PostCard = ({
   const handleDeleteComment = (commentId: string) => {
     if (!post?._id) return;
     deleteComment({ commentId, postId: post._id });
+  };
+
+  const handleOpenCommentUserProfile = (comment: any) => {
+    const commentUserId = String(
+      comment?.user?.id || comment?.user?._id || comment?.userId || ''
+    );
+    if (!commentUserId) return;
+
+    if (currentUserId && String(currentUserId) === commentUserId) {
+      router.push('/(tabs)/profile');
+      return;
+    }
+
+    router.push({
+      pathname: '/screens/profile/other-profile',
+      params: { id: commentUserId },
+    });
   };
 
   const handleDeletePost = () => {
@@ -999,22 +1015,30 @@ const PostCard = ({
 
           {/* Comments List */}
           {comments.length > 0 ? (
-            <FlatList
-              data={comments}
-              keyExtractor={(comment: any, index: number) =>
-                `${comment?._id || 'comment'}-${index}`
-              }
-              renderItem={({ item: comment, index }) => (
-                <View className='mb-4'>
+            <ScrollView
+              style={{ maxHeight: 260 }}
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={false}
+            >
+              {comments.map((comment: any, index: number) => (
+                <View
+                  className='mb-4'
+                  key={`${comment?._id || 'comment'}-${index}`}
+                >
                   <View className='flex-row gap-2'>
-                    <Image
-                      source={
-                        comment.profile?.profileImageUrl ||
-                        'https://via.placeholder.com/40' ||
-                        comment.user?.profileImageUrl
-                      }
-                      style={{ width: 32, height: 32, borderRadius: 100 }}
-                    />
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => handleOpenCommentUserProfile(comment)}
+                    >
+                      <Image
+                        source={
+                          comment.profile?.profileImageUrl ||
+                          comment.user?.profileImageUrl ||
+                          'https://via.placeholder.com/40'
+                        }
+                        style={{ width: 32, height: 32, borderRadius: 100 }}
+                      />
+                    </TouchableOpacity>
                     <View className='flex-1'>
                       <View className='bg-[#F0F2F5] dark:bg-white/5 p-3 rounded-2xl'>
                         <Text className='text-primary dark:text-white text-sm font-roboto-semibold mb-1'>
@@ -1058,17 +1082,21 @@ const PostCard = ({
                     </View>
                   </View>
                 </View>
+              ))}
+              {hasNextComments && (
+                <TouchableOpacity
+                  className='self-center mb-1 mt-1'
+                  disabled={isFetchingNextComments}
+                  onPress={() => {
+                    if (!isFetchingNextComments) fetchNextComments();
+                  }}
+                >
+                  <Text className='text-secondary dark:text-white/80 text-xs font-roboto-medium'>
+                    {isFetchingNextComments ? 'Loading...' : 'Load more'}
+                  </Text>
+                </TouchableOpacity>
               )}
-              style={{ maxHeight: 260 }}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator={false}
-              onEndReached={() => {
-                if (hasNextComments && !isFetchingNextComments) {
-                  fetchNextComments();
-                }
-              }}
-              onEndReachedThreshold={0.3}
-            />
+            </ScrollView>
           ) : (
             <View className='bg-[#F0F2F5] dark:bg-white/5 p-4 rounded-2xl items-center'>
               <Text className='text-secondary dark:text-white/80 text-sm font-roboto-regular italic'>

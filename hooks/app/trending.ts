@@ -1,4 +1,5 @@
 import api from '@/api/axiosInstance';
+import { isAuthError } from '@/lib/error';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -25,6 +26,9 @@ export const useGetTrendingPost = (
         }
         return data;
       } catch (error: any) {
+        if (isAuthError(error)) {
+          return { [selectedTab]: [] };
+        }
         console.error('API Error in useGetTrendingPost:', error);
         Toast.show({
           type: 'error',

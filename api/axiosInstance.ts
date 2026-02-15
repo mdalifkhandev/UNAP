@@ -1,6 +1,8 @@
 import useAuthStore, { getAuth } from '@/store/auth.store';
+import { isAuthError } from '@/lib/error';
 import axios from 'axios';
 import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
 
 const api = axios.create({
   // baseURL: 'http://10.10.11.18:4000',
@@ -14,7 +16,8 @@ const api = axios.create({
 });
 
 let isRedirectingToLogin = false;
-let lastAuthErrorLogAt = 0;
+let lastLoginToastAt = 0;
+let authRedirectLockUntil = 0;
 
 const getErrorMessage = (err: unknown) => {
   if (!err) return 'Unknown error';
@@ -46,17 +49,20 @@ api.interceptors.response.use(
   response => response.data,
   async error => {
     const status = error.response?.status;
-    const errorText = String(error?.response?.data?.error || '');
-    const isAuthRequiredError =
-      status === 401 && errorText === 'Authorization token required.';
+    const authError = isAuthError(error);
 
-    if (isAuthRequiredError) {
+    const showLoginToastOnce = () => {
       const now = Date.now();
-      if (now - lastAuthErrorLogAt > 5000) {
-        console.log('API Error:', error?.response?.data || getErrorMessage(error));
-        lastAuthErrorLogAt = now;
-      }
-    } else {
+      if (now - lastLoginToastAt < 3000) return;
+      lastLoginToastAt = now;
+      Toast.show({
+        type: 'error',
+        text1: 'Please login',
+        text2: 'Session expired. Please login again.',
+      });
+    };
+
+    if (!authError) {
       console.log('API Error:', error?.response?.data || getErrorMessage(error));
     }
 
@@ -70,16 +76,22 @@ api.interceptors.response.use(
       const refreshToken = authState.user?.refreshToken;
       const rememberMe = authState.rememberMe;
       const hasAccessToken = Boolean(authState.user?.token);
+      const now = Date.now();
+      const canRedirectNow = now >= authRedirectLockUntil;
 
       if (!refreshToken || !rememberMe) {
-        if (hasAccessToken) {
+        // Only force-redirect if a logged-in session actually existed.
+        // If already logged out, avoid repeated login-route refresh loops.
+        if (hasAccessToken && canRedirectNow) {
           useAuthStore.getState().clearAuth();
+          showLoginToastOnce();
+          authRedirectLockUntil = now + 10000;
           if (!isRedirectingToLogin) {
             isRedirectingToLogin = true;
             router.replace('/(auth)/login');
             setTimeout(() => {
               isRedirectingToLogin = false;
-            }, 1000);
+            }, 2000);
           }
         }
         return Promise.reject(error);
@@ -114,16 +126,22 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshErr) {
-        console.log('Refresh token failed:', getErrorMessage(refreshErr));
+        if (!isAuthError(refreshErr)) {
+          console.log('Refresh token failed:', getErrorMessage(refreshErr));
+        }
       }
 
-      useAuthStore.getState().clearAuth();
-      if (!isRedirectingToLogin) {
-        isRedirectingToLogin = true;
-        router.replace('/(auth)/login');
-        setTimeout(() => {
-          isRedirectingToLogin = false;
-        }, 1000);
+      if (hasAccessToken && canRedirectNow) {
+        useAuthStore.getState().clearAuth();
+        showLoginToastOnce();
+        authRedirectLockUntil = Date.now() + 10000;
+        if (!isRedirectingToLogin) {
+          isRedirectingToLogin = true;
+          router.replace('/(auth)/login');
+          setTimeout(() => {
+            isRedirectingToLogin = false;
+          }, 2000);
+        }
       }
       return Promise.reject(error);
     }

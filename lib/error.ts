@@ -39,3 +39,19 @@ export function getShortErrorMessage(
   if (firstLine.length <= maxLen) return firstLine || fallback;
   return `${firstLine.slice(0, maxLen - 3).trimEnd()}...`;
 }
+
+export function isAuthError(error: any) {
+  const status = error?.response?.status;
+  if (status === 401) return true;
+
+  const data = error?.response?.data;
+  const errorText = String(data?.error || data?.message || '').toLowerCase();
+  if (!errorText) return false;
+
+  return (
+    errorText.includes('authorization token required') ||
+    errorText.includes('invalid or expired token') ||
+    errorText.includes('token expired') ||
+    errorText.includes('unauthorized')
+  );
+}

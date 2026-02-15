@@ -88,7 +88,9 @@ const ChatScreen = () => {
   const firstPage = (pages?.[0] as any) || {};
   const participant = (firstPage?.participant as any) || {};
   const participantIsOnline = Boolean(participant?.isOnline);
-  const isReceiverOnline = isUserOnline(peerUserId) || participantIsOnline;
+  const isReceiverOnline = isPresenceConnected
+    ? isUserOnline(peerUserId)
+    : participantIsOnline;
   const isBlockedByMe = Boolean(participant?.blockedByMe);
   const isBlockedMe = Boolean(participant?.blockedMe);
   const isMessagingBlocked = isBlockedByMe || isBlockedMe;

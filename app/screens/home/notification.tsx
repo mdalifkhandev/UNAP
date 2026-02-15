@@ -1,12 +1,14 @@
 import BackButton from '@/components/button/BackButton';
 import NotificationCard from '@/components/card/NotificationCard';
 import GradientBackground from '@/components/main/GradientBackground';
+import { useDeleteNotification, useGetNotifications, useMarkNotificationRead } from '@/hooks/app/notification';
 import { useTranslateTexts } from '@/hooks/app/translate';
+import { connectSocket, disconnectSocket } from '@/lib/socketClient';
 import useLanguageStore from '@/store/language.store';
 import useNotificationStore from '@/store/notification.store';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -32,12 +34,92 @@ function formatRelativeTime(iso: string) {
   return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
 }
 
+type NotificationVisualType =
+  | 'like'
+  | 'comment'
+  | 'follow'
+  | 'chat'
+  | 'message'
+  | 'share'
+  | 'payment'
+  | 'support'
+  | 'system';
+
+function normalizeNotificationType(item: any): NotificationVisualType {
+  const rawType = String(item?.type || '').toLowerCase();
+  const title = String(item?.title || '').toLowerCase();
+  const body = String(item?.body || '').toLowerCase();
+  const data = item?.data || {};
+
+  if (rawType === 'chat' || rawType === 'message' || data?.senderId) {
+    return rawType === 'message' ? 'message' : 'chat';
+  }
+
+  if (
+    rawType === 'follow' ||
+    title.includes('follower') ||
+    body.includes('started following')
+  ) {
+    return 'follow';
+  }
+
+  if (
+    rawType === 'comment' ||
+    data?.postId ||
+    data?.ucutId ||
+    title.includes('comment')
+  ) {
+    return rawType === 'like' ? 'like' : rawType === 'share' ? 'share' : 'comment';
+  }
+
+  if (rawType === 'like' || title.includes('like') || body.includes('liked')) {
+    return 'like';
+  }
+
+  if (
+    rawType === 'share' ||
+    title.includes('share') ||
+    body.includes('shared')
+  ) {
+    return 'share';
+  }
+
+  if (
+    rawType === 'payment' ||
+    rawType === 'offer' ||
+    title.includes('payment') ||
+    body.includes('payment') ||
+    body.includes('checkout')
+  ) {
+    return 'payment';
+  }
+
+  if (
+    rawType === 'support' ||
+    rawType === 'help' ||
+    rawType === 'admin' ||
+    title.includes('support')
+  ) {
+    return 'support';
+  }
+
+  return 'system';
+}
+
 const Notification = () => {
   const img1 = require('@/assets/images/profile.png');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const { notifications, markAsRead, resetBadgeCount, removeNotification } =
-    useNotificationStore();
+  const {
+    notifications: localNotifications,
+    addNotification,
+    markAsRead: markAsReadLocal,
+    resetBadgeCount,
+    removeNotification: removeNotificationLocal,
+  } = useNotificationStore();
   const { language } = useLanguageStore();
+  const { data: notificationData, refetch } = useGetNotifications({ limit: 100 });
+  const { mutateAsync: markNotificationRead } = useMarkNotificationRead();
+  const { mutateAsync: deleteNotification } = useDeleteNotification();
   const { data: t } = useTranslateTexts({
     texts: [
       'Notification',
@@ -63,22 +145,49 @@ const Notification = () => {
     }, [resetBadgeCount])
   );
 
+  useEffect(() => {
+    const socket = connectSocket();
+    if (!socket) return;
+
+    const handleNotification = (payload: any) => {
+      if (!payload?.id) return;
+      addNotification({
+        id: String(payload.id),
+        title: String(payload.title || 'Notification'),
+        body: String(payload.body || ''),
+        type: String(payload.type || 'system'),
+        createdAt: payload?.createdAt || new Date().toISOString(),
+        screen: typeof payload?.screen === 'string' ? payload.screen : undefined,
+        data: payload?.data && typeof payload.data === 'object' ? payload.data : {},
+        read: Boolean(payload?.read),
+      });
+      refetch();
+    };
+
+    socket.on('notification:new', handleNotification);
+
+    return () => {
+      socket.off('notification:new', handleNotification);
+      disconnectSocket(socket);
+    };
+  }, [addNotification, refetch]);
+
+  const serverNotifications = Array.isArray(notificationData?.notifications)
+    ? notificationData.notifications
+    : [];
+
+  const sourceNotifications =
+    serverNotifications.length > 0 ? serverNotifications : localNotifications;
+
   const mappedNotifications = useMemo(
     () =>
-      notifications.map(item => ({
+      sourceNotifications.map(item => ({
         id: item.id,
         name: item.title || 'Notification',
         reson: item.body || '',
         time: formatRelativeTime(item.createdAt),
         img: img1,
-        type:
-          item.type === 'follow'
-            ? 'follow'
-            : item.type === 'chat'
-            ? 'chat'
-            : item.type === 'comment'
-            ? 'comment'
-            : 'like',
+        type: normalizeNotificationType(item),
         isRead: item.read,
         userId:
           typeof item.data?.actorUserId === 'string'
@@ -90,13 +199,18 @@ const Notification = () => {
           typeof item.data?.postId === 'string' ? item.data.postId : undefined,
         screen: typeof item.screen === 'string' ? item.screen : undefined,
       })),
-    [notifications, img1]
+    [sourceNotifications, img1]
   );
 
-  const handleOpenNotification = (item: (typeof mappedNotifications)[number]) => {
-    markAsRead(item.id);
+  const handleOpenNotification = async (item: (typeof mappedNotifications)[number]) => {
+    markAsReadLocal(item.id);
+    try {
+      await markNotificationRead(item.id);
+    } catch {
+      // handled in mutation onError
+    }
 
-    if (item.type === 'chat' && item.userId) {
+    if ((item.type === 'chat' || item.type === 'message') && item.userId) {
       router.push({
         pathname: '/screens/chat/chat-screen',
         params: {
@@ -155,15 +269,23 @@ const Notification = () => {
                   time={item.time}
                   img={item.img}
                   className='mt-3'
-                  type={item.type as 'like' | 'comment' | 'follow' | 'chat'}
+                  type={item.type}
                   isRead={item.isRead}
                   showMenu={activeMenuId === item.id}
                   onMenuToggle={handleMenuToggle}
                   onMenuClose={handleMenuClose}
-                  onMarkAsRead={markAsRead}
-                  onDelete={removeNotification}
+                  onMarkAsRead={id => {
+                    markAsReadLocal(id);
+                    markNotificationRead(id).catch(() => null);
+                  }}
+                  onDelete={id => {
+                    removeNotificationLocal(id);
+                    deleteNotification(id).catch(() => null);
+                  }}
                   userId={item.userId}
-                  onPress={() => handleOpenNotification(item)}
+                  onPress={() => {
+                    handleOpenNotification(item).catch(() => null);
+                  }}
                 />
               ))
             )}

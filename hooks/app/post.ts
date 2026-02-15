@@ -1,5 +1,5 @@
 import api from '@/api/axiosInstance';
-import { getShortErrorMessage } from '@/lib/error';
+import { getShortErrorMessage, isAuthError } from '@/lib/error';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -161,6 +161,9 @@ export const useGetMyPosts = (options?: {
           totalCount: allPosts.length,
         };
       } catch (error: any) {
+        if (isAuthError(error)) {
+          return { posts: [] };
+        }
         console.warn('API Error in useGetMyPosts:', error);
         Toast.show({
           type: 'error',
@@ -198,6 +201,9 @@ export const useGetMyPostsInfinite = (options?: {
         const data = res?.data || res;
         return data ?? { posts: [], page: pageParam, totalPages: 1 };
       } catch (error: any) {
+        if (isAuthError(error)) {
+          return { posts: [], page: pageParam, totalPages: 1 };
+        }
         console.warn('API Error in useGetMyPostsInfinite:', error);
         Toast.show({
           type: 'error',

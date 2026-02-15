@@ -13,7 +13,16 @@ type NotificationCardProps = {
   reson: string;
   time: string;
   className?: string;
-  type?: "like" | "comment" | "follow" | "chat" | "10000";
+  type?:
+    | "like"
+    | "comment"
+    | "follow"
+    | "chat"
+    | "message"
+    | "share"
+    | "payment"
+    | "support"
+    | "system";
   showMenu?: boolean;
   onMenuToggle?: (id: string) => void;
   onMenuClose?: () => void;
@@ -127,6 +136,56 @@ const NotificationCard = ({
               name="message-text-outline"
               size={18}
               color="#2B7FFF"
+            />
+          </View>
+        )}
+
+        {type === "message" && (
+          <View className="absolute -right-1 bottom-3 bg-white rounded-full p-1">
+            <MaterialCommunityIcons
+              name="message-reply-text-outline"
+              size={18}
+              color="#2B7FFF"
+            />
+          </View>
+        )}
+
+        {type === "share" && (
+          <View className="absolute -right-1 bottom-3 bg-white rounded-full p-1">
+            <MaterialCommunityIcons
+              name="share-variant"
+              size={18}
+              color="#0EA5E9"
+            />
+          </View>
+        )}
+
+        {type === "payment" && (
+          <View className="absolute -right-1 bottom-3 bg-white rounded-full p-1">
+            <MaterialCommunityIcons
+              name="credit-card-outline"
+              size={18}
+              color="#16A34A"
+            />
+          </View>
+        )}
+
+        {type === "support" && (
+          <View className="absolute -right-1 bottom-3 bg-white rounded-full p-1">
+            <MaterialCommunityIcons
+              name="lifebuoy"
+              size={18}
+              color="#F97316"
+            />
+          </View>
+        )}
+
+        {type === "system" && (
+          <View className="absolute -right-1 bottom-3 bg-white rounded-full p-1">
+            <MaterialCommunityIcons
+              name="bell-ring-outline"
+              size={18}
+              color="#6B7280"
             />
           </View>
         )}

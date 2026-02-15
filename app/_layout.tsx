@@ -291,10 +291,27 @@ const RootLayout = () => {
       });
     };
 
+    const handleIncomingNotification = (payload: any) => {
+      if (!payload || payload?.type === 'chat') return;
+      const id = String(payload?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+      getNotificationStore().addNotification({
+        id,
+        title: String(payload?.title || 'Notification'),
+        body: String(payload?.body || ''),
+        type: String(payload?.type || 'system'),
+        createdAt: payload?.createdAt || new Date().toISOString(),
+        screen: typeof payload?.screen === 'string' ? payload.screen : undefined,
+        data: payload?.data && typeof payload.data === 'object' ? payload.data : {},
+        read: Boolean(payload?.read),
+      });
+    };
+
     socket.on('message:new', handleIncomingMessage);
+    socket.on('notification:new', handleIncomingNotification);
 
     return () => {
       socket.off('message:new', handleIncomingMessage);
+      socket.off('notification:new', handleIncomingNotification);
       disconnectSocket(socket);
     };
   }, [user?.token, user?.id, notifications]);

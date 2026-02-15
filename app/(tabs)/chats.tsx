@@ -100,6 +100,8 @@ const ChatsList = () => {
   });
   const msg = (index: number, fallback: string) =>
     translatedMessages?.translations?.[index] || fallback;
+  const isChatOnline = (chat: any) =>
+    isConnected ? isUserOnline(chat?.userId) : Boolean(chat?.isOnline);
 
   if (isLoading) {
     return (
@@ -189,7 +191,9 @@ const ChatsList = () => {
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* chat list  */}
             <View className='mx-6 mt-6'>
-              {filteredChats.map((chat: any, index: number) => (
+              {filteredChats.map((chat: any, index: number) => {
+                const onlineNow = isChatOnline(chat);
+                return (
                 <View key={index}>
                   <TouchableOpacity
                     onPress={() =>
@@ -231,7 +235,7 @@ const ChatsList = () => {
                           />
                           <View
                             className={`h-3 w-3 rounded-full absolute right-0 bottom-0 border border-white ${
-                              isUserOnline(chat?.userId)
+                              onlineNow
                                 ? 'bg-[#00B56C]'
                                 : 'bg-red-500'
                             }`}
@@ -264,12 +268,12 @@ const ChatsList = () => {
                       </Text>
                       <Text
                         className={`text-xs mt-1 ${
-                          isUserOnline(chat?.userId)
+                          onlineNow
                             ? 'text-green-500'
                             : 'text-red-400'
                         }`}
                       >
-                        {isUserOnline(chat?.userId)
+                        {onlineNow
                           ? tx(5, 'Online')
                           : tx(6, 'Offline')}
                       </Text>
@@ -279,7 +283,8 @@ const ChatsList = () => {
                   {/* border */}
                   <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full'></View>
                 </View>
-              ))}
+                );
+              })}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
