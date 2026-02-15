@@ -13,12 +13,16 @@ type NotificationCardProps = {
   reson: string;
   time: string;
   className?: string;
-  type?: "like" | "follow" | "10000";
+  type?: "like" | "comment" | "follow" | "chat" | "10000";
   showMenu?: boolean;
   onMenuToggle?: (id: string) => void;
   onMenuClose?: () => void;
   id: string;
   userId?: string;
+  isRead?: boolean;
+  onMarkAsRead?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onPress?: () => void;
 };
 
 const NotificationCard = ({
@@ -33,8 +37,12 @@ const NotificationCard = ({
   onMenuClose,
   id,
   userId,
+  isRead,
+  onMarkAsRead,
+  onDelete,
+  onPress,
 }: NotificationCardProps) => {
-  const [isRead, setIsRead] = useState(false);
+  const [internalRead, setInternalRead] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
   const { mode } = useThemeStore();
   const isLight = mode === "light";
@@ -46,14 +54,23 @@ const NotificationCard = ({
   });
   const tx = (i: number, fallback: string) =>
     t?.translations?.[i] || fallback;
+  const effectiveRead = isRead ?? internalRead;
 
   const handleMarkAsRead = () => {
-    setIsRead(true);
+    if (onMarkAsRead) {
+      onMarkAsRead(id);
+    } else {
+      setInternalRead(true);
+    }
     onMenuClose?.();
   };
 
   const handleDelete = () => {
-    setIsDeleted(true);
+    if (onDelete) {
+      onDelete(id);
+    } else {
+      setIsDeleted(true);
+    }
     onMenuClose?.();
   };
 
@@ -64,7 +81,7 @@ const NotificationCard = ({
   return (
     <View
       className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] py-5 px-4 rounded-xl flex-row justify-between gap-5 ${className} ${
-        isRead ? "opacity-60" : ""
+        effectiveRead ? "opacity-60" : ""
       }`}
     >
       <TouchableOpacity
@@ -88,14 +105,34 @@ const NotificationCard = ({
           </View>
         )}
 
+        {type === "comment" && (
+          <View className="absolute right-0 bottom-5 bg-white rounded-full p-1">
+            <MaterialCommunityIcons
+              name="comment-text-outline"
+              size={16}
+              color="#2B7FFF"
+            />
+          </View>
+        )}
+
         {type === "follow" && (
           <View className="absolute -right-2 bottom-3 bg-white rounded-full p-1">
             <Octicons name="person-add" size={19} color="#2B7FFF" />
           </View>
         )}
+
+        {type === "chat" && (
+          <View className="absolute -right-1 bottom-3 bg-white rounded-full p-1">
+            <MaterialCommunityIcons
+              name="message-text-outline"
+              size={18}
+              color="#2B7FFF"
+            />
+          </View>
+        )}
       </TouchableOpacity>
 
-      <View className="flex-1">
+      <TouchableOpacity className="flex-1" activeOpacity={0.8} onPress={onPress}>
         <Text className="font-roboto-semibold text-primary dark:text-white text-lg capitalize">
           {name}
         </Text>
@@ -105,7 +142,7 @@ const NotificationCard = ({
         <Text className="font-roboto-regular text-sm text-primary dark:text-white mt-1 capitalize">
           {time}
         </Text>
-      </View>
+      </TouchableOpacity>
 
       <TouchableOpacity onPress={() => onMenuToggle?.(id)}>
         <MaterialCommunityIcons name="dots-vertical" size={24} color={isLight ? "#9CA3AF" : "white"} />

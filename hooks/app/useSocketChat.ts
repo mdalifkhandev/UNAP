@@ -11,9 +11,17 @@ interface Message {
   createdAt: string;
 }
 
+interface BlockUpdatePayload {
+  blockerUserId: string;
+  blockedUserId: string;
+  blocked: boolean;
+  updatedAt?: string;
+}
+
 export const useSocketChat = (
-  currentUserId: string,
-  currentConversationId: string
+  peerUserId: string,
+  currentConversationId: string,
+  myUserId?: string
 ) => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<any>(null);
@@ -45,7 +53,7 @@ export const useSocketChat = (
 
         if (belongsToCurrentConversation) {
           queryClient.setQueriesData(
-            { queryKey: ['chat', currentUserId], exact: false },
+            { queryKey: ['chat', peerUserId], exact: false },
             (oldData: any) => {
               if (!oldData?.pages || !Array.isArray(oldData.pages)) return oldData;
 
@@ -81,6 +89,55 @@ export const useSocketChat = (
       }
     );
 
+    socket.on('chat:block-updated', (payload: BlockUpdatePayload) => {
+      if (!payload || !peerUserId) return;
+
+      const blockerUserId = String(payload.blockerUserId || '');
+      const blockedUserId = String(payload.blockedUserId || '');
+      const blocked = Boolean(payload.blocked);
+      const me = String(myUserId || '');
+      const peer = String(peerUserId || '');
+      if (!me || !peer) return;
+
+      const isThisConversation =
+        (blockerUserId === me && blockedUserId === peer) ||
+        (blockerUserId === peer && blockedUserId === me);
+
+      if (!isThisConversation) return;
+
+      queryClient.setQueriesData(
+        { queryKey: ['chat', peerUserId], exact: false },
+        (oldData: any) => {
+          if (!oldData?.pages || !Array.isArray(oldData.pages) || oldData.pages.length === 0) {
+            return oldData;
+          }
+
+          const nextPages = oldData.pages.map((page: any, index: number) => {
+            if (index !== 0) return page;
+
+            const participant = page?.participant || {};
+            const nextParticipant = { ...participant };
+
+            if (blockerUserId === me && blockedUserId === peer) {
+              nextParticipant.blockedByMe = blocked;
+            }
+            if (blockerUserId === peer && blockedUserId === me) {
+              nextParticipant.blockedMe = blocked;
+            }
+
+            return {
+              ...page,
+              participant: nextParticipant,
+            };
+          });
+
+          return { ...oldData, pages: nextPages };
+        }
+      );
+
+      queryClient.invalidateQueries({ queryKey: ['chatlist'] });
+    });
+
     socket.on('connect_error', error => {
       console.error('Socket connection error:', error);
       setIsConnected(false);
@@ -89,7 +146,7 @@ export const useSocketChat = (
     return () => {
       disconnectSocket(socket);
     };
-  }, [currentUserId, currentConversationId, queryClient]);
+  }, [peerUserId, currentConversationId, myUserId, queryClient]);
 
   const sendMessage = (recipientId: string, text: string) => {
     if (!socketRef.current || !isConnected) {
@@ -118,7 +175,7 @@ export const useSocketChat = (
           // Don't add message here - let the 'message:new' event handle it
           // This prevents duplicate messages
           // Update chat list
-          queryClient.invalidateQueries({ queryKey: ['chat', currentUserId], exact: false });
+          queryClient.invalidateQueries({ queryKey: ['chat', peerUserId], exact: false });
           queryClient.invalidateQueries({ queryKey: ['chatlist'] });
 
           resolve(ack.message);

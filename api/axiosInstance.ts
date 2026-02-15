@@ -4,8 +4,8 @@ import { router } from 'expo-router';
 
 const api = axios.create({
   // baseURL: 'http://10.10.11.18:4000',
-  baseURL: 'https://ungustatory-erringly-ralph.ngrok-free.dev',
-  // baseURL: 'https://marlene-unlarcenous-nonmunicipally.ngrok-free.dev',
+  // baseURL: 'https://ungustatory-erringly-ralph.ngrok-free.dev',
+  baseURL: 'https://marlene-unlarcenous-nonmunicipally.ngrok-free.dev',
   // baseURL: 'https://rurally-unparticular-lilliana.ngrok-free.dev',
 
   headers: {
@@ -14,6 +14,7 @@ const api = axios.create({
 });
 
 let isRedirectingToLogin = false;
+let lastAuthErrorLogAt = 0;
 
 const getErrorMessage = (err: unknown) => {
   if (!err) return 'Unknown error';
@@ -44,10 +45,22 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => response.data,
   async error => {
-    console.log('API Error:', error?.response?.data || getErrorMessage(error));
+    const status = error.response?.status;
+    const errorText = String(error?.response?.data?.error || '');
+    const isAuthRequiredError =
+      status === 401 && errorText === 'Authorization token required.';
+
+    if (isAuthRequiredError) {
+      const now = Date.now();
+      if (now - lastAuthErrorLogAt > 5000) {
+        console.log('API Error:', error?.response?.data || getErrorMessage(error));
+        lastAuthErrorLogAt = now;
+      }
+    } else {
+      console.log('API Error:', error?.response?.data || getErrorMessage(error));
+    }
 
     const originalRequest = error.config || {};
-    const status = error.response?.status;
     const isRefreshCall =
       typeof originalRequest?.url === 'string' &&
       originalRequest.url.includes('/api/auth/refresh');

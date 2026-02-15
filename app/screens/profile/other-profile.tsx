@@ -62,6 +62,8 @@ const OtherProfile = () => {
       'Music',
       'Loading...',
       'No bio yet',
+      'Date of Birth',
+      'Not set',
       'No photo posts found',
       'No video posts found',
       'No music posts found',
@@ -81,6 +83,12 @@ const OtherProfile = () => {
   // @ts-ignore
   const viewerIsFollowingInitial = data?.viewerIsFollowing || false;
   const bioValue = profile?.bio?.trim();
+  const dobRaw = profile?.dateOfBirth ? String(profile.dateOfBirth) : '';
+  const dobDate = dobRaw ? new Date(dobRaw) : null;
+  const dobLabel =
+    dobDate && !Number.isNaN(dobDate.getTime())
+      ? dobDate.toLocaleDateString()
+      : tx(13, 'Not set');
   const { data: translatedBio } = useTranslateTexts({
     texts: [bioValue || ''],
     targetLang: language,
@@ -178,6 +186,9 @@ const OtherProfile = () => {
                 {bioValue
                   ? translatedBio?.translations?.[0] || bioValue
                   : tx(11, 'No bio yet')}
+              </Text>
+              <Text className='font-roboto-regular text-primary dark:text-white mt-2'>
+                {tx(12, 'Date of Birth')}: {dobLabel}
               </Text>
             </View>
 
@@ -327,7 +338,7 @@ const OtherProfile = () => {
                       <View className='p-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] items-center justify-center w-full aspect-square'>
                         <Feather name='music' size={40} color='#F54900' />
                         <Text className='text-black dark:text-white mt-2 text-center text-xs'>
-                          {item.description || tx(15, 'Audio File')}
+                          {item.description || tx(17, 'Audio File')}
                         </Text>
                       </View>
                     )}
@@ -336,10 +347,10 @@ const OtherProfile = () => {
               ) : (
                 <Text className='text-primary dark:text-white font-roboto-regular mt-1'>
                   {selectedType === 'photo'
-                    ? tx(12, 'No photo posts found')
+                    ? tx(14, 'No photo posts found')
                     : selectedType === 'video'
-                      ? tx(13, 'No video posts found')
-                      : tx(14, 'No music posts found')}
+                      ? tx(15, 'No video posts found')
+                      : tx(16, 'No music posts found')}
                 </Text>
               )}
             </View>

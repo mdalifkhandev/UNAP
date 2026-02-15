@@ -240,8 +240,15 @@ export const usePayUblastOffer = () => {
 export const useCheckoutUblastOffer = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ offerId }: { offerId: string }) => {
-      const res = await api.post(`/api/ublast-offers/${offerId}/checkout`);
+    mutationFn: async ({
+      offerId,
+      appRedirectUri,
+    }: {
+      offerId: string;
+      appRedirectUri?: string;
+    }) => {
+      const payload = appRedirectUri ? { appRedirectUri } : undefined;
+      const res = await api.post(`/api/ublast-offers/${offerId}/checkout`, payload);
       return res;
     },
     onSuccess: (data: any) => {

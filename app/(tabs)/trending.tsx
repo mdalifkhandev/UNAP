@@ -17,6 +17,7 @@ import useLanguageStore from '@/store/language.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
+import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -464,15 +465,42 @@ const TrendingScreen = () => {
     const handleCheckout = async () => {
       if (!currentOffer?._id) return;
       try {
-        const data = await checkoutOffer({ offerId: currentOffer._id });
+        const appRedirectUri = Linking.createURL('payment-return');
+        const data = await checkoutOffer({
+          offerId: currentOffer._id,
+          appRedirectUri,
+        });
         const checkoutUrl = data?.url || data?.data?.url;
         if (checkoutUrl) {
-          await WebBrowser.openBrowserAsync(checkoutUrl);
+          const result = await WebBrowser.openAuthSessionAsync(
+            checkoutUrl,
+            appRedirectUri
+          );
+          if (result.type === 'success' && result.url) {
+            const parsed = Linking.parse(result.url);
+            const qp = parsed?.queryParams || {};
+            const payment = Array.isArray(qp.payment) ? qp.payment[0] : qp.payment;
+            if (payment === 'success') {
+              Toast.show({
+                type: 'success',
+                text1: 'Payment Complete',
+                text2: 'Offer payment completed successfully.',
+              });
+            } else if (payment === 'cancel') {
+              Toast.show({
+                type: 'info',
+                text1: 'Payment Cancelled',
+                text2: 'You cancelled the payment.',
+              });
+            }
+          }
         }
+        refetchOffers();
+        refetchActive();
         setTimeout(() => {
           refetchOffers();
           refetchActive();
-        }, 1500);
+        }, 1200);
       } catch (error) {
         console.log('Checkout error:', error);
       }

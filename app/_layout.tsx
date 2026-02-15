@@ -1,62 +1,107 @@
-import { getFCMToken, requestFCMPermission } from '@/services/fcm';
+import {
+  getFCMToken,
+  getInitialFCMNotification,
+  isFirebaseMessagingAvailable,
+  type RemoteMessage,
+  requestFCMPermission,
+  subscribeForegroundFCM,
+} from '@/services/fcm';
+import { connectSocket, disconnectSocket } from '@/lib/socketClient';
+import {
+  getExpoNotificationsModule,
+} from '@/services/expoNotifications';
 import { createNotificationChannel } from '@/services/notificationChannel';
+import { registerPushToken } from '@/services/pushToken';
+import { getNotificationStore } from '@/store/notification.store';
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from '@react-navigation/native';
-import { getApps } from '@react-native-firebase/app';
-import {
-  getInitialNotification,
-  getMessaging,
-  onMessage,
-} from '@react-native-firebase/messaging';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import './global.css';
 
+import useAuthStore from '@/store/auth.store';
 import useThemeStore from '@/store/theme.store';
 import { useColorScheme as useNWColorScheme } from 'nativewind';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-if (getApps().length === 0) {
-  // React Native Firebase is initialized natively in Expo dev/build.
-}
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
-
 const RootLayout = () => {
   const { mode } = useThemeStore();
   const { setColorScheme } = useNWColorScheme();
+  const { user } = useAuthStore();
 
   const islight = mode === 'light';
-  const hasFirebaseApp = getApps().length > 0;
+  const notifications = getExpoNotificationsModule();
+  const hasFirebaseMessaging = isFirebaseMessagingAvailable();
+  const [fcmToken, setFcmToken] = useState<string | null>(null);
+  const lastRegisteredTokenRef = useRef<string | null>(null);
+
+  const pushInAppNotification = (remoteMessage: RemoteMessage) => {
+    const title =
+      remoteMessage.notification?.title ||
+      (typeof remoteMessage.data?.title === 'string'
+        ? remoteMessage.data.title
+        : 'New Notification');
+    const body =
+      remoteMessage.notification?.body ||
+      (typeof remoteMessage.data?.body === 'string'
+        ? remoteMessage.data.body
+        : '');
+
+    const id =
+      remoteMessage.messageId ||
+      `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    getNotificationStore().addNotification({
+      id,
+      title,
+      body,
+      type: String(remoteMessage.data?.type || 'system'),
+      createdAt: remoteMessage.sentTime
+        ? new Date(remoteMessage.sentTime).toISOString()
+        : new Date().toISOString(),
+      screen:
+        typeof remoteMessage.data?.screen === 'string'
+          ? remoteMessage.data.screen
+          : undefined,
+      data: remoteMessage.data,
+      read: false,
+    });
+
+    return { title, body };
+  };
 
   useEffect(() => {
     setColorScheme(mode);
   }, [mode, setColorScheme]);
 
   useEffect(() => {
+    if (!notifications) return;
+    notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    });
+  }, [notifications]);
+
+  useEffect(() => {
     async function setup() {
       try {
-        if (!hasFirebaseApp) {
-          console.log('Firebase app not initialized. Skipping FCM setup.');
+        if (!hasFirebaseMessaging) {
+          console.log('Firebase native module unavailable. Skipping FCM setup.');
           return;
         }
         await createNotificationChannel();
@@ -65,29 +110,55 @@ const RootLayout = () => {
           console.log('Notification permission denied');
           return;
         }
-        await getFCMToken();
+        const token = await getFCMToken();
+        if (token) {
+          setFcmToken(token);
+        }
       } catch (error) {
         console.error('Firebase setup error:', error);
       }
     }
     setup();
-  }, [hasFirebaseApp]);
+  }, [hasFirebaseMessaging]);
 
   useEffect(() => {
-    if (!hasFirebaseApp) return;
-    try {
-      const messaging = getMessaging();
-      const unsubscribe = onMessage(messaging, async remoteMessage => {
-        console.log('Foreground notification received:', remoteMessage);
+    if (!hasFirebaseMessaging) return;
+    if (!user?.token) return;
+    if (!fcmToken) return;
+    if (lastRegisteredTokenRef.current === fcmToken) return;
 
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: remoteMessage.notification?.title || 'New Notification',
-            body: remoteMessage.notification?.body || '',
-            data: remoteMessage.data,
-            sound: 'default',
-          },
-          trigger: null,
+    registerPushToken(fcmToken)
+      .then(() => {
+        lastRegisteredTokenRef.current = fcmToken;
+      })
+      .catch(error => {
+        console.log('Push token registration failed:', error?.message || error);
+      });
+  }, [hasFirebaseMessaging, user?.token, fcmToken]);
+
+  useEffect(() => {
+    if (!hasFirebaseMessaging) return;
+    try {
+      const unsubscribe = subscribeForegroundFCM(async remoteMessage => {
+        console.log('Foreground notification received:', remoteMessage);
+        const { title, body } = pushInAppNotification(remoteMessage);
+
+        if (notifications) {
+          await notifications.scheduleNotificationAsync({
+            content: {
+              title,
+              body,
+              data: remoteMessage.data,
+              sound: 'default',
+            },
+            trigger: null,
+          });
+        }
+
+        Toast.show({
+          type: 'info',
+          text1: title,
+          text2: body || 'You have a new update.',
         });
       });
       return () => {
@@ -96,12 +167,26 @@ const RootLayout = () => {
     } catch (error) {
       console.error('Foreground notification setup error:', error);
     }
-  }, [hasFirebaseApp]);
+  }, [hasFirebaseMessaging, notifications]);
 
   useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(
+    if (!notifications) return;
+
+    const subscription = notifications.addNotificationResponseReceivedListener(
       response => {
         console.log('Notification interaction:', response);
+        const payloadData = response.notification.request.content.data || {};
+        getNotificationStore().addNotification({
+          id: response.notification.request.identifier,
+          title: String(response.notification.request.content.title || 'Notification'),
+          body: String(response.notification.request.content.body || ''),
+          type: String(payloadData.type || 'system'),
+          createdAt: new Date().toISOString(),
+          screen: typeof payloadData.screen === 'string' ? payloadData.screen : undefined,
+          data: payloadData as Record<string, string>,
+          read: true,
+        });
+
         const screen = response.notification.request.content.data?.screen;
         if (typeof screen === 'string' && screen.length > 0) {
           router.push(screen as any);
@@ -110,21 +195,22 @@ const RootLayout = () => {
         }
       }
     );
+
     return () => subscription.remove();
-  }, []);
+  }, [notifications]);
 
   useEffect(() => {
-    if (!hasFirebaseApp) return;
+    if (!hasFirebaseMessaging) return;
     async function checkInitialNotification() {
       try {
-        const messaging = getMessaging();
-        const remoteMessage = await getInitialNotification(messaging);
+        const remoteMessage = await getInitialFCMNotification();
 
         if (remoteMessage) {
           console.log(
             'App opened from killed state via notification:',
             remoteMessage
           );
+          pushInAppNotification(remoteMessage);
           const screen = remoteMessage.data?.screen;
           if (typeof screen === 'string' && screen.length > 0) {
             router.push(screen as any);
@@ -138,7 +224,80 @@ const RootLayout = () => {
     }
 
     checkInitialNotification();
-  }, [hasFirebaseApp]);
+  }, [hasFirebaseMessaging]);
+
+  useEffect(() => {
+    if (!user?.token || !user?.id) return;
+
+    const socket = connectSocket();
+    if (!socket) return;
+
+    const handleIncomingMessage = async (payload: any) => {
+      const message = payload?.message;
+      if (!message) return;
+
+      const recipientId = String(message?.recipientId || '');
+      const senderId = String(message?.senderId || '');
+      if (!recipientId || recipientId !== String(user.id)) return;
+      if (!senderId || senderId === String(user.id)) return;
+
+      const body =
+        typeof message?.text === 'string' && message.text.trim()
+          ? message.text.trim().slice(0, 120)
+          : message?.mediaType === 'image'
+          ? 'Sent a photo'
+          : message?.mediaType === 'video'
+          ? 'Sent a video'
+          : message?.mediaType === 'audio'
+          ? 'Sent an audio message'
+          : 'Sent a message';
+
+      const itemId = `chat-${String(message?._id || Date.now())}`;
+      getNotificationStore().addNotification({
+        id: itemId,
+        title: 'New message',
+        body,
+        type: 'chat',
+        createdAt: new Date(message?.createdAt || Date.now()).toISOString(),
+        screen: `/screens/chat/chat-screen?userId=${senderId}`,
+        data: {
+          type: 'chat',
+          senderId,
+          conversationId: String(payload?.conversationId || ''),
+        },
+        read: false,
+      });
+
+      if (notifications) {
+        await notifications.scheduleNotificationAsync({
+          content: {
+            title: 'New message',
+            body,
+            data: {
+              type: 'chat',
+              senderId,
+              screen: `/screens/chat/chat-screen?userId=${senderId}`,
+            },
+            sound: 'default',
+          },
+          trigger: null,
+        });
+      }
+
+      Toast.show({
+        type: 'info',
+        text1: 'New message',
+        text2: body,
+      });
+    };
+
+    socket.on('message:new', handleIncomingMessage);
+
+    return () => {
+      socket.off('message:new', handleIncomingMessage);
+      disconnectSocket(socket);
+    };
+  }, [user?.token, user?.id, notifications]);
 
   const [fontsLoaded] = useFonts({
     'Roboto-Bold': require('@/assets/fonts/Roboto-Bold.ttf'),

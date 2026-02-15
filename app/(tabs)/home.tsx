@@ -7,6 +7,7 @@ import { useGetAllPost } from '@/hooks/app/home';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import useAuthStore from '@/store/auth.store';
 import useLanguageStore from '@/store/language.store';
+import useNotificationStore from '@/store/notification.store';
 import useThemeStore from '@/store/theme.store';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -66,6 +67,7 @@ const Home = () => {
   const { user } = useAuthStore();
   const { language } = useLanguageStore();
   const { mode } = useThemeStore();
+  const unreadCount = useNotificationStore(state => state.badgeCount);
   const isLight = mode === 'light';
   const isFocused = useIsFocused();
   const queryClient = useQueryClient();
@@ -118,12 +120,20 @@ const Home = () => {
         <View className='flex-row gap-3 items-center'>
           <TouchableOpacity
             onPress={() => router.push('/screens/home/notification')}
+            className='relative'
           >
             <Ionicons
               name='notifications-outline'
               size={24}
               color={isLight ? 'black' : 'white'}
             />
+            {unreadCount > 0 && (
+              <View className='absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 items-center justify-center'>
+                <Text className='text-white text-[10px] font-roboto-bold'>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
             <Image

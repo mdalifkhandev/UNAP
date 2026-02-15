@@ -1,11 +1,18 @@
 import ShadowButton from '@/components/button/ShadowButton';
 import Input from '@/components/inpute/Inpute';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useGetAccounts } from '@/hooks/app/accounts';
+import {
+  useConnectAccount,
+  useDisconnectAccount,
+  useGetAccounts,
+} from '@/hooks/app/accounts';
 import { useCompleteProfile, useGetMyProfile } from '@/hooks/app/profile';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import Feather from '@expo/vector-icons/Feather';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Image } from 'expo-image';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -20,6 +27,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const CompleteProfile = () => {
   const [roleOpen, setRoleOpen] = useState(false);
@@ -30,6 +38,8 @@ const CompleteProfile = () => {
   // form state
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [showDobPicker, setShowDobPicker] = useState(false);
   const [bio, setBio] = useState('');
   const [instagram, setInstagram] = useState('');
   const [youtube, setYoutube] = useState('');
@@ -42,7 +52,10 @@ const CompleteProfile = () => {
   // @ts-ignore
   const profile = profileData?.profile;
   const { mutate: completeProfile, isPending: loading } = useCompleteProfile();
+  const { mutateAsync: connectAccount } = useConnectAccount();
+  const { mutateAsync: disconnectAccount } = useDisconnectAccount();
   const { data: accountsData, refetch: refetchAccounts } = useGetAccounts();
+  const [busyPlatform, setBusyPlatform] = useState<string | null>(null);
   const { data: t } = useTranslateTexts({
     texts: [
       'Complete Your Profile',
@@ -50,6 +63,7 @@ const CompleteProfile = () => {
       'Upload Photo',
       'Username',
       'Display Name',
+      'Date of Birth',
       'Select Your Role',
       'Bio',
       'Connect Instagram',
@@ -64,6 +78,13 @@ const CompleteProfile = () => {
       'Connected',
       'Not Connected',
       'Social Accounts',
+      'Connect',
+      'Disconnect',
+      'Connecting...',
+      'Connected successfully',
+      'Disconnected successfully',
+      'Select Date of Birth',
+      'Done',
     ],
     targetLang: profile?.preferredLanguage,
     enabled: !!profile?.preferredLanguage,
@@ -78,6 +99,69 @@ const CompleteProfile = () => {
   );
   const isConnected = (platform: string) =>
     connectedPlatforms.has(String(platform).toLowerCase());
+
+  const handleToggleAccount = async (platform: string) => {
+    const key = String(platform).toLowerCase();
+    const connected = isConnected(platform);
+    setBusyPlatform(key);
+    try {
+      if (connected) {
+        await disconnectAccount(key);
+        Toast.show({
+          type: 'success',
+          text1: platform,
+          text2: tx(24, 'Disconnected successfully'),
+        });
+        await refetchAccounts();
+        return;
+      }
+
+      const appRedirectUri = Linking.createURL('accounts-callback');
+      const response = await connectAccount({
+        platform: key,
+        appRedirectUri,
+      });
+      const authUrl = response?.authUrl || response?.url;
+      if (!authUrl) {
+        throw new Error('Missing authorization url.');
+      }
+
+      const result = await WebBrowser.openAuthSessionAsync(
+        authUrl,
+        appRedirectUri
+      );
+      if (result.type === 'success' && result.url) {
+        const parsed = Linking.parse(result.url);
+        const params = parsed?.queryParams || {};
+        const status = Array.isArray(params.status)
+          ? params.status[0]
+          : params.status;
+        const error = Array.isArray(params.error) ? params.error[0] : params.error;
+        if (status === 'success') {
+          Toast.show({
+            type: 'success',
+            text1: platform,
+            text2: tx(23, 'Connected successfully'),
+          });
+        } else if (error) {
+          Toast.show({
+            type: 'error',
+            text1: platform,
+            text2: String(error),
+          });
+        }
+      }
+      await refetchAccounts();
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: platform,
+        text2: error?.message || 'Connection failed.',
+      });
+    } finally {
+      setBusyPlatform(null);
+    }
+  };
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', nextState => {
@@ -97,10 +181,37 @@ const CompleteProfile = () => {
     'Spotify',
   ];
 
+  const toDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const parseDobDate = (value: string) => {
+    if (!value) return new Date(2000, 0, 1);
+    const parsed = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return new Date(2000, 0, 1);
+    return parsed;
+  };
+
+  const onDobChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDobPicker(false);
+    }
+    if (event?.type === 'dismissed') return;
+    if (selectedDate) {
+      setDateOfBirth(toDateString(selectedDate));
+    }
+  };
+
   useEffect(() => {
     if (profile) {
       setUsername(profile.username || '');
       setDisplayName(profile.displayName || '');
+      setDateOfBirth(
+        profile.dateOfBirth ? String(profile.dateOfBirth).slice(0, 10) : ''
+      );
       setBio(profile.bio || '');
       if (profile.role) {
         const capitalizedRole =
@@ -203,6 +314,7 @@ const CompleteProfile = () => {
       formData.append('role', selectedRole.toLowerCase());
       formData.append('bio', bio);
       formData.append('displayName', displayName);
+      formData.append('dateOfBirth', dateOfBirth.trim());
 
       // Format URLs properly
       formData.append('instagramUrl', formatUrl(instagram, 'instagram'));
@@ -309,9 +421,46 @@ const CompleteProfile = () => {
                 onChangeText={setDisplayName}
               />
 
+              <Text className='text-primary dark:text-white mt-3'>
+                {tx(5, 'Date of Birth')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowDobPicker(true)}
+                className='mt-2 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] rounded-xl px-4 py-4'
+              >
+                <Text className='text-primary dark:text-white'>
+                  {dateOfBirth
+                    ? new Date(`${dateOfBirth}T00:00:00`).toLocaleDateString()
+                    : tx(25, 'Select Date of Birth')}
+                </Text>
+              </TouchableOpacity>
+              {showDobPicker && (
+                <View className='mt-2'>
+                  {Platform.OS === 'ios' && (
+                    <View className='flex-row justify-end mb-2'>
+                      <TouchableOpacity
+                        onPress={() => setShowDobPicker(false)}
+                        className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1 rounded-md'
+                      >
+                        <Text className='text-primary dark:text-white font-medium'>
+                          {tx(26, 'Done')}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  <DateTimePicker
+                    value={parseDobDate(dateOfBirth)}
+                    mode='date'
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={onDobChange}
+                    maximumDate={new Date()}
+                  />
+                </View>
+              )}
+
               {/* Select Your Role */}
               <Text className='text-primary dark:text-white mb-2 mt-3 text-base'>
-                {tx(5, 'Select Your Role')}
+                {tx(6, 'Select Your Role')}
               </Text>
               <Input
                 className='mt-2'
@@ -355,7 +504,7 @@ const CompleteProfile = () => {
               {/* Bio */}
               <Text className='text-primary dark:text-white mt-3 mb-2 text-base'>Bio</Text>
               <TextInput
-                placeholder={tx(15, 'Tell us about yourself and your music...')}
+                placeholder={tx(16, 'Tell us about yourself and your music...')}
                 placeholderTextColor='rgba(0,0,0,0.5)'
                 multiline
                 numberOfLines={4}
@@ -368,10 +517,12 @@ const CompleteProfile = () => {
               {/* Social Accounts Status */}
               <View className='mt-8 rounded-2xl bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-4 border border-black/10 dark:border-[#FFFFFF0D]'>
                 <Text className='text-primary dark:text-white font-roboto-semibold text-base mb-3'>
-                  {tx(18, 'Social Accounts')}
+                  {tx(19, 'Social Accounts')}
                 </Text>
                 {socialPlatforms.map(platform => {
                   const connected = isConnected(platform);
+                  const key = String(platform).toLowerCase();
+                  const isBusy = busyPlatform === key;
                   return (
                     <View
                       key={platform}
@@ -380,20 +531,45 @@ const CompleteProfile = () => {
                       <Text className='text-primary dark:text-white'>
                         {platform}
                       </Text>
-                      <View
-                        className={`px-3 py-1 rounded-full ${
-                          connected
-                            ? 'bg-green-500/10 border border-green-500/40'
-                            : 'bg-gray-500/10 border border-gray-500/40'
-                        }`}
+
+                      <View className='flex-row items-center gap-2'
                       >
-                        <Text
-                          className={`text-xs ${
-                            connected ? 'text-green-600' : 'text-gray-500'
+                        <TouchableOpacity
+                          disabled={isBusy}
+                          onPress={() => handleToggleAccount(platform)}
+                          className={`px-3 py-1 rounded-full ${
+                            connected
+                              ? 'bg-red-500/10 border border-red-500/40'
+                              : 'bg-blue-500/10 border border-blue-500/40'
                           }`}
                         >
-                          {connected ? tx(16, 'Connected') : tx(17, 'Not Connected')}
-                        </Text>
+                          <Text
+                            className={`text-xs ${
+                              connected ? 'text-red-500' : 'text-blue-500'
+                            }`}
+                          >
+                            {isBusy
+                              ? tx(22, 'Connecting...')
+                              : connected
+                                ? tx(21, 'Disconnect')
+                                : tx(20, 'Connect')}
+                          </Text>
+                        </TouchableOpacity>
+                        <View
+                          className={`px-3 py-1 rounded-full ${
+                            connected
+                              ? 'bg-green-500/10 border border-green-500/40'
+                              : 'bg-gray-500/10 border border-gray-500/40'
+                          }`}
+                        >
+                          <Text
+                            className={`text-xs ${
+                              connected ? 'text-green-600' : 'text-gray-500'
+                            }`}
+                          >
+                            {connected ? tx(17, 'Connected') : tx(18, 'Not Connected')}
+                          </Text>
+                        </View>
                       </View>
                     </View>
                   );
@@ -409,7 +585,7 @@ const CompleteProfile = () => {
               ) : null}
 
               <ShadowButton
-                text={loading ? 'Saving...' : tx(13, 'Complete Setup')}
+                text={loading ? 'Saving...' : tx(14, 'Complete Setup')}
                 textColor='#2B2B2B'
                 backGroundColor='#E8EBEE'
                 onPress={handleCompleteProfile}

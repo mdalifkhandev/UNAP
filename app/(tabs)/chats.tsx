@@ -4,6 +4,7 @@ import { useSocketPresence } from '@/hooks/app/useSocketPresence';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import useThemeStore from '@/store/theme.store';
 import useLanguageStore from '@/store/language.store';
+import useNotificationStore from '@/store/notification.store';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -45,6 +46,7 @@ const formatMessageTime = (createdAt: string) => {
 const ChatsList = () => {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
+  const unreadCount = useNotificationStore(state => state.badgeCount);
   const { data, isLoading, isError, error } = useGetAllChatList();
   const { language } = useLanguageStore();
   const { isUserOnline, isConnected } = useSocketPresence();
@@ -148,12 +150,20 @@ const ChatsList = () => {
             )}
             <TouchableOpacity
               onPress={() => router.push('/screens/home/notification')}
+              className='relative'
             >
               <Ionicons
                 name='notifications-outline'
                 size={24}
                 color={isLight ? 'black' : 'white'}
               />
+              {unreadCount > 0 && (
+                <View className='absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 items-center justify-center'>
+                  <Text className='text-white text-[10px] font-roboto-bold'>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
 

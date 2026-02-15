@@ -14,6 +14,7 @@ import {
   useSharePost,
   useUnsavePost,
 } from '@/hooks/app/post';
+import { useCreateUCuts } from '@/hooks/app/ucuts';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import { useGetMyProfile } from '@/hooks/app/profile';
 import useLanguageStore from '@/store/language.store';
@@ -29,6 +30,7 @@ import {
   FlatList,
   Linking,
   Modal,
+  Platform,
   ScrollView,
   Share,
   Text,
@@ -128,6 +130,7 @@ const PostCard = ({
   const { mutate: deletePost } = useDeletePost();
   const { mutate: cancelScheduledPost } = useCancelScheduledPost();
   const { mutate: sharePost } = useSharePost();
+  const { mutateAsync: createUcut } = useCreateUCuts();
   const { data: profileData } = useGetMyProfile();
   const { language: storedLanguage } = useLanguageStore();
 
@@ -299,10 +302,92 @@ const PostCard = ({
     }
   };
 
+  const openInstagramStoryShare = async () => {
+    const { description, mediaUrl, message } = buildSharePayload();
+    const mediaType = post?.mediaType;
+    const appId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || '';
+
+    try {
+      const canOpenStory = await Linking.canOpenURL('instagram-stories://share');
+      if (canOpenStory && mediaUrl) {
+        const mediaParam =
+          mediaType === 'video' ? 'backgroundVideo' : 'backgroundImage';
+        const storyUrl = `instagram-stories://share?source_application=${encodeURIComponent(
+          appId
+        )}&${mediaParam}=${encodeURIComponent(mediaUrl)}${
+          description ? `&content_url=${encodeURIComponent(description)}` : ''
+        }`;
+        await Linking.openURL(storyUrl);
+        return true;
+      }
+
+      const canOpenInstagram = await Linking.canOpenURL('instagram://');
+      if (canOpenInstagram) {
+        await Linking.openURL('instagram://camera');
+        return true;
+      }
+
+      await Share.share({ message, url: mediaUrl || undefined });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const openFacebookStoryShare = async () => {
+    const { mediaUrl } = buildSharePayload();
+    const mediaType = post?.mediaType;
+    const appId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || '';
+    const isHttpMedia = /^https?:\/\//i.test(mediaUrl);
+    const canAttachMedia =
+      Boolean(mediaUrl) && (mediaType === 'image' || mediaType === 'video');
+
+    if (Platform.OS === 'android') {
+      try {
+        if (appId && canAttachMedia && isHttpMedia) {
+          await Linking.sendIntent('com.facebook.stories.ADD_TO_STORY', [
+            { key: 'com.facebook.platform.extra.APPLICATION_ID', value: appId },
+            { key: 'source_application', value: appId },
+            { key: 'interactive_asset_uri', value: mediaUrl },
+            { key: 'content_url', value: mediaUrl },
+          ]);
+          return true;
+        }
+      } catch {
+        // fall through to scheme-based attempt
+      }
+    }
+
+    try {
+      const canOpenStory = await Linking.canOpenURL('facebook-stories://share');
+      if (canOpenStory && canAttachMedia && isHttpMedia) {
+        const mediaParam =
+          mediaType === 'video' ? 'backgroundVideo' : 'backgroundImage';
+        const queryParts = [
+          `${mediaParam}=${encodeURIComponent(mediaUrl)}`,
+          `content_url=${encodeURIComponent(mediaUrl)}`,
+        ];
+        if (appId) {
+          queryParts.push(`app_id=${encodeURIComponent(appId)}`);
+          queryParts.push(`source_application=${encodeURIComponent(appId)}`);
+        }
+        const storyUrl = `facebook-stories://share?${queryParts.join('&')}`;
+        await Linking.openURL(storyUrl);
+        return true;
+      }
+    } catch {
+      // no-op
+    }
+
+    return false;
+  };
+
   const handleShareTarget = async (
     target:
       | 'facebook'
       | 'instagram'
+      | 'facebook_story'
+      | 'instagram_story'
       | 'feed'
       | 'story'
       | 'twitter'
@@ -312,26 +397,69 @@ const PostCard = ({
       | 'spotify'
   ) => {
     if (!post?._id) return;
-    if (target === 'feed') {
-      sharePost({ postId: post._id });
-    } else if (target === 'story') {
-      // Backend doesn't support story for posts; fallback to feed for now
-      sharePost({ postId: post._id });
-    } else if (target === 'facebook') {
-      const opened = await openFacebookShare();
-      if (!opened) {
-        Toast.show({
-          type: 'error',
-          text1: 'Facebook share failed',
-          text2: 'Could not open Facebook share.',
+    try {
+      if (target === 'feed') {
+        sharePost({ postId: post._id });
+      } else if (target === 'story') {
+        await createUcut({
+          text: post?.description || '',
+          mediaUrl: post?.mediaUrl || undefined,
+          mediaType: post?.mediaType || undefined,
         });
+      } else if (target === 'facebook_story') {
+        const appId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || '';
+        if (!appId) {
+          Toast.show({
+            type: 'error',
+            text1: 'Facebook Story unavailable',
+            text2: 'Set EXPO_PUBLIC_FACEBOOK_APP_ID first.',
+          });
+          return;
+        }
+        if (post?.mediaType === 'audio' || !post?.mediaUrl) {
+          Toast.show({
+            type: 'error',
+            text1: 'Facebook Story unavailable',
+            text2: 'Only image or video can be shared to story.',
+          });
+          return;
+        }
+        const opened = await openFacebookStoryShare();
+        if (!opened) {
+          Toast.show({
+            type: 'error',
+            text1: 'Facebook story failed',
+            text2: 'Story composer did not open with media.',
+          });
+          return;
+        }
+      } else if (target === 'instagram_story') {
+        const opened = await openInstagramStoryShare();
+        if (!opened) {
+          Toast.show({
+            type: 'error',
+            text1: 'Instagram story failed',
+            text2: 'Could not open Instagram story share.',
+          });
+        }
+      } else if (target === 'facebook') {
+        const opened = await openFacebookShare();
+        if (!opened) {
+          Toast.show({
+            type: 'error',
+            text1: 'Facebook share failed',
+            text2: 'Could not open Facebook share.',
+          });
+        }
+        // Do not use LATE for Facebook; keep in-app share only.
+        sharePost({ postId: post._id });
+      } else {
+        sharePost({ postId: post._id, target });
       }
-      // Do not use LATE for Facebook; keep in-app share only.
-      sharePost({ postId: post._id });
-    } else {
-      sharePost({ postId: post._id, target });
+      setShowShareModal(false);
+    } catch {
+      // Error toast is handled in corresponding hooks.
     }
-    setShowShareModal(false);
   };
 
   // Use post data if provided, otherwise use defaults
@@ -417,6 +545,8 @@ const PostCard = ({
       'Share to YouTube',
       'Share to Snapchat',
       'Share to Spotify',
+      'Share to Facebook Story',
+      'Share to Instagram Story',
     ],
     targetLang: uiLanguage,
     enabled: !!uiLanguage && uiLanguage !== 'EN',
@@ -536,6 +666,22 @@ const PostCard = ({
                   >
                     <Text className='text-black dark:text-white font-roboto-medium'>
                       {uiTexts(31, 'Share to Snapchat')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('facebook_story')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(33, 'Share to Facebook Story')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleShareTarget('instagram_story')}
+                    className='py-3 px-4 rounded-xl bg-[#F0F2F5] dark:bg-white/10 mb-3'
+                  >
+                    <Text className='text-black dark:text-white font-roboto-medium'>
+                      {uiTexts(34, 'Share to Instagram Story')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity

@@ -1,7 +1,10 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { getExpoNotificationsModule, isExpoGoRuntime } from './expoNotifications';
 
 export async function createNotificationChannel() {
+  if (isExpoGoRuntime()) return;
+  const Notifications = getExpoNotificationsModule();
+  if (!Notifications) return;
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'Default Notification',

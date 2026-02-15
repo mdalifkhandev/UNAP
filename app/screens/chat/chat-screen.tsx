@@ -77,16 +77,21 @@ const ChatScreen = () => {
     useChattingSendMessage();
   const { mutate: markAsRead } = useMarkMessagesAsRead();
   const { isConnected, sendMessage: sendSocketMessage } = useSocketChat(
-    userId,
-    conversationId
+    peerUserId,
+    conversationId,
+    myUserId
   );
   const { isUserOnline, isConnected: isPresenceConnected } = useSocketPresence();
 
   // @ts-ignore
   const pages = data?.pages || [];
-  const participantIsOnline = Boolean(pages?.[0]?.participant?.isOnline);
+  const firstPage = (pages?.[0] as any) || {};
+  const participant = (firstPage?.participant as any) || {};
+  const participantIsOnline = Boolean(participant?.isOnline);
   const isReceiverOnline = isUserOnline(peerUserId) || participantIsOnline;
-  const isBlockedByMe = Boolean(pages?.[0]?.participant?.blockedByMe);
+  const isBlockedByMe = Boolean(participant?.blockedByMe);
+  const isBlockedMe = Boolean(participant?.blockedMe);
+  const isMessagingBlocked = isBlockedByMe || isBlockedMe;
   const messages = [...pages].reverse().flatMap((page: any) => page?.messages || []);
   const messageTexts = messages.map((msg: any) => String(msg?.text || ''));
   const { data: translatedMessages } = useTranslateTexts({
@@ -101,6 +106,15 @@ const ChatScreen = () => {
     if (!message.trim()) return;
 
     try {
+      if (isMessagingBlocked) {
+        Toast.show({
+          type: 'error',
+          text1: 'Message Blocked',
+          text2: 'Messaging is blocked for this user.',
+        });
+        return;
+      }
+
       if (!peerUserId) {
         Toast.show({
           type: 'error',
@@ -124,10 +138,14 @@ const ChatScreen = () => {
       setMessage(''); // Clear input after sending
     } catch (error) {
       console.error('Failed to send message:', error);
+      const errorText =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Could not send message.';
       Toast.show({
         type: 'error',
         text1: 'Send Failed',
-        text2: 'Could not send message.',
+        text2: errorText,
       });
     }
   };
@@ -332,22 +350,27 @@ const ChatScreen = () => {
 
             <View className='flex-1 rounded-3xl flex-row items-center px-4 h-12'>
               <TextInput
-                placeholder={tx(5, 'Type a message...')}
+                placeholder={
+                  isMessagingBlocked
+                    ? 'Messaging is blocked'
+                    : tx(5, 'Type a message...')
+                }
                 placeholderTextColor={
                   isLight ? '#9ca3af' : 'rgba(255,255,255,0.6)'
                 }
                 multiline
                 value={message}
                 onChangeText={setMessage}
+                editable={!isMessagingBlocked}
                 className='flex-1 text-black dark:text-white text-[15px] border border-black/20 dark:border-[#FFFFFF0D] rounded-[10px] px-3'
               />
             </View>
 
             <TouchableOpacity
               onPress={handleSendMessage}
-              disabled={isSendingMessage || !message.trim()}
+              disabled={isSendingMessage || !message.trim() || isMessagingBlocked}
               className={`h-12 w-12 rounded-full items-center justify-center border ${
-                isSendingMessage || !message.trim()
+                isSendingMessage || !message.trim() || isMessagingBlocked
                   ? 'border-black/20 dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
                   : 'border-black/20 dark:border-[#FFFFFF0D] bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
               }`}
@@ -356,7 +379,7 @@ const ChatScreen = () => {
                 name='send'
                 size={24}
                 color={
-                  isSendingMessage || !message.trim()
+                  isSendingMessage || !message.trim() || isMessagingBlocked
                     ? isLight
                       ? '#9ca3af'
                       : 'rgba(255,255,255,0.6)'

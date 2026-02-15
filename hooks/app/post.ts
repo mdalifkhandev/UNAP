@@ -174,6 +174,17 @@ export const useGetMyPosts = (options?: {
   });
 };
 
+export const useGetPostById = (postId?: string) => {
+  return useQuery({
+    queryKey: ['postById', postId],
+    enabled: !!postId,
+    queryFn: async () => {
+      const res = await api.get(`/api/posts/${postId}`);
+      return res?.post || null;
+    },
+  });
+};
+
 export const useGetMyPostsInfinite = (options?: {
   enabled?: boolean;
   limit?: number;

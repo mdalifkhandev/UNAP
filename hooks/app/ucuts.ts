@@ -4,12 +4,14 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import Toast from 'react-native-toast-message';
 
 type CreateUCutsPayload = {
-  text: string;
-  media: {
+  text?: string;
+  media?: {
     uri: string;
     name: string;
     type: string;
   };
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video' | 'audio';
 };
 
 export const useCreateUCuts = () => {
@@ -17,16 +19,25 @@ export const useCreateUCuts = () => {
 
   return useMutation({
     mutationFn: async (payload: CreateUCutsPayload) => {
-      const formData = new FormData();
-      formData.append('text', payload.text);
-      // @ts-ignore - React Native file object
-      formData.append('media', payload.media);
+      if (payload.media) {
+        const formData = new FormData();
+        if (payload.text) formData.append('text', payload.text);
+        // @ts-ignore - React Native file object
+        formData.append('media', payload.media);
 
-      const res = await api.post('/api/ucuts', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+        const res = await api.post('/api/ucuts', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return res;
+      }
+
+      const body: any = {};
+      if (payload.text) body.text = payload.text;
+      if (payload.mediaUrl) body.mediaUrl = payload.mediaUrl;
+      if (payload.mediaType) body.mediaType = payload.mediaType;
+      const res = await api.post('/api/ucuts', body);
       return res;
     },
     onSuccess: (data: any) => {
