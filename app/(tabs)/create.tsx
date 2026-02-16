@@ -9,6 +9,7 @@ import {
   useCreatePostByUrl,
 } from '@/hooks/app/post';
 import {
+  type CloudinaryUploadResponse,
   useUploadSignature,
   useUploadVideoToCloudinary,
 } from '@/hooks/app/uploads';
@@ -22,6 +23,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
+import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useVideoPlayer } from 'expo-video';
@@ -86,7 +88,7 @@ const CreatePost = () => {
   const [videoName, setVideoName] = useState<string | null>(null);
   const [videoPlayerUri, setVideoPlayerUri] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const videoPlayer = useVideoPlayer(videoPlayerUri || '', player => {
+  const videoPlayer = useVideoPlayer(videoPlayerUri || null, player => {
     player.loop = true;
   });
   useEffect(() => {
@@ -288,14 +290,14 @@ const CreatePost = () => {
       } as any);
       formData.append('mediaType', 'image');
     } else if (video && !isRemote(video)) {
-      if (!isUclip && videoSize && videoSize > BIG_VIDEO_BYTES) {
+      if (videoSize && videoSize > BIG_VIDEO_BYTES) {
         try {
           setUploadProgress(0);
           const signatureData = await requestSignature({
             folder: 'mister/posts',
             resourceType: 'video',
           });
-          const uploadRes = await uploadVideo({
+          const uploadRes: CloudinaryUploadResponse = await uploadVideo({
             signature: signatureData,
             uri: video,
             fileName: videoName,
@@ -496,12 +498,14 @@ const CreatePost = () => {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       quality: 1,
     });
     if (!result.canceled) {
       setPhoto(result.assets[0].uri);
-      setVideo(result.assets[0].uri);
+      setVideo(null);
+      setVideoSize(null);
+      setVideoName(null);
       setVideoPlayerUri(null);
       setAudio(null);
     }
@@ -509,7 +513,7 @@ const CreatePost = () => {
 
   const pickVideo = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      mediaTypes: ['videos'],
       quality: 1,
     });
     if (!result.canceled) {
@@ -799,12 +803,23 @@ const CreatePost = () => {
               </View>
 
               <View className='px-6 pt-4'>
-                <MediaPreview
-                  photo={photo}
-                  video={video}
-                  audio={audio}
-                  videoPlayer={videoPlayer}
-                />
+                {photo ? (
+                  <View className='w-full h-[300px] justify-center items-center bg-black/10 dark:bg-[#FFFFFF0D] rounded-2xl mb-4 overflow-hidden relative'>
+                    <Image
+                      source={{ uri: photo }}
+                      style={{ width: '100%', height: '100%' }}
+                      contentFit='cover'
+                      cachePolicy='none'
+                    />
+                  </View>
+                ) : (
+                  <MediaPreview
+                    photo={photo}
+                    video={video}
+                    audio={audio}
+                    videoPlayer={videoPlayer}
+                  />
+                )}
               </View>
 
               <View className='px-6 pt-4'>

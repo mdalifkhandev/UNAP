@@ -9,6 +9,7 @@ import useLanguageStore from '@/store/language.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
+import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useVideoPlayer } from 'expo-video';
@@ -82,7 +83,7 @@ const UBlastSubmission = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const videoPlayer = useVideoPlayer(videoPlayerUri || '', player => {
+  const videoPlayer = useVideoPlayer(videoPlayerUri || null, player => {
     player.loop = true;
   });
   useEffect(() => {
@@ -374,12 +375,23 @@ const UBlastSubmission = () => {
           {/* UBlast Submission Form */}
           <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl p-6 border border-black/20 dark:border-[#FFFFFF0D] mb-6'>
             {/* Media Preview */}
-            <MediaPreview
-              photo={photo}
-              video={video}
-              audio={audio}
-              videoPlayer={videoPlayer}
-            />
+            {photo ? (
+              <View className='w-full h-[300px] justify-center items-center bg-black/10 dark:bg-[#FFFFFF0D] rounded-2xl mb-4 overflow-hidden relative'>
+                <Image
+                  source={{ uri: photo }}
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit='cover'
+                  cachePolicy='none'
+                />
+              </View>
+            ) : (
+              <MediaPreview
+                photo={photo}
+                video={video}
+                audio={audio}
+                videoPlayer={videoPlayer}
+              />
+            )}
 
             {/* Description */}
             <View className='mt-4'>

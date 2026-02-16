@@ -31,6 +31,15 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
     }
   }, [isFocused, audio, player]);
 
+  React.useEffect(() => {
+    if (!video || !videoPlayer) return;
+    if (isFocused) {
+      videoPlayer.play();
+    } else {
+      videoPlayer.pause();
+    }
+  }, [video, videoPlayer, isFocused]);
+
   const togglePlayback = () => {
     if (player.playing) {
       player.pause();
@@ -67,17 +76,18 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
           source={{ uri: photo }}
           style={{ width: '100%', height: '100%' }}
           contentFit='cover'
-          transition={200}
         />
       )}
 
       {/* Video Preview */}
       {video && (
-        <VideoView
-          style={{ width: '100%', height: '100%' }}
-          player={videoPlayer}
-          nativeControls
-        />
+        <View className='w-full h-full'>
+          <VideoView
+            style={{ width: '100%', height: '100%' }}
+            player={videoPlayer}
+            allowsPictureInPicture
+          />
+        </View>
       )}
 
       {/* Audio Preview */}
