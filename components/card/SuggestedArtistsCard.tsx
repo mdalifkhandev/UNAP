@@ -1,114 +1,28 @@
+import { useGetSuggestedArtists } from '@/hooks/app/profile';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import useLanguageStore from '@/store/language.store';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const SuggestedArtistsCard = ({ className }: { className?: string }) => {
   const { language } = useLanguageStore();
+  const { data, isLoading } = useGetSuggestedArtists({ limit: 10 });
   const { data: t } = useTranslateTexts({
     texts: [
       'Suggested Artists',
-      'Digital Artist',
-      'Fitness Trainer',
-      'Photographer',
-      'Music Producer',
-      'Dancer',
-      'Graphic Designer',
-      'Fashion Model',
-      'Videographer',
-      'Makeup Artist',
-      'DJ',
+      'Artist',
+      'No suggested artists found',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
   });
   const tx = (i: number, fallback: string) =>
     t?.translations?.[i] || fallback;
-
-  const suggestedPrifile = [
-    {
-      id: '1',
-      name: 'Ava Martinez',
-      profession: tx(1, 'Digital Artist'),
-      image: {
-        uri: 'https://demo-source.imgix.net/head_shot.jpg',
-      },
-    },
-    {
-      id: '2',
-      name: 'Liam Anderson',
-      profession: tx(2, 'Fitness Trainer'),
-      image: {
-        uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
-      },
-    },
-    {
-      id: '3',
-      name: 'Mia Rodriguez',
-      profession: tx(3, 'Photographer'),
-      image: {
-        uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde',
-      },
-    },
-    {
-      id: '4',
-      name: 'Noah Bennett',
-      profession: tx(4, 'Music Producer'),
-      image: {
-        uri: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d',
-      },
-    },
-    {
-      id: '5',
-      name: 'Sophia Chen',
-      profession: tx(5, 'Dancer'),
-      image: {
-        uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
-      },
-    },
-    {
-      id: '6',
-      name: 'Ethan Parker',
-      profession: tx(6, 'Graphic Designer'),
-      image: {
-        uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
-      },
-    },
-    {
-      id: '7',
-      name: 'Isabella Wong',
-      profession: tx(7, 'Fashion Model'),
-      image: {
-        uri: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80',
-      },
-    },
-    {
-      id: '8',
-      name: 'Lucas Silva',
-      profession: tx(8, 'Videographer'),
-      image: {
-        uri: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e',
-      },
-    },
-    {
-      id: '9',
-      name: 'Emma Johnson',
-      profession: tx(9, 'Makeup Artist'),
-      image: {
-        uri: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2',
-      },
-    },
-    {
-      id: '10',
-      name: 'Oliver Smith',
-      profession: tx(10, 'DJ'),
-      image: {
-        uri: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6',
-      },
-    },
-  ];
+  const artists = data?.artists || [];
+  const emptyText = tx(2, 'No suggested artists found');
+  const defaultRole = tx(1, 'Artist');
 
   return (
     <View
@@ -117,6 +31,17 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
       <Text className='text-primary dark:text-white font-roboto-bold text-xl px-4 pt-4'>
         {tx(0, 'Suggested Artists')}
       </Text>
+      {isLoading ? (
+        <View className='py-8 items-center justify-center'>
+          <ActivityIndicator size='small' color='#111827' />
+        </View>
+      ) : artists.length === 0 ? (
+        <View className='py-8 px-4'>
+          <Text className='text-secondary dark:text-white/80 text-center text-sm'>
+            {emptyText}
+          </Text>
+        </View>
+      ) : (
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -126,22 +51,23 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
           gap: 16,
         }}
       >
-        {suggestedPrifile.map((item, index) => (
+        {artists.map((item) => (
           <TouchableOpacity
-            onPress={() =>
-              item.id
-                ? router.push({
-                    pathname: '/screens/profile/other-profile',
-                    params: { id: item.id },
-                  })
-                : router.push('/(tabs)/profile')
-            }
-            key={index}
+            onPress={() => {
+              if (!item.id) return;
+              router.push({
+                pathname: '/screens/profile/other-profile',
+                params: { id: item.id },
+              });
+            }}
+            key={item.id}
             className='items-center'
             style={{ width: 80 }}
           >
             <Image
-              source={{ uri: item.image.uri }}
+              source={{
+                uri: item.profileImageUrl || 'https://via.placeholder.com/150',
+              }}
               style={{
                 width: 60,
                 height: 60,
@@ -153,17 +79,18 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
               className='font-roboto-semibold text-sm text-primary dark:text-white mt-2 text-center'
               numberOfLines={1}
             >
-              {item.name}
+              {item.name || item.username || defaultRole}
             </Text>
             <Text
               className='font-roboto-regular text-xs text-secondary dark:text-white/80 mt-0.5 text-center'
               numberOfLines={1}
             >
-              {item.profession}
+              {item.role || defaultRole}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
+      )}
     </View>
   );
 };

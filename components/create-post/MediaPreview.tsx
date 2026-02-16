@@ -21,6 +21,7 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
   videoPlayer,
 }) => {
   const isFocused = useIsFocused();
+  const [videoStatus, setVideoStatus] = React.useState<string>('idle');
   // Setup Audio Player using expo-audio's hook
   // Note: useAudioPlayer usually returns a player object.
   // We handle the case where audio might be null safely by passing an empty string or checking inside.
@@ -39,6 +40,20 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
       videoPlayer.pause();
     }
   }, [video, videoPlayer, isFocused]);
+
+  React.useEffect(() => {
+    if (!video) {
+      setVideoStatus('idle');
+      return;
+    }
+    setVideoStatus(videoPlayer?.status || 'loading');
+    const sub = videoPlayer?.addListener?.('statusChange', (payload: any) => {
+      setVideoStatus(payload?.status || 'loading');
+    });
+    return () => {
+      sub?.remove?.();
+    };
+  }, [video, videoPlayer]);
 
   const togglePlayback = () => {
     if (player.playing) {
@@ -81,12 +96,24 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
 
       {/* Video Preview */}
       {video && (
-        <View className='w-full h-full'>
+        <View className='w-full h-full bg-black/20'>
           <VideoView
             style={{ width: '100%', height: '100%' }}
             player={videoPlayer}
+            nativeControls
             allowsPictureInPicture
           />
+          {videoStatus !== 'readyToPlay' && (
+            <View className='absolute inset-0 items-center justify-center bg-black/40 px-5'>
+              <ActivityIndicator color='white' />
+              <Text
+                className='text-white mt-3 text-center'
+                numberOfLines={2}
+              >
+                {video.split('/').pop() || 'Loading video preview...'}
+              </Text>
+            </View>
+          )}
         </View>
       )}
 

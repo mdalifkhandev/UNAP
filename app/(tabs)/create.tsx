@@ -27,7 +27,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useVideoPlayer } from 'expo-video';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -88,9 +88,17 @@ const CreatePost = () => {
   const [videoName, setVideoName] = useState<string | null>(null);
   const [videoPlayerUri, setVideoPlayerUri] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const videoPlayer = useVideoPlayer(videoPlayerUri || null, player => {
-    player.loop = true;
-  });
+  const videoSource = useMemo(
+    () => (videoPlayerUri ? { uri: videoPlayerUri } : null),
+    [videoPlayerUri]
+  );
+
+  const videoPlayer = useVideoPlayer(
+    videoSource,
+    player => {
+      player.loop = true;
+    }
+  );
   useEffect(() => {
     if (!isFocused) {
       videoPlayer.pause();

@@ -13,7 +13,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useVideoPlayer } from 'expo-video';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -83,9 +83,17 @@ const UBlastSubmission = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const videoPlayer = useVideoPlayer(videoPlayerUri || null, player => {
-    player.loop = true;
-  });
+  const videoSource = useMemo(
+    () => (videoPlayerUri ? { uri: videoPlayerUri } : null),
+    [videoPlayerUri]
+  );
+
+  const videoPlayer = useVideoPlayer(
+    videoSource,
+    player => {
+      player.loop = true;
+    }
+  );
   useEffect(() => {
     if (!isFocused) {
       videoPlayer.pause();
@@ -103,8 +111,6 @@ const UBlastSubmission = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useGetUBlastPosts();
-
-  console.log(JSON.stringify(ublastData, null, 2));
 
   const submissions =
     ublastData?.pages?.flatMap((page: any) => page?.submissions || []) || [];

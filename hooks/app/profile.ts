@@ -120,3 +120,32 @@ export const useGetOtherProfile = (id: string) => {
     },
   });
 };
+
+export type SuggestedArtist = {
+  id: string;
+  name: string;
+  role?: string;
+  username?: string;
+  profileImageUrl?: string;
+  followersCount?: number;
+  postsCount?: number;
+};
+
+export const useGetSuggestedArtists = (options?: {
+  limit?: number;
+  enabled?: boolean;
+}) => {
+  const limit = options?.limit ?? 10;
+  return useQuery({
+    queryKey: ['suggested-artists', limit],
+    queryFn: async () => {
+      const res: any = await api.get(`/api/users/suggested-artists?limit=${limit}`);
+      const data = res?.data || res;
+      return {
+        artists: (data?.artists || []) as SuggestedArtist[],
+        totalCount: Number(data?.totalCount || 0),
+      };
+    },
+    enabled: options?.enabled,
+  });
+};
