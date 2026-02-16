@@ -59,7 +59,7 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
 
   if (!photo && !video && !audio) {
     return (
-      <View className='w-full h-[100px] justify-center items-center bg-black/10 dark:bg-[#FFFFFF0D] dark:bg-white/10 rounded-2xl mb-4 border border-dashed border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'>
+      <View className='w-full h-[100px] justify-center items-center bg-black/10 dark:bg-[#FFFFFF0D] rounded-2xl mb-4 border border-dashed border-black/20 dark:border-[#FFFFFF0D]'>
         <Feather name='image' size={40} color='#666' style={{ opacity: 0.5 }} />
         <Text className='text-gray-400 text-center mt-4 font-roboto-regular'>
           Select media to preview
@@ -69,7 +69,7 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
   }
 
   return (
-    <View className='w-full h-[300px] justify-center items-center bg-black/10 dark:bg-[#FFFFFF0D] dark:bg-white/10 rounded-2xl mb-4 overflow-hidden relative'>
+    <View className='w-full h-[300px] justify-center items-center bg-black/10 dark:bg-[#FFFFFF0D] rounded-2xl mb-4 overflow-hidden relative'>
       {/* Photo Preview */}
       {photo && (
         <Image
