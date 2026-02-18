@@ -56,6 +56,24 @@ type UclipPost = {
   viewerHasSaved: boolean;
 };
 
+const toPlayableUclipUrl = (rawUrl?: string) => {
+  if (!rawUrl) return '';
+  const url = String(rawUrl).trim();
+  if (!url) return '';
+
+  // Force Cloudinary delivery to H.264 MP4 for consistent Android playback.
+  if (url.includes('/res.cloudinary.com/') && url.includes('/video/upload/')) {
+    if (url.includes('/video/upload/f_mp4,') || url.includes('/video/upload/f_mp4/')) {
+      return url;
+    }
+    return url.replace(
+      '/video/upload/',
+      '/video/upload/f_mp4,vc_h264,ac_aac,q_auto:good/'
+    );
+  }
+
+  return url;
+};
 const UclipItem = ({ item, isVisible }: { item: UclipPost; isVisible: boolean }) => {
   const { mode } = useThemeStore();
   const isLight = mode === 'light';
@@ -105,7 +123,12 @@ const UclipItem = ({ item, isVisible }: { item: UclipPost; isVisible: boolean })
   const uiTexts = (index: number, fallback: string) =>
     translatedUI?.translations?.[index] || fallback;
 
-  const player = useVideoPlayer(item.mediaUrl || '', p => {
+  const playbackUrl = React.useMemo(
+    () => toPlayableUclipUrl(item.mediaUrl),
+    [item.mediaUrl]
+  );
+
+  const player = useVideoPlayer(playbackUrl, p => {
     p.loop = true;
   });
 
@@ -397,3 +420,4 @@ const Uclips = () => {
 };
 
 export default Uclips;
+

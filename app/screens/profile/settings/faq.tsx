@@ -57,7 +57,7 @@ const FAQItem: React.FC<FAQItemProps> = ({
   });
 
   return (
-    <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl mb-3 overflow-hidden border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]'>
+    <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl mb-3 overflow-hidden border border-black/20 dark:border-[#FFFFFF0D]'>
       <TouchableOpacity
         onPress={onToggle}
         activeOpacity={0.7}
@@ -93,9 +93,9 @@ const Faq = () => {
       'Faq',
       'How do I submit my work (song/photo/video) for consideration?',
       'Go to Profile → Upload for Consideration and submit your work. The UNAP team will review it and notify you.',
-      'Why do I need to promote my release within 72 hours?',
+      'Why do I need to promote my release within the required share window?',
       "Early promotion is crucial for algorithmic momentum. The first 72 hours significantly impact your release's visibility and performance across streaming platforms.",
-      "What happens if I don't promote within 72 hours?",
+      "What happens if I don't promote within the required share window?",
       'Your release may receive less initial traction and lower algorithmic priority, potentially affecting its overall performance and reach.',
       'Can I turn off email or SMS notifications?',
       'Yes, you can manage your notification preferences in Settings. Navigate to Notifications and toggle email or SMS options on or off.',
@@ -120,14 +120,14 @@ const Faq = () => {
       ),
     },
     {
-      question: tx(3, 'Why do I need to promote my release within 72 hours?'),
+      question: tx(3, 'Why do I need to promote my release within the required share window?'),
       answer: tx(
         4,
         "Early promotion is crucial for algorithmic momentum. The first 72 hours significantly impact your release's visibility and performance across streaming platforms."
       ),
     },
     {
-      question: tx(5, "What happens if I don't promote within 72 hours?"),
+      question: tx(5, "What happens if I don't promote within the required share window?"),
       answer: tx(
         6,
         'Your release may receive less initial traction and lower algorithmic priority, potentially affecting its overall performance and reach.'
@@ -166,7 +166,7 @@ const Faq = () => {
               {tx(0, 'Faq')}
             </Text>
           </View>
-          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 72, marginHorizontal: 24 }}
@@ -190,3 +190,4 @@ const Faq = () => {
 };
 
 export default Faq;
+

@@ -19,6 +19,7 @@ import {
   Modal,
   Platform,
   ScrollView,
+  RefreshControl,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -77,7 +78,11 @@ const Profiles = () => {
   const tx = (i: number, fallback: string) =>
     t?.translations?.[i] || fallback;
 
-  const { data } = useGetMyProfile();
+  const {
+    data,
+    refetch: refetchProfile,
+    isRefetching: isProfileRefetching,
+  } = useGetMyProfile();
   // @ts-ignore
   const profile = data?.profile;
   const bioValue = profile?.bio?.trim();
@@ -110,12 +115,24 @@ const Profiles = () => {
     hasNextPage,
     isFetchingNextPage,
     isLoading: isMyPostsLoading,
+    refetch: refetchMyPosts,
+    isRefetching: isMyPostsRefetching,
   } = useGetMyPostsInfinite({ limit: 10, enabled: selectedType === 'all' });
   const allPosts =
     myPostsData?.pages?.flatMap((page: any) => page?.posts || []) || [];
   const { mutate: deletePost } = useDeletePost();
 
   const [showShareModal, setShowShareModal] = useState(false);
+
+  const isPullRefreshing =
+    isProfileRefetching || (selectedType === 'all' && isMyPostsRefetching);
+
+  const handleRefresh = async () => {
+    await refetchProfile();
+    if (selectedType === 'all') {
+      await refetchMyPosts();
+    }
+  };
 
   return (
     <GradientBackground>
@@ -141,6 +158,13 @@ const Profiles = () => {
           <ScrollView
             contentContainerStyle={{ paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isPullRefreshing}
+                onRefresh={handleRefresh}
+                tintColor={isLight ? '#000000' : '#FFFFFF'}
+              />
+            }
             onScroll={({ nativeEvent }) => {
               const paddingToBottom = 200;
               const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
@@ -453,3 +477,5 @@ const Profiles = () => {
 };
 
 export default Profiles;
+
+

@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { NativeWindStyleSheet } from "nativewind";
+import { colorScheme } from "nativewind";
 import { create, StateCreator } from "zustand";
 import { persist, PersistOptions } from "zustand/middleware";
 
@@ -26,11 +26,14 @@ const storage = {
 
 const syncNativewindScheme = (mode: ThemeMode) => {
   try {
-    NativeWindStyleSheet.setColorScheme(mode);
+    colorScheme.set(mode);
   } catch {
     // Nativewind not available in some environments (e.g. SSR).
   }
 };
+
+// Ensure first render uses app default mode even before persisted state rehydrates.
+syncNativewindScheme("dark");
 
 type ThemePersist = (
   config: StateCreator<ThemeStore>,
@@ -66,3 +69,4 @@ const useThemeStore = create<ThemeStore>()(
 );
 
 export default useThemeStore;
+

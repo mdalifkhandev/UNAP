@@ -67,8 +67,10 @@ const SavedPosts = () => {
   const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
-    const next = new Set(
-      viewableItems.map((v: any) => v?.item?._id).filter(Boolean)
+    const next = new Set<string>(
+      viewableItems
+        .map((v: any) => v?.item?._id)
+        .filter((id: unknown): id is string => typeof id === 'string')
     );
     setVisibleIds(next);
   }).current;

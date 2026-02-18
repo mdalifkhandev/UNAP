@@ -22,6 +22,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -37,8 +38,7 @@ const Login = () => {
   const { setUser, setRememberPreference, user } = useAuthStore();
 
   const { mode } = useThemeStore();
-  const isLight = mode === 'light';
-  const { language } = useLanguageStore();
+  const isLight = mode === 'light';  const { language } = useLanguageStore();
   const { data: t } = useTranslateTexts({
     texts: [
       'Welcome Back!',
@@ -100,10 +100,7 @@ const Login = () => {
     };
   };
 
-  const mapFirebaseUserToAuthUser = async (
-    firebaseUser: any,
-    keepRefreshToken: boolean
-  ) => {
+  const mapFirebaseUserToAuthUser = async (firebaseUser: any) => {
     const idToken = await firebaseUser.getIdToken();
     const data: any = await api.post('/api/auth/firebase', {
       idToken,
@@ -127,7 +124,7 @@ const Login = () => {
         email: data?.user?.email || firebaseUser.email || '',
         phoneNumber: data?.user?.phoneNumber || firebaseUser.phoneNumber || '',
         token: data?.token,
-        refreshToken: keepRefreshToken ? data?.refreshToken || null : null,
+        refreshToken: data?.refreshToken || null,
       },
       isFirstLogin: Boolean(data?.isFirstLogin),
       needsProfileCompletion: Boolean(data?.needsProfileCompletion),
@@ -146,17 +143,14 @@ const Login = () => {
 
       try {
         const { authUser, isFirstLogin, needsProfileCompletion } =
-          await mapFirebaseUserToAuthUser(
-          firebaseUser,
-          rememberMe
-        );
+          await mapFirebaseUserToAuthUser(firebaseUser);
         console.log(
           '[Login][observeAuthState][flat] =>',
           JSON.stringify(buildFlatFirebaseLog(firebaseUser, authUser), null, 2)
         );
         logPretty('[Login][observeAuthState][backend] =>', authUser);
         setUser(authUser as any);
-        setRememberPreference(rememberMe);
+        setRememberPreference(true);
         if (isFirstLogin || needsProfileCompletion) {
           router.replace('/screens/profile/complete-profile');
         } else {
@@ -170,12 +164,12 @@ const Login = () => {
     return () => {
       unsubscribe?.();
     };
-  }, [rememberMe, setRememberPreference, setUser, user?.id, user?.token]);
+  }, [setRememberPreference, setUser, user?.id, user?.token]);
 
   const handleSocialLogin = async (provider: ProviderKey) => {
     if (socialLoading) return;
 
-    setRememberPreference(rememberMe);
+    setRememberPreference(true);
     setSocialLoading(provider);
     try {
       const result: any = await loginActions[provider]();
@@ -191,7 +185,7 @@ const Login = () => {
       }
 
       const { authUser, isFirstLogin, needsProfileCompletion } =
-        await mapFirebaseUserToAuthUser(firebaseUser, rememberMe);
+        await mapFirebaseUserToAuthUser(firebaseUser);
       console.log(
         '[Login][social][flat] =>',
         JSON.stringify(buildFlatFirebaseLog(firebaseUser, authUser), null, 2)
@@ -287,6 +281,7 @@ const Login = () => {
       <KeyboardAvoidingView
         className='flex-1'
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
       >
         <SafeAreaView
           className='flex-1 mx-6 mt-2.5'
@@ -294,7 +289,15 @@ const Login = () => {
         >
           <BackButton />
 
-          <View className='flex-1 justify-center'>
+          <ScrollView
+            className='flex-1'
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps='handled'
+            keyboardDismissMode='on-drag'
+            automaticallyAdjustKeyboardInsets
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingBottom: 24 }}
+          >
+          <View className='w-full'>
             <View>
               <Text className='text-[#000000] dark:text-white text-2xl font-roboto-semibold mt-6 text-center'>
                 {tx(0, 'Welcome Back!')}
@@ -416,6 +419,7 @@ const Login = () => {
               )}
             </View>
           </View>
+          </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
     </GradientBackground>
@@ -423,3 +427,4 @@ const Login = () => {
 };
 
 export default Login;
+

@@ -1,10 +1,11 @@
-import useAuthStore, { getAuth } from '@/store/auth.store';
 import { isAuthError } from '@/lib/error';
+import useAuthStore, { getAuth } from '@/store/auth.store';
 import axios from 'axios';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
-const API_BASE_URL = 'https://marlene-unlarcenous-nonmunicipally.ngrok-free.dev';
+const API_BASE_URL =
+  'https://marlene-unlarcenous-nonmunicipally.ngrok-free.dev';
 
 export const SOCIAL_AUTH_BASE_URL = API_BASE_URL;
 
@@ -64,7 +65,10 @@ api.interceptors.response.use(
     };
 
     if (!authError) {
-      console.log('API Error:', error?.response?.data || getErrorMessage(error));
+      console.log(
+        'API Error:',
+        error?.response?.data || getErrorMessage(error)
+      );
     }
 
     const originalRequest = error.config || {};
@@ -75,12 +79,11 @@ api.interceptors.response.use(
     if (status === 401 && !originalRequest._retry && !isRefreshCall) {
       const authState = getAuth();
       const refreshToken = authState.user?.refreshToken;
-      const rememberMe = authState.rememberMe;
       const hasAccessToken = Boolean(authState.user?.token);
       const now = Date.now();
       const canRedirectNow = now >= authRedirectLockUntil;
 
-      if (!refreshToken || !rememberMe) {
+      if (!refreshToken) {
         // Only force-redirect if a logged-in session actually existed.
         // If already logged out, avoid repeated login-route refresh loops.
         if (hasAccessToken && canRedirectNow) {

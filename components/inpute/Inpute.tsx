@@ -44,13 +44,17 @@ const Inpute = ({
       )}
 
       <View
-        className={`flex-row items-center bg-[#151516] dark:bg-[#FFFFFF0D] rounded-xl ${inputeStyle}`}
+        className={`flex-row items-center rounded-xl border ${
+          isLight
+            ? 'bg-white border-black/15'
+            : 'bg-[#FFFFFF0D] border-[#FFFFFF0D]'
+        } ${inputeStyle || ''}`}
       >
         <TextInput
           keyboardType={type}
-          className='flex-1 p-4 text-white '
+          className={`flex-1 p-4 ${isLight ? 'text-black' : 'text-white'}`}
           placeholder={placeholder}
-          placeholderTextColor={isLight ? 'white' : '#9CA3AF'}
+          placeholderTextColor={isLight ? '#6B7280' : '#9CA3AF'}
           secureTextEntry={isPassword ? !showPassword : secureTextEntry}
           value={value}
           onChangeText={onChangeText}

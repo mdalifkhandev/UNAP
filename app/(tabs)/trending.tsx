@@ -28,6 +28,7 @@ import {
   Platform,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
@@ -46,6 +47,7 @@ const TrendingScreen = () => {
   const { language } = useLanguageStore();
   const isFocused = useIsFocused();
   const [selectedTab, setSelectedTab] = useState<TabType>('active');
+  const [usernameSearch, setUsernameSearch] = useState('');
   const { data: t } = useTranslateTexts({
     texts: [
       'Trending',
@@ -116,9 +118,11 @@ const TrendingScreen = () => {
     isFetchingNextPage: isFetchingNextActive,
   } = useGetActiveUblasts({ enabled: !!user?.token && selectedTab === 'active', limit: 12 });
 
-  const { data: eligibilityData, isLoading: isEligibilityLoading } =
-    useGetUblastEligibility({ enabled: !!user?.token });
-
+  const {
+    data: eligibilityData,
+    isLoading: isEligibilityLoading,
+    refetch: refetchEligibility,
+  } = useGetUblastEligibility({ enabled: !!user?.token });
   const {
     data: myPostsData,
     fetchNextPage: fetchNextMyPosts,
@@ -238,6 +242,29 @@ const TrendingScreen = () => {
       });
   }, [trendingData]);
 
+  const normalizedUsernameSearch = usernameSearch.trim().toLowerCase();
+
+  const isUsernameMatch = (post: any) => {
+    if (!normalizedUsernameSearch) return true;
+    const username = String(post?.profile?.username || '').toLowerCase();
+    const displayName = String(post?.profile?.displayName || post?.author?.name || '').toLowerCase();
+    return username.includes(normalizedUsernameSearch) || displayName.includes(normalizedUsernameSearch);
+  };
+
+  const searchedFilteredPosts = useMemo(() => {
+    if (!normalizedUsernameSearch) return filteredPosts;
+    return filteredPosts.filter((post: any) => isUsernameMatch(post));
+  }, [filteredPosts, normalizedUsernameSearch]);
+
+  const searchedActiveUblasts = useMemo(() => {
+    if (!normalizedUsernameSearch) return activeUblasts;
+    return activeUblasts.filter((item: any) => {
+      const sharedPost = sharedByUblastId.get(String(item?._id));
+      if (!sharedPost) return false;
+      return isUsernameMatch(sharedPost);
+    });
+  }, [activeUblasts, sharedByUblastId, normalizedUsernameSearch]);
+
   const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 });
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
@@ -308,36 +335,71 @@ const TrendingScreen = () => {
 
       {/* Tabs */}
       <View className='flex-row justify-between items-center gap-3 mt-6 mx-5'>
-        {(['manual', 'active', 'organic'] as TabType[]).map(tab => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setSelectedTab(tab)}
-            className={`flex-1 py-3 rounded-xl flex-row gap-2 items-center justify-center ${
-              selectedTab === tab
-                ? 'bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
-                : 'bg-[#F0F2F5] dark:bg-[#FFFFFF0D]'
-            }`}
-          >
-            <Ionicons
-              name={
-                tab === 'active'
-                  ? 'flame'
+        {(['manual', 'active', 'organic'] as TabType[]).map(tab => {
+          const isTabActive = selectedTab === tab;
+          const tabContainerClass = isTabActive
+            ? 'flex-1 py-3 rounded-xl flex-row gap-2 items-center justify-center border bg-black border-black dark:bg-white dark:border-white'
+            : 'flex-1 py-3 rounded-xl flex-row gap-2 items-center justify-center border bg-[#F0F2F5] border-black/10 dark:bg-[#FFFFFF0D] dark:border-[#FFFFFF1A]';
+          const tabTextClass = isTabActive
+            ? 'font-roboto-semibold text-sm text-white dark:text-black'
+            : 'font-roboto-semibold text-sm text-primary dark:text-white';
+
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setSelectedTab(tab)}
+              className={tabContainerClass}
+            >
+              <Ionicons
+                name={
+                  tab === 'active'
+                    ? 'flame'
+                    : tab === 'manual'
+                      ? 'trophy'
+                      : 'leaf'
+                }
+                size={20}
+                color={isTabActive ? (isLight ? 'white' : 'black') : isLight ? 'black' : 'white'}
+              />
+              <Text className={tabTextClass}>
+                {tab === 'active'
+                  ? tx(8, 'Active')
                   : tab === 'manual'
-                    ? 'trophy'
-                    : 'leaf'
-              }
-              size={20}
-              color={isLight ? 'black' : 'white'}
-            />
-            <Text className='text-primary dark:text-white font-roboto-semibold text-sm'>
-              {tab === 'active'
-                ? tx(8, 'Active')
-                : tab === 'manual'
-                  ? tx(9, 'Manual')
-                  : tx(10, 'Organic')}
-            </Text>
-          </TouchableOpacity>
-        ))}
+                    ? tx(9, 'Manual')
+                    : tx(10, 'Organic')}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* Username Search */}
+      <View className='mx-5 mt-3'>
+        <View className='flex-row items-center bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/10 dark:border-[#FFFFFF1A] rounded-xl px-3'>
+          <Ionicons
+            name='search'
+            size={18}
+            color={isLight ? '#6B7280' : '#9CA3AF'}
+          />
+          <TextInput
+            value={usernameSearch}
+            onChangeText={setUsernameSearch}
+            placeholder='Search by username'
+            placeholderTextColor={isLight ? '#9CA3AF' : '#6B7280'}
+            autoCapitalize='none'
+            autoCorrect={false}
+            className='flex-1 ml-2 py-3 text-black dark:text-white font-roboto-regular'
+          />
+          {!!usernameSearch && (
+            <TouchableOpacity onPress={() => setUsernameSearch('')}>
+              <Ionicons
+                name='close-circle'
+                size={18}
+                color={isLight ? '#6B7280' : '#9CA3AF'}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -425,6 +487,17 @@ const TrendingScreen = () => {
       }
       setIsShareBusy(true);
       try {
+        const eligibilitySnapshot = ((await refetchEligibility())?.data ?? eligibilityData) as any;
+        if (eligibilitySnapshot?.eligible === false) {
+          Toast.show({
+            type: 'error',
+            text1: tx(3, 'Not Eligible'),
+            text2: 'You are not eligible to share UBlast now',
+          });
+          setShowShareTypeModal(false);
+          return;
+        }
+
         await shareUblast({ ublastId: item._id, shareType });
         if (external) {
           const label =
@@ -450,11 +523,18 @@ const TrendingScreen = () => {
         setShowShareTypeModal(false);
       } catch (error: any) {
         const message = getShortErrorMessage(error, 'Share failed.');
-        if (message.toLowerCase().includes('payment required')) {
+        const lowerMessage = message.toLowerCase();
+        if (lowerMessage.includes('payment required')) {
           Toast.show({
             type: 'info',
             text1: tx(29, 'Offer Payment Required'),
             text2: tx(30, 'Pay to unlock this UBlast before sharing.'),
+          });
+        } else if (lowerMessage.includes('not eligible') || lowerMessage.includes('blocked')) {
+          Toast.show({
+            type: 'error',
+            text1: tx(3, 'Not Eligible'),
+            text2: 'You are not eligible to share UBlast now',
           });
         }
       } finally {
@@ -617,8 +697,17 @@ const TrendingScreen = () => {
               </>
             ) : (
               <TouchableOpacity
-                onPress={() => {
+                onPress={async () => {
                   if (!item?._id) return;
+                  const eligibilitySnapshot = ((await refetchEligibility())?.data ?? eligibilityData) as any;
+                  if (eligibilitySnapshot?.eligible === false) {
+                    Toast.show({
+                      type: 'error',
+                      text1: tx(3, 'Not Eligible'),
+                      text2: 'You are not eligible to share UBlast now',
+                    });
+                    return;
+                  }
                   setShowShareTypeModal(true);
                 }}
                 disabled={hasShared || isBusy || !canShare}
@@ -802,7 +891,7 @@ const TrendingScreen = () => {
           style={{ flex: 1 }}
         >
           <FlatList
-            data={selectedTab === 'active' ? activeUblasts : filteredPosts}
+            data={selectedTab === 'active' ? searchedActiveUblasts : searchedFilteredPosts}
             renderItem={({ item }) => {
               if (selectedTab === 'active') {
                 const sharedPost = sharedByUblastId.get(String(item?._id));
@@ -813,6 +902,12 @@ const TrendingScreen = () => {
                       currentUserId={user?.id}
                       className='mt-4 mx-5'
                       isVisible={isFocused && visibleIds.has(sharedPost._id)}
+                      disableShare={
+                        !isEligible &&
+                        (Boolean((sharedPost as any)?.ublastId) ||
+                          String((sharedPost as any)?.postType || '').toLowerCase() === 'ublast')
+                      }
+                      shareDisabledMessage='You are not eligible to share UBlast now'
                     />
                   );
                 }
@@ -830,6 +925,12 @@ const TrendingScreen = () => {
                   currentUserId={user?.id}
                   className='mt-4 mx-5'
                   isVisible={isFocused && visibleIds.has(item._id)}
+                  disableShare={
+                    !isEligible &&
+                    (Boolean((item as any)?.ublastId) ||
+                      String((item as any)?.postType || '').toLowerCase() === 'ublast')
+                  }
+                  shareDisabledMessage='You are not eligible to share UBlast now'
                 />
               );
             }}
@@ -894,3 +995,15 @@ const TrendingScreen = () => {
 };
 
 export default TrendingScreen;
+
+
+
+
+
+
+
+
+
+
+
+

@@ -348,7 +348,7 @@ const EditProfile = () => {
             </Text>
           </View>
           {/* border */}
-          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
 
           {/* photo */}
           <ScrollView
@@ -493,7 +493,7 @@ const EditProfile = () => {
                 placeholderTextColor='rgba(0,0,0,0.5)'
                 multiline
                 numberOfLines={4}
-                className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] rounded-xl p-4 text-primary dark:text-white'
+                className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] border border-black/20 dark:border-[#FFFFFF0D] rounded-xl p-4 text-primary dark:text-white'
                 style={{ textAlignVertical: 'top' }}
                 value={bio}
                 onChangeText={setBio}

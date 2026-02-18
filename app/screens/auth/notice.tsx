@@ -15,7 +15,7 @@ const Notice = () => {
   const { data: t } = useTranslateTexts({
     texts: [
       'Important Notice!',
-      'To stay active in the UNAP community, you must share and promote any officially selected release within 72 hours!',
+      'To stay active in the UNAP community, you must share and promote any officially selected release within the required share window!',
       'If you fail to promote within this time:',
       'Your account will be suspended for 15 Days',
       'You will not be able to upload, post, comment, or share',
@@ -52,7 +52,7 @@ const Notice = () => {
               <Text className='font-roboto-regular text-sm text-primary dark:text-white'>
                 {tx(
                   1,
-                  'To stay active in the UNAP community, you must share and promote any officially selected release within 72 hours!'
+                  'To stay active in the UNAP community, you must share and promote any officially selected release within the required share window!'
                 )}
               </Text>
               <Text className='font-roboto-regular text-sm text-primary dark:text-white mt-3'>
@@ -100,3 +100,4 @@ const Notice = () => {
 };
 
 export default Notice;
+

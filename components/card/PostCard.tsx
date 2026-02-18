@@ -69,6 +69,7 @@ interface Post {
   scheduledFor?: string; // Add scheduledFor property
   shareToFacebook?: boolean;
   shareToInstagram?: boolean;
+  dueAt?: string;
 }
 
 const PostCard = ({
@@ -83,6 +84,8 @@ const PostCard = ({
   hideActions = false, // Hide like/comment/share/bookmark actions
   isVisible, // Optional: control auto play/pause for video
   officeVariant = false,
+  disableShare = false,
+  shareDisabledMessage,
 }: {
   className?: string;
   img?: any;
@@ -95,6 +98,8 @@ const PostCard = ({
   hideActions?: boolean;
   isVisible?: boolean;
   officeVariant?: boolean;
+  disableShare?: boolean;
+  shareDisabledMessage?: string;
 }) => {
   const [isFollowing, setIsFollowing] = useState(
     post?.viewerIsFollowing || false
@@ -282,6 +287,14 @@ const PostCard = ({
 
   const handleSharePost = () => {
     if (!post?._id) return;
+    if (disableShare) {
+      Toast.show({
+        type: 'error',
+        text1: 'Share Unavailable',
+        text2: shareDisabledMessage || 'You are not eligible to share UBlast now',
+      });
+      return;
+    }
     setShowShareModal(true);
   };
 
@@ -581,18 +594,21 @@ const PostCard = ({
     translatedOffice?.translations?.[index] || fallback;
 
   const getShareRemaining = () => {
-    const createdAt = post?.createdAt ? new Date(post.createdAt) : null;
-    if (!createdAt || Number.isNaN(createdAt.getTime())) return null;
-    const windowHours = 72;
-    const expiresAt = new Date(createdAt.getTime() + windowHours * 60 * 60 * 1000);
-    const msLeft = expiresAt.getTime() - Date.now();
-    if (msLeft <= 0) return { expired: true, text: officeTexts(2, 'Share window expired') };
+    const dueAt = post?.dueAt ? new Date(post.dueAt) : null;
+    if (!dueAt || Number.isNaN(dueAt.getTime())) return null;
+
+    const msLeft = dueAt.getTime() - Date.now();
+    if (msLeft <= 0) {
+      return { expired: true, text: officeTexts(2, 'Share window expired') };
+    }
+
     const totalMinutes = Math.ceil(msLeft / 60000);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     const parts = [];
     if (hours > 0) parts.push(`${hours}h`);
     parts.push(`${minutes}m`);
+
     return {
       expired: false,
       text: `${officeTexts(1, 'Share required:')} ${parts.join(' ')} remaining`,
@@ -1111,3 +1127,7 @@ const PostCard = ({
 };
 
 export default PostCard;
+
+
+
+

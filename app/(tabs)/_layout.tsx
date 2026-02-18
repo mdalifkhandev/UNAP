@@ -17,7 +17,7 @@ export default function TabLayout() {
   const isLight = mode === 'light';
   const { language } = useLanguageStore();
   const { data: t } = useTranslateTexts({
-    texts: ['Home', 'Trending', 'Post', 'UClips', 'Message', 'Profile'],
+    texts: ['Home', 'Trending', 'UPost', 'UClips', 'Message', 'Profile'],
     targetLang: language,
     enabled: !!language && language !== 'EN',
   });
@@ -83,7 +83,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='create'
         options={{
-          title: tx(2, 'Post'),
+          title: tx(2, 'UPost'),
           tabBarIcon: ({ color }) => (
             <Feather name='plus-square' size={22} color={color} />
           ),

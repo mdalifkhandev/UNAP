@@ -33,7 +33,7 @@ const PostDetailScreen = () => {
           </Text>
         </View>
 
-        <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#292929] w-full mt-2' />
+        <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2' />
 
         {isLoading ? (
           <View className='flex-1 items-center justify-center'>

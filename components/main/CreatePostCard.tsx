@@ -31,7 +31,7 @@ const CreatePostCard = () => {
       'Photo',
       'Full',
       'Posting...',
-      'Post',
+      'UPost',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
@@ -205,7 +205,7 @@ const CreatePostCard = () => {
             disabled={isPosting}
           >
             <Text className='text-[#2B2B2B] font-roboto-medium'>
-              {isPosting ? tx(6, 'Posting...') : tx(7, 'Post')}
+              {isPosting ? tx(6, 'Posting...') : tx(7, 'UPost')}
             </Text>
           </TouchableOpacity>
         </View>

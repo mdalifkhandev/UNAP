@@ -6,7 +6,7 @@ import {
   requestFCMPermission,
   subscribeForegroundFCM,
 } from '@/services/fcm';
-import { connectSocket, disconnectSocket } from '@/lib/socketClient';
+import { connectSocket } from '@/lib/socketClient';
 import {
   getExpoNotificationsModule,
 } from '@/services/expoNotifications';
@@ -143,18 +143,6 @@ const RootLayout = () => {
         console.log('Foreground notification received:', remoteMessage);
         const { title, body } = pushInAppNotification(remoteMessage);
 
-        if (notifications) {
-          await notifications.scheduleNotificationAsync({
-            content: {
-              title,
-              body,
-              data: remoteMessage.data,
-              sound: 'default',
-            },
-            trigger: null,
-          });
-        }
-
         Toast.show({
           type: 'info',
           text1: title,
@@ -268,22 +256,6 @@ const RootLayout = () => {
         read: false,
       });
 
-      if (notifications) {
-        await notifications.scheduleNotificationAsync({
-          content: {
-            title: 'New message',
-            body,
-            data: {
-              type: 'chat',
-              senderId,
-              screen: `/screens/chat/chat-screen?userId=${senderId}`,
-            },
-            sound: 'default',
-          },
-          trigger: null,
-        });
-      }
-
       Toast.show({
         type: 'info',
         text1: 'New message',
@@ -312,7 +284,6 @@ const RootLayout = () => {
     return () => {
       socket.off('message:new', handleIncomingMessage);
       socket.off('notification:new', handleIncomingNotification);
-      disconnectSocket(socket);
     };
   }, [user?.token, user?.id, notifications]);
 
@@ -379,3 +350,6 @@ const RootLayout = () => {
 };
 
 export default RootLayout;
+
+
+

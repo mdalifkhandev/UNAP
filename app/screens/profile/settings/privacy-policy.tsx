@@ -32,7 +32,7 @@ const PrivacyPolicy = () => {
             {tx(0, 'Privacy Policy')}
           </Text>
         </View>
-        <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D] w-full mt-2'></View>
+        <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2'></View>
         <ScrollView className='mx-6 mt-6' showsVerticalScrollIndicator={false}>
           {/* main info */}
           <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] p-6 rounded-xl'>

@@ -26,7 +26,7 @@ const SuggestedArtistsCard = ({ className }: { className?: string }) => {
 
   return (
     <View
-      className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl ${className} border border-black/20 dark:border-[#FFFFFF0D] dark:border-[#FFFFFF0D]`}
+      className={`bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-3xl ${className} border border-black/20 dark:border-[#FFFFFF0D]`}
     >
       <Text className='text-primary dark:text-white font-roboto-bold text-xl px-4 pt-4'>
         {tx(0, 'Suggested Artists')}

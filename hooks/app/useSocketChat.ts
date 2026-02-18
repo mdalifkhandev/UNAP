@@ -1,4 +1,4 @@
-import { connectSocket, disconnectSocket } from '@/lib/socketClient';
+import { connectSocket } from '@/lib/socketClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
@@ -34,62 +34,55 @@ export const useSocketChat = (
 
     socketRef.current = socket;
 
-    socket.on('connect', () => {
-      // console.log('Socket connected');
+    const onConnect = () => {
       setIsConnected(true);
-    });
+    };
 
-    socket.on('disconnect', () => {
-      // console.log('Socket disconnected');
+    const onDisconnect = () => {
       setIsConnected(false);
-    });
+    };
 
-    socket.on(
-      'message:new',
-      (payload: { message: Message; conversationId: string }) => {
-        // For first message in a new chat, currentConversationId may be empty.
-        const belongsToCurrentConversation =
-          !currentConversationId || payload.conversationId === currentConversationId;
+    const onNewMessage = (payload: { message: Message; conversationId: string }) => {
+      const belongsToCurrentConversation =
+        !currentConversationId || payload.conversationId === currentConversationId;
 
-        if (belongsToCurrentConversation) {
-          queryClient.setQueriesData(
-            { queryKey: ['chat', peerUserId], exact: false },
-            (oldData: any) => {
-              if (!oldData?.pages || !Array.isArray(oldData.pages)) return oldData;
-
-              // Prevent duplicate insertion if query was already refreshed.
-              const exists = oldData.pages.some((page: any) =>
-                (page?.messages || []).some(
-                  (msg: any) => String(msg?._id || '') === String(payload.message._id || '')
-                )
-              );
-              if (exists) return oldData;
-
-              const lastIndex = oldData.pages.length - 1;
-              const nextPages = oldData.pages.map((page: any, index: number) => {
-                if (index !== lastIndex) return page;
-                const messages = Array.isArray(page?.messages) ? page.messages : [];
-                return {
-                  ...page,
-                  messages: [...messages, payload.message],
-                  totalCount:
-                    typeof page?.totalCount === 'number'
-                      ? page.totalCount + 1
-                      : page?.totalCount,
-                };
-              });
-
-              return { ...oldData, pages: nextPages };
+      if (belongsToCurrentConversation) {
+        queryClient.setQueriesData(
+          { queryKey: ['chat', peerUserId], exact: false },
+          (oldData: any) => {
+            if (!oldData?.pages || !Array.isArray(oldData.pages) || oldData.pages.length === 0) {
+              return oldData;
             }
-          );
-        }
 
-        // Always update chat list to show new last message
-        queryClient.invalidateQueries({ queryKey: ['chatlist'] });
+            const exists = oldData.pages.some((page: any) =>
+              (page?.messages || []).some(
+                (msg: any) => String(msg?._id || '') === String(payload.message._id || '')
+              )
+            );
+            if (exists) return oldData;
+
+            const nextPages = oldData.pages.map((page: any, index: number) => {
+              if (index !== 0) return page;
+              const messages = Array.isArray(page?.messages) ? page.messages : [];
+              return {
+                ...page,
+                messages: [...messages, payload.message],
+                totalCount:
+                  typeof page?.totalCount === 'number'
+                    ? page.totalCount + 1
+                    : page?.totalCount,
+              };
+            });
+
+            return { ...oldData, pages: nextPages };
+          }
+        );
       }
-    );
 
-    socket.on('chat:block-updated', (payload: BlockUpdatePayload) => {
+      queryClient.invalidateQueries({ queryKey: ['chatlist'] });
+    };
+
+    const onBlockUpdated = (payload: BlockUpdatePayload) => {
       if (!payload || !peerUserId) return;
 
       const blockerUserId = String(payload.blockerUserId || '');
@@ -136,15 +129,25 @@ export const useSocketChat = (
       );
 
       queryClient.invalidateQueries({ queryKey: ['chatlist'] });
-    });
+    };
 
-    socket.on('connect_error', error => {
+    const onConnectError = (error: any) => {
       console.error('Socket connection error:', error);
       setIsConnected(false);
-    });
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('message:new', onNewMessage);
+    socket.on('chat:block-updated', onBlockUpdated);
+    socket.on('connect_error', onConnectError);
 
     return () => {
-      disconnectSocket(socket);
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('message:new', onNewMessage);
+      socket.off('chat:block-updated', onBlockUpdated);
+      socket.off('connect_error', onConnectError);
     };
   }, [peerUserId, currentConversationId, myUserId, queryClient]);
 
@@ -170,11 +173,6 @@ export const useSocketChat = (
             return;
           }
 
-          // console.log('Message sent successfully:', ack.message);
-
-          // Don't add message here - let the 'message:new' event handle it
-          // This prevents duplicate messages
-          // Update chat list
           queryClient.invalidateQueries({ queryKey: ['chat', peerUserId], exact: false });
           queryClient.invalidateQueries({ queryKey: ['chatlist'] });
 

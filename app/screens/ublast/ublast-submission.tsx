@@ -3,17 +3,22 @@ import PostCard from '@/components/card/PostCard';
 import MediaPickers from '@/components/create-post/MediaPickers';
 import MediaPreview from '@/components/create-post/MediaPreview';
 import GradientBackground from '@/components/main/GradientBackground';
-import { useGetUBlastPosts, useSubmitUBlast, useUpdateUBlastPost } from '@/hooks/app/ublast';
+import {
+  useGetUBlastPosts,
+  useGetUblastEligibility,
+  useSubmitUBlast,
+  useUpdateUBlastPost,
+} from '@/hooks/app/ublast';
 import { useTranslateTexts } from '@/hooks/app/translate';
 import useLanguageStore from '@/store/language.store';
+import useThemeStore from '@/store/theme.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useVideoPlayer } from 'expo-video';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -25,14 +30,29 @@ import {
   View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useIsFocused } from '@react-navigation/native';
+
+const formatRemainingDuration = (ms: number) => {
+  const safeMs = Math.max(0, ms);
+  const totalMinutes = Math.ceil(safeMs / 60000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(String(days) + 'd');
+  if (hours > 0) parts.push(String(hours) + 'h');
+  parts.push(String(minutes) + 'm');
+
+  return parts.join(' ');
+};
 
 const UBlastSubmission = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
   const isEditMode = !!params.postId;
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
   const { language } = useLanguageStore();
-  const isFocused = useIsFocused();
   const { data: t } = useTranslateTexts({
     texts: [
       'UBlast Submission',
@@ -55,6 +75,11 @@ const UBlastSubmission = () => {
       'Error',
       'Please select a media file (photo, video, or audio)',
       'Please add a description',
+      'UBlast Blocked',
+      'You cannot submit any UBlast content during the block period.',
+      'Block ends in',
+      'Blocked',
+      'Submission is disabled while your UBlast block is active.',
     ],
     targetLang: language,
     enabled: !!language && language !== 'EN',
@@ -83,23 +108,6 @@ const UBlastSubmission = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const videoSource = useMemo(
-    () => (videoPlayerUri ? { uri: videoPlayerUri } : null),
-    [videoPlayerUri]
-  );
-
-  const videoPlayer = useVideoPlayer(
-    videoSource,
-    player => {
-      player.loop = true;
-    }
-  );
-  useEffect(() => {
-    if (!isFocused) {
-      videoPlayer.pause();
-    }
-  }, [isFocused, videoPlayer]);
-
   const { mutate: submitUBlast, isPending: isSubmitting } = useSubmitUBlast();
   const { mutate: updateUBlastPost, isPending: isUpdating } =
     useUpdateUBlastPost();
@@ -111,11 +119,46 @@ const UBlastSubmission = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useGetUBlastPosts();
+  const { data: eligibilityData, isLoading: isEligibilityLoading } =
+    useGetUblastEligibility();
 
   const submissions =
     ublastData?.pages?.flatMap((page: any) => page?.submissions || []) || [];
 
   const isLoading = isSubmitting || isUpdating;
+  const [nowMs, setNowMs] = useState(Date.now());
+
+  const blockedUntilRaw = (eligibilityData as any)?.blockedUntil;
+  const blockedUntilMs = blockedUntilRaw
+    ? new Date(blockedUntilRaw).getTime()
+    : null;
+
+  const isBlockActive =
+    (eligibilityData as any)?.eligible === false &&
+    typeof blockedUntilMs === 'number' &&
+    blockedUntilMs > nowMs;
+
+  const blockRemainingText =
+    isBlockActive && typeof blockedUntilMs === 'number'
+      ? formatRemainingDuration(blockedUntilMs - nowMs)
+      : '';
+
+  const isSubmissionDisabled = isLoading || isEligibilityLoading || isBlockActive;
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowMs(Date.now());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isBlockActive) return;
+    setIsScheduled(false);
+    setShowDatePicker(false);
+    setShowTimePicker(false);
+  }, [isBlockActive]);
 
 
 
@@ -135,6 +178,14 @@ const UBlastSubmission = () => {
   }, [isEditMode, params]);
 
   const handleSubmit = async () => {
+    if (isBlockActive) {
+      Alert.alert(
+        tx(20, 'UBlast Blocked'),
+        tx(22, 'Block ends in') + ' ' + blockRemainingText
+      );
+      return;
+    }
+
     if (!photo && !video && !audio) {
       Alert.alert(
         tx(17, 'Error'),
@@ -252,15 +303,37 @@ const UBlastSubmission = () => {
   };
 
   const pickVideo = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['videos'],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setVideo(result.assets[0].uri);
-      setVideoPlayerUri(result.assets[0].uri);
+    try {
+      let pickedUri: string | null = null;
+
+      // Prefer ImagePicker first for faster/stable Android local preview.
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['videos'],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        pickedUri = result.assets[0].uri;
+      } else {
+        // Fallback for cases where video comes from Files/Drive providers.
+        const fallback = await DocumentPicker.getDocumentAsync({
+          type: 'video/*',
+          copyToCacheDirectory: true,
+        });
+
+        if (fallback.assets && fallback.assets.length > 0) {
+          pickedUri = fallback.assets[0].uri;
+        }
+      }
+
+      if (!pickedUri) return;
+
+      setVideo(pickedUri);
+      setVideoPlayerUri(pickedUri);
       setPhoto(null);
       setAudio(null);
+    } catch (error) {
+      console.error('Error picking video:', error);
     }
   };
 
@@ -395,7 +468,6 @@ const UBlastSubmission = () => {
                 photo={photo}
                 video={video}
                 audio={audio}
-                videoPlayer={videoPlayer}
               />
             )}
 
@@ -404,16 +476,17 @@ const UBlastSubmission = () => {
               <Text className='text-black dark:text-white text-base font-medium mb-2'>
                 {tx(1, 'Description')}
               </Text>
-              <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-2xl px-3  min-h-[50px]'>
+              <View className='bg-white dark:bg-[#FFFFFF0D] border border-black/10 dark:border-[#FFFFFF1A] rounded-2xl px-3 min-h-[50px]'>
                 <TextInput
                   className='text-black dark:text-white text-base '
                   placeholder={tx(2, "What's on your mind?")}
                   placeholderTextColor='#9CA3AF'
                   multiline
+                  editable={!isSubmissionDisabled}
                   value={description}
                   textAlignVertical='top'
                   onChangeText={setDescription}
-                  style={{ textAlignVertical: 'top', color: 'white' }}
+                  style={{ textAlignVertical: 'top' }}
                 />
               </View>
             </View>
@@ -423,6 +496,9 @@ const UBlastSubmission = () => {
               onPickPhoto={pickPhoto}
               onPickVideo={pickVideo}
               onPickAudio={pickAudio}
+              disablePhoto={isSubmissionDisabled}
+              disableVideo={isSubmissionDisabled}
+              disableAudio={isSubmissionDisabled}
             />
 
             {/* Scheduling Options */}
@@ -432,25 +508,44 @@ const UBlastSubmission = () => {
                   {tx(3, 'Schedule Post')}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => setIsScheduled(!isScheduled)}
-                  className='w-6 h-6 rounded-full border-[1.5px] border-white flex-row justify-center items-center'
+                  onPress={() => {
+                    if (isSubmissionDisabled) return;
+                    setIsScheduled(!isScheduled);
+                  }}
+                  className='w-6 h-6 rounded-full border-[1.5px] flex-row justify-center items-center'
+                  style={{
+                    borderColor: isScheduled
+                      ? '#3B82F6'
+                      : isLight
+                        ? '#94A3B8'
+                        : '#FFFFFF80',
+                    backgroundColor: isScheduled
+                      ? '#3B82F6'
+                      : isLight
+                        ? '#FFFFFF'
+                        : 'transparent',
+                  }}
+                  disabled={isSubmissionDisabled}
                 >
                   {isScheduled ? (
-                    <View className='w-3.5 h-3.5 bg-white rounded-full' />
+                    <View className='w-3 h-3 bg-white rounded-full' />
                   ) : (
-                    <View className='w-3.5 h-3.5 bg-black rounded-full' />
+                    <View
+                      className='w-3 h-3 rounded-full'
+                      style={{ backgroundColor: isLight ? '#CBD5E1' : '#FFFFFF80' }}
+                    />
                   )}
                 </TouchableOpacity>
               </View>
 
               {isScheduled && (
-                <View className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg p-4'>
+                <View className='bg-white dark:bg-[#FFFFFF0D] border border-black/10 dark:border-[#FFFFFF1A] rounded-lg p-4'>
                   <Text className='text-black dark:text-white text-base font-medium mb-3'>
                     {tx(4, 'Schedule Date & Time')}
                   </Text>
                   <View className='flex-row gap-3'>
                     <TouchableOpacity
-                      className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
+                      className='flex-1 bg-white dark:bg-[#FFFFFF0D] border border-black/10 dark:border-[#FFFFFF1A] rounded-lg px-3 py-3'
                       onPress={() => setShowDatePicker(true)}
                     >
                       <Text className='text-gray-400 text-xs mb-1'>
@@ -462,7 +557,7 @@ const UBlastSubmission = () => {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      className='flex-1 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] rounded-lg px-3 py-3'
+                      className='flex-1 bg-white dark:bg-[#FFFFFF0D] border border-black/10 dark:border-[#FFFFFF1A] rounded-lg px-3 py-3'
                       onPress={() => setShowTimePicker(true)}
                     >
                       <Text className='text-gray-400 text-xs mb-1'>
@@ -527,22 +622,28 @@ const UBlastSubmission = () => {
 
             {/* Submit Button */}
             <TouchableOpacity
-              className='bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-4 items-center mt-6'
+              className={`rounded-2xl p-4 items-center mt-6 ${
+                isSubmissionDisabled
+                  ? 'bg-white/40 dark:bg-white/20'
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600'
+              }`}
               onPress={handleSubmit}
-              disabled={isLoading}
+              disabled={isSubmissionDisabled}
             >
               <Text className='text-black dark:text-white font-roboto-bold text-lg'>
-                {isLoading
-                  ? isEditMode
-                    ? tx(16, 'Updating...')
-                    : isScheduled
-                      ? tx(14, 'Scheduling...')
-                      : tx(15, 'Submitting...')
-                  : isEditMode
-                    ? tx(9, 'Update Post')
-                    : isScheduled
-                      ? tx(8, 'Schedule Post')
-                      : tx(7, 'Submit to UBlast')}
+                {isBlockActive
+                  ? tx(23, 'Blocked') + ': ' + blockRemainingText
+                  : isLoading
+                    ? isEditMode
+                      ? tx(16, 'Updating...')
+                      : isScheduled
+                        ? tx(14, 'Scheduling...')
+                        : tx(15, 'Submitting...')
+                    : isEditMode
+                      ? tx(9, 'Update Post')
+                      : isScheduled
+                        ? tx(8, 'Schedule Post')
+                        : tx(7, 'Submit to UBlast')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -570,8 +671,9 @@ const UBlastSubmission = () => {
                     />
                     {/* Edit Button in Top Right */}
                     <TouchableOpacity
-                      className='absolute top-4 right-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1.5 rounded-full border border-black/20 dark:border-[#FFFFFF0D]'
+                      className={`absolute top-4 right-4 bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-3 py-1.5 rounded-full border border-black/20 dark:border-[#FFFFFF0D] ${isSubmissionDisabled ? 'opacity-50' : ''}`}
                       onPress={() => handleEditPost(post)}
+                      disabled={isSubmissionDisabled}
                     >
                       <Text className='text-black dark:text-white font-roboto-medium text-xs'>
                         {tx(11, 'Edit')}
@@ -579,6 +681,26 @@ const UBlastSubmission = () => {
                     </TouchableOpacity>
                   </View>
                 ))}
+              </View>
+            </View>
+          )}
+
+          {/* Block Notice */}
+          {isBlockActive && (
+            <View className='mt-6 bg-red-500/10 border border-red-500/30 rounded-2xl p-4'>
+              <View className='flex-row gap-3 items-start'>
+                <AntDesign name='clock-circle' size={24} color='#ef4444' />
+                <View className='flex-1'>
+                  <Text className='text-red-500 font-roboto-semibold mb-1'>
+                    {tx(20, 'UBlast Blocked')}
+                  </Text>
+                  <Text className='text-red-500/90 font-roboto-regular text-sm'>
+                    {tx(21, 'You cannot submit any UBlast content during the block period.')}
+                  </Text>
+                  <Text className='text-red-500 font-roboto-semibold text-sm mt-1'>
+                    {tx(22, 'Block ends in')} {blockRemainingText}
+                  </Text>
+                </View>
               </View>
             </View>
           )}

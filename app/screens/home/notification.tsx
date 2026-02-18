@@ -181,7 +181,7 @@ const Notification = () => {
 
   const mappedNotifications = useMemo(
     () =>
-      sourceNotifications.map(item => ({
+      sourceNotifications.map((item:any) => ({
         id: item.id,
         name: item.title || 'Notification',
         reson: item.body || '',
@@ -248,7 +248,7 @@ const Notification = () => {
             </Text>
           </View>
 
-          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] dark:border-[#292929] w-full mt-2' />
+          <View className='border-b border-black/20 dark:border-[#FFFFFF0D] w-full mt-2' />
 
           <ScrollView
             showsVerticalScrollIndicator={false}
@@ -260,7 +260,7 @@ const Notification = () => {
                 {tx(1, 'No notifications yet.')}
               </Text>
             ) : (
-              mappedNotifications.map(item => (
+              mappedNotifications.map((item:any) => (
                 <NotificationCard
                   key={item.id}
                   id={item.id}

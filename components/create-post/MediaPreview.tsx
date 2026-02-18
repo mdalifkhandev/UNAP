@@ -2,69 +2,154 @@ import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAudioPlayer } from 'expo-audio';
 import { Image } from 'expo-image';
-import { VideoView } from 'expo-video';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 
 interface MediaPreviewProps {
   photo: string | null;
   video: string | null;
   audio: string | null;
-  videoPlayer: any;
 }
 
-const MediaPreview: React.FC<MediaPreviewProps> = ({
-  photo,
-  video,
-  audio,
-  videoPlayer,
-}) => {
+function toPlayableCloudinaryVideoUrl(url: string) {
+  if (!url) return url;
+  if (!url.includes('/res.cloudinary.com/') || !url.includes('/video/upload/')) {
+    return url;
+  }
+  if (url.includes('/video/upload/f_mp4,') || url.includes('/video/upload/f_mp4/')) {
+    return url;
+  }
+  return url.replace(
+    '/video/upload/',
+    '/video/upload/f_mp4,vc_h264,ac_aac,q_auto:good/'
+  );
+}
+
+const MediaPreview: React.FC<MediaPreviewProps> = ({ photo, video, audio }) => {
   const isFocused = useIsFocused();
-  const [videoStatus, setVideoStatus] = React.useState<string>('idle');
-  // Setup Audio Player using expo-audio's hook
-  // Note: useAudioPlayer usually returns a player object.
-  // We handle the case where audio might be null safely by passing an empty string or checking inside.
-  const player = useAudioPlayer(audio || '');
-  React.useEffect(() => {
-    if (!isFocused || !audio) {
-      player.pause();
-    }
-  }, [isFocused, audio, player]);
+  const audioPlayer = useAudioPlayer(audio || '');
+  const [isVideoReady, setIsVideoReady] = React.useState(false);
+  const [showSlowVideoHint, setShowSlowVideoHint] = React.useState(false);
+  const [videoThumbnail, setVideoThumbnail] = React.useState<any>(null);
+  const [thumbnailAttempted, setThumbnailAttempted] = React.useState(false);
+
+  const playbackVideoUrl = React.useMemo(() => {
+    if (!video) return '';
+    if (!video.startsWith('http')) return video;
+    return toPlayableCloudinaryVideoUrl(video);
+  }, [video]);
+
+  const videoSource = React.useMemo(
+    () => (playbackVideoUrl ? { uri: playbackVideoUrl } : null),
+    [playbackVideoUrl]
+  );
+
+  const videoPlayer = useVideoPlayer(videoSource as any, player => {
+    player.loop = true;
+  });
 
   React.useEffect(() => {
-    if (!video || !videoPlayer) return;
+    if (!isFocused || !audio) {
+      audioPlayer.pause();
+    }
+  }, [isFocused, audio, audioPlayer]);
+
+  React.useEffect(() => {
+    if (!playbackVideoUrl) return;
     if (isFocused) {
       videoPlayer.play();
     } else {
       videoPlayer.pause();
     }
-  }, [video, videoPlayer, isFocused]);
+  }, [isFocused, playbackVideoUrl, videoPlayer]);
 
   React.useEffect(() => {
-    if (!video) {
-      setVideoStatus('idle');
-      return;
-    }
-    setVideoStatus(videoPlayer?.status || 'loading');
-    const sub = videoPlayer?.addListener?.('statusChange', (payload: any) => {
-      setVideoStatus(payload?.status || 'loading');
-    });
-    return () => {
-      sub?.remove?.();
-    };
-  }, [video, videoPlayer]);
+    let cancelled = false;
+    setIsVideoReady(false);
+    setShowSlowVideoHint(false);
+    setVideoThumbnail(null);
+    setThumbnailAttempted(false);
 
-  const togglePlayback = () => {
-    if (player.playing) {
-      player.pause();
+    if (!playbackVideoUrl) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const generateThumbnail = async () => {
+      // Try a few times because metadata/decoder may not be ready immediately.
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        if (cancelled) return;
+        try {
+          const thumbs = await videoPlayer.generateThumbnailsAsync(0.1, {
+            maxWidth: 1280,
+            maxHeight: 720,
+          });
+
+          if (!cancelled && Array.isArray(thumbs) && thumbs.length > 0) {
+            setVideoThumbnail(thumbs[0]);
+            setThumbnailAttempted(true);
+            return;
+          }
+        } catch {
+          // ignore and retry
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+
+      if (!cancelled) {
+        setThumbnailAttempted(true);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      void generateThumbnail();
+    }, 120);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [playbackVideoUrl, videoPlayer]);
+
+  React.useEffect(() => {
+    if (!video || isVideoReady) return;
+
+    const timer = setTimeout(() => {
+      setShowSlowVideoHint(true);
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [video, isVideoReady, playbackVideoUrl]);
+
+  const toggleAudioPlayback = () => {
+    if (audioPlayer.playing) {
+      audioPlayer.pause();
     } else {
-      player.play();
+      audioPlayer.play();
     }
   };
 
+  const handleRetry = () => {
+    setIsVideoReady(false);
+    setShowSlowVideoHint(false);
+    videoPlayer.pause();
+    setTimeout(() => {
+      videoPlayer.play();
+    }, 150);
+  };
+
   const formatTime = (seconds: number) => {
-    // Handle null/NaN/undefined safely
     const safeSeconds = Number(seconds) || 0;
     const totalSeconds = Math.floor(safeSeconds);
     const minutes = Math.floor(totalSeconds / 60);
@@ -85,7 +170,6 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
 
   return (
     <View className='w-full h-[300px] justify-center items-center bg-black/10 dark:bg-[#FFFFFF0D] rounded-2xl mb-4 overflow-hidden relative'>
-      {/* Photo Preview */}
       {photo && (
         <Image
           source={{ uri: photo }}
@@ -94,30 +178,52 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
         />
       )}
 
-      {/* Video Preview */}
       {video && (
-        <View className='w-full h-full bg-black/20'>
+        <View style={styles.videoContainer}>
           <VideoView
-            style={{ width: '100%', height: '100%' }}
+            key={playbackVideoUrl || video}
+            style={styles.video}
             player={videoPlayer}
             nativeControls
-            allowsPictureInPicture
+            contentFit='contain'
+            allowsPictureInPicture={false}
+            useExoShutter={false}
+            surfaceType={Platform.OS === 'android' ? 'surfaceView' : undefined}
+            onFirstFrameRender={() => {
+              setIsVideoReady(true);
+              setShowSlowVideoHint(false);
+            }}
           />
-          {videoStatus !== 'readyToPlay' && (
-            <View className='absolute inset-0 items-center justify-center bg-black/40 px-5'>
+
+          {!isVideoReady && videoThumbnail && (
+            <Image
+              source={videoThumbnail}
+              style={styles.video}
+              contentFit='contain'
+            />
+          )}
+
+          {!isVideoReady && (
+            <View style={styles.overlay}>
               <ActivityIndicator color='white' />
-              <Text
-                className='text-white mt-3 text-center'
-                numberOfLines={2}
-              >
-                {video.split('/').pop() || 'Loading video preview...'}
+              <Text style={styles.loadingText}>
+                {showSlowVideoHint ? 'Preparing preview...' : 'Loading video...'}
               </Text>
+              {showSlowVideoHint && (
+                <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>
+                  <Text style={styles.retryText}>Retry</Text>
+                </TouchableOpacity>
+              )}
+              {!videoThumbnail && thumbnailAttempted && showSlowVideoHint && (
+                <Text style={styles.helperText}>
+                  This video codec may not render on this Android device.
+                </Text>
+              )}
             </View>
           )}
         </View>
       )}
 
-      {/* Audio Preview */}
       {audio && (
         <View className='w-full h-full justify-center items-center bg-gray-900/50 p-6'>
           <View className='w-16 h-16 rounded-full bg-[#F0F2F5] dark:bg-[#FFFFFF0D] items-center justify-center mb-4'>
@@ -134,30 +240,28 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
 
           <View className='flex-row items-center gap-4 w-full justify-center'>
             <Text className='text-gray-400 text-xs w-10 text-right'>
-              {formatTime(player.currentTime)}
+              {formatTime(audioPlayer.currentTime)}
             </Text>
 
             <TouchableOpacity
-              onPress={togglePlayback}
-              disabled={!player.isLoaded}
+              onPress={toggleAudioPlayback}
+              disabled={!audioPlayer.isLoaded}
               className='w-14 h-14 rounded-full bg-white items-center justify-center'
             >
-              {/* Check if we are loading. expo-audio might use different flags, strictly checking loading state */}
-              {/* If explicit loading state isn't exposed, we rely on isLoaded or similar behavior */}
-              {!player.isLoaded ? (
+              {!audioPlayer.isLoaded ? (
                 <ActivityIndicator color='black' />
               ) : (
                 <Ionicons
-                  name={player.playing ? 'pause' : 'play'}
+                  name={audioPlayer.playing ? 'pause' : 'play'}
                   size={24}
                   color='black'
-                  style={{ marginLeft: player.playing ? 0 : 2 }}
+                  style={{ marginLeft: audioPlayer.playing ? 0 : 2 }}
                 />
               )}
             </TouchableOpacity>
 
             <Text className='text-gray-400 text-xs w-10'>
-              {formatTime(player.duration)}
+              {formatTime(audioPlayer.duration)}
             </Text>
           </View>
         </View>
@@ -165,5 +269,57 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  videoContainer: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000',
+    position: 'relative',
+  },
+  video: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  loadingText: {
+    color: '#fff',
+    textAlign: 'center',
+    marginTop: 6,
+    fontWeight: '500',
+  },
+  retryButton: {
+    marginTop: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  retryText: {
+    color: '#fff',
+    fontWeight: '500',
+  },
+  helperText: {
+    marginTop: 6,
+    color: 'rgba(255,255,255,0.75)',
+    textAlign: 'center',
+    fontSize: 12,
+  },
+});
 
 export default MediaPreview;
