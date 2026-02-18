@@ -50,6 +50,15 @@
           "cameraPermission": "The app needs access to your camera to take photos."
         }
       ],
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "26187904840841381",
+          "clientToken": "bbe9e46621713500acdc5cdfbeda7ca6",
+          "displayName": "UNAP",
+          "scheme": "fb26187904840841381"
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -70,7 +79,8 @@
       "expo-asset",
       "@react-native-community/datetimepicker",
       "@react-native-firebase/app",
-      "@react-native-firebase/messaging"
+      "@react-native-firebase/messaging",
+      "@react-native-firebase/auth"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -20,6 +20,7 @@ type NotificationStore = {
     createdAt?: string;
     read?: boolean;
   }) => void;
+  syncNotificationsFromServer: (items: InAppNotification[]) => void;
   markAsRead: (id: string) => void;
   resetBadgeCount: () => void;
   removeNotification: (id: string) => void;
@@ -46,6 +47,22 @@ type NotificationPersist = (
 
 const MAX_ITEMS = 100;
 
+const toTs = (value?: string) => {
+  const ts = new Date(value || '').getTime();
+  return Number.isFinite(ts) ? ts : 0;
+};
+
+const normalize = (item: InAppNotification): InAppNotification => ({
+  id: String(item.id),
+  title: String(item.title || ''),
+  body: String(item.body || ''),
+  type: String(item.type || 'system'),
+  createdAt: item.createdAt || new Date().toISOString(),
+  read: Boolean(item.read),
+  screen: item.screen,
+  data: item.data,
+});
+
 const useNotificationStore = create<NotificationStore>()(
   (persist as NotificationPersist)(
     set => ({
@@ -70,8 +87,35 @@ const useNotificationStore = create<NotificationStore>()(
             !alreadyExists && !next.read ? state.badgeCount + 1 : state.badgeCount;
 
           return {
-            notifications: [next, ...deduped].slice(0, MAX_ITEMS),
+            notifications: [next, ...deduped]
+              .sort((a, b) => toTs(b.createdAt) - toTs(a.createdAt))
+              .slice(0, MAX_ITEMS),
             badgeCount: nextBadgeCount,
+          };
+        }),
+      syncNotificationsFromServer: items =>
+        set(state => {
+          const merged = new Map<string, InAppNotification>();
+
+          state.notifications.forEach(item => {
+            const next = normalize(item);
+            merged.set(next.id, next);
+          });
+
+          items.forEach(item => {
+            const next = normalize(item);
+            merged.set(next.id, next);
+          });
+
+          const notifications = Array.from(merged.values())
+            .sort((a, b) => toTs(b.createdAt) - toTs(a.createdAt))
+            .slice(0, MAX_ITEMS);
+
+          const unread = notifications.filter(item => !item.read).length;
+
+          return {
+            notifications,
+            badgeCount: unread,
           };
         }),
       markAsRead: id =>

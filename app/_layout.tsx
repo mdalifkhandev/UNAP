@@ -6,6 +6,7 @@ import {
   requestFCMPermission,
   subscribeForegroundFCM,
 } from '@/services/fcm';
+import api from '@/api/axiosInstance';
 import { connectSocket } from '@/lib/socketClient';
 import {
   getExpoNotificationsModule,
@@ -45,6 +46,7 @@ const RootLayout = () => {
   const hasFirebaseMessaging = isFirebaseMessagingAvailable();
   const [fcmToken, setFcmToken] = useState<string | null>(null);
   const lastRegisteredTokenRef = useRef<string | null>(null);
+  const lastUblastToastIdRef = useRef<string | null>(null);
 
   const pushInAppNotification = (remoteMessage: RemoteMessage) => {
     const title =
@@ -135,6 +137,61 @@ const RootLayout = () => {
         console.log('Push token registration failed:', error?.message || error);
       });
   }, [hasFirebaseMessaging, user?.token, fcmToken]);
+
+  useEffect(() => {
+    if (!user?.token) return;
+
+    let cancelled = false;
+
+    const syncServerNotifications = () => {
+      api
+        .get('/api/notifications?page=1&limit=100')
+        .then((res: any) => {
+          if (cancelled) return;
+          const items = Array.isArray(res?.notifications) ? res.notifications : [];
+          if (!items.length) return;
+
+          const unreadUblastItems = items.filter(
+            (item: any) => String(item?.type || '').toLowerCase() === 'ublast' && !Boolean(item?.read)
+          );
+          const unreadUblast = unreadUblastItems.sort(
+            (a: any, b: any) =>
+              new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime()
+          )[0];
+          const unreadUblastId = String(unreadUblast?.id || unreadUblast?._id || '');
+          if (unreadUblastId && lastUblastToastIdRef.current !== unreadUblastId) {
+            lastUblastToastIdRef.current = unreadUblastId;
+            Toast.show({
+              type: 'info',
+              text1: String(unreadUblast?.title || 'New UBlast Is Live'),
+              text2: String(unreadUblast?.body || 'Check active section in trending.'),
+            });
+          }
+
+          getNotificationStore().syncNotificationsFromServer(
+            items.map((item: any) => ({
+              id: String(item.id || item._id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+              title: String(item.title || 'Notification'),
+              body: String(item.body || ''),
+              type: String(item.type || 'system'),
+              createdAt: item?.createdAt || new Date().toISOString(),
+              screen: typeof item?.screen === 'string' ? item.screen : undefined,
+              data: item?.data && typeof item.data === 'object' ? item.data : {},
+              read: Boolean(item?.read),
+            }))
+          );
+        })
+        .catch(() => null);
+    };
+
+    syncServerNotifications();
+    const interval = setInterval(syncServerNotifications, 15000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [user?.token]);
 
   useEffect(() => {
     if (!hasFirebaseMessaging) return;
@@ -256,26 +313,50 @@ const RootLayout = () => {
         read: false,
       });
 
-      Toast.show({
-        type: 'info',
-        text1: 'New message',
-        text2: body,
-      });
+
     };
 
     const handleIncomingNotification = (payload: any) => {
-      if (!payload || payload?.type === 'chat') return;
-      const id = String(payload?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+      if (!payload) return;
+
+      const payloadData = payload?.data && typeof payload.data === 'object' ? payload.data : {};
+      const type = String(payload?.type || payloadData?.type || 'system').toLowerCase();
+      if (type === 'chat') return;
+
+      const id = String(
+        payload?.id ||
+          payload?._id ||
+          payloadData?.id ||
+          payloadData?._id ||
+          `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      );
+      const title = String(payload?.title || payloadData?.title || 'Notification');
+      const body = String(payload?.body || payloadData?.body || '');
+
       getNotificationStore().addNotification({
         id,
-        title: String(payload?.title || 'Notification'),
-        body: String(payload?.body || ''),
-        type: String(payload?.type || 'system'),
+        title,
+        body,
+        type,
         createdAt: payload?.createdAt || new Date().toISOString(),
-        screen: typeof payload?.screen === 'string' ? payload.screen : undefined,
-        data: payload?.data && typeof payload.data === 'object' ? payload.data : {},
+        screen:
+          typeof payload?.screen === 'string'
+            ? payload.screen
+            : typeof payloadData?.screen === 'string'
+            ? payloadData.screen
+            : undefined,
+        data: payloadData,
         read: Boolean(payload?.read),
       });
+
+      if (type === 'ublast' && lastUblastToastIdRef.current !== id) {
+        lastUblastToastIdRef.current = id;
+        Toast.show({
+          type: 'info',
+          text1: title || 'New UBlast Is Live',
+          text2: body || 'Check active section in trending.',
+        });
+      }
     };
 
     socket.on('message:new', handleIncomingMessage);
@@ -285,7 +366,7 @@ const RootLayout = () => {
       socket.off('message:new', handleIncomingMessage);
       socket.off('notification:new', handleIncomingNotification);
     };
-  }, [user?.token, user?.id, notifications]);
+  }, [user?.token, user?.id]);
 
   const [fontsLoaded] = useFonts({
     'Roboto-Bold': require('@/assets/fonts/Roboto-Bold.ttf'),
@@ -350,6 +431,17 @@ const RootLayout = () => {
 };
 
 export default RootLayout;
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -103,7 +103,7 @@ const UBlastSubmission = () => {
   );
 
   // Scheduling states
-  const [isScheduled, setIsScheduled] = useState(false);
+  const [isScheduled, setIsScheduled] = useState(true);
   const [scheduledDateTime, setScheduledDateTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -155,7 +155,6 @@ const UBlastSubmission = () => {
 
   useEffect(() => {
     if (!isBlockActive) return;
-    setIsScheduled(false);
     setShowDatePicker(false);
     setShowTimePicker(false);
   }, [isBlockActive]);
@@ -247,9 +246,7 @@ const UBlastSubmission = () => {
     // formData.append('proposedDate', isScheduled.toString());
 
 
-    if (isScheduled) {
-      formData.append('proposedDate', scheduledDateTime.toISOString());
-    }
+    formData.append('proposedDate', scheduledDateTime.toISOString());
     console.log(JSON.stringify(formData, null, 2));
 
     if (isEditMode) {
@@ -283,7 +280,7 @@ const UBlastSubmission = () => {
     setIsInstagram(false);
 
     // Reset scheduling states
-    setIsScheduled(false);
+    setIsScheduled(true);
     setScheduledDateTime(new Date());
     setShowDatePicker(false);
     setShowTimePicker(false);
@@ -376,8 +373,6 @@ const UBlastSubmission = () => {
   };
 
   const validateScheduledTime = () => {
-    if (!isScheduled) return true;
-
     if (scheduledDateTime <= new Date()) {
       Alert.alert('Error', 'Scheduled time must be in the future');
       return false;
@@ -503,43 +498,7 @@ const UBlastSubmission = () => {
 
             {/* Scheduling Options */}
             <View className='mt-4'>
-              <View className='flex-row justify-between items-center mb-3'>
-                <Text className='text-black dark:text-white text-base font-medium'>
-                  {tx(3, 'Schedule Post')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (isSubmissionDisabled) return;
-                    setIsScheduled(!isScheduled);
-                  }}
-                  className='w-6 h-6 rounded-full border-[1.5px] flex-row justify-center items-center'
-                  style={{
-                    borderColor: isScheduled
-                      ? '#3B82F6'
-                      : isLight
-                        ? '#94A3B8'
-                        : '#FFFFFF80',
-                    backgroundColor: isScheduled
-                      ? '#3B82F6'
-                      : isLight
-                        ? '#FFFFFF'
-                        : 'transparent',
-                  }}
-                  disabled={isSubmissionDisabled}
-                >
-                  {isScheduled ? (
-                    <View className='w-3 h-3 bg-white rounded-full' />
-                  ) : (
-                    <View
-                      className='w-3 h-3 rounded-full'
-                      style={{ backgroundColor: isLight ? '#CBD5E1' : '#FFFFFF80' }}
-                    />
-                  )}
-                </TouchableOpacity>
-              </View>
-
-              {isScheduled && (
-                <View className='bg-white dark:bg-[#FFFFFF0D] border border-black/10 dark:border-[#FFFFFF1A] rounded-lg p-4'>
+              <View className='bg-white dark:bg-[#FFFFFF0D] border border-black/10 dark:border-[#FFFFFF1A] rounded-lg p-4'>
                   <Text className='text-black dark:text-white text-base font-medium mb-3'>
                     {tx(4, 'Schedule Date & Time')}
                   </Text>
@@ -615,7 +574,6 @@ const UBlastSubmission = () => {
                     </View>
                   )}
                 </View>
-              )}
             </View>
 
             {/* Social Sharing Options */}
@@ -729,3 +687,8 @@ const UBlastSubmission = () => {
   );
 };
 export default UBlastSubmission;
+
+
+
+
+

@@ -71,7 +71,7 @@ const CreatePost = () => {
   const isPublishedConfig = params.isPublishedConfig === 'true';
 
   const [isScheduleMode, setIsScheduleMode] = useState(
-    isEditMode && !isPublishedConfig ? true : false
+    isEditMode ? !isPublishedConfig : true
   );
   const [scheduledDate, setScheduledDate] = useState(
     params.scheduledFor ? new Date(params.scheduledFor as string) : new Date()
@@ -190,7 +190,7 @@ const CreatePost = () => {
     setIsYouTube(false);
     setIsSnapchat(false);
     setIsTikTok(false);
-    setIsScheduleMode(false);
+    setIsScheduleMode(true);
     setScheduledDate(new Date());
     setShowDatePicker(false);
     setShowTimePicker(false);
@@ -229,8 +229,10 @@ const CreatePost = () => {
       setIsYouTube(false);
       setIsSnapchat(false);
       setIsTikTok(false);
+    } else if (!isPublishedConfig) {
+      setIsScheduleMode(true);
     }
-  }, [postType]);
+  }, [postType, isPublishedConfig]);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
@@ -285,7 +287,7 @@ const CreatePost = () => {
     setIsYouTube(false);
     setIsSnapchat(false);
     setIsTikTok(false);
-    setIsScheduleMode(false);
+    setIsScheduleMode(postType !== 'ucut');
     setVideoSize(null);
     setVideoName(null);
   };
@@ -413,7 +415,7 @@ const CreatePost = () => {
                 setIsYouTube(false);
                 setIsSnapchat(false);
                 setIsTikTok(false);
-                setIsScheduleMode(false);
+                setIsScheduleMode(true);
                 setVideoSize(null);
                 setVideoName(null);
 
@@ -495,7 +497,7 @@ const CreatePost = () => {
               setUploadProgress(null);
               setIsFacebook(false);
               setIsInstagram(false);
-              setIsScheduleMode(false);
+              setIsScheduleMode(true);
               router.back();
             },
             onError: (error: any) => {
@@ -521,7 +523,7 @@ const CreatePost = () => {
               setUploadProgress(null);
               setIsFacebook(false);
               setIsInstagram(false);
-              setIsScheduleMode(false);
+              setIsScheduleMode(true);
 
               router.replace('/screens/profile/scheduled-posts');
             },
@@ -547,7 +549,7 @@ const CreatePost = () => {
           setUploadProgress(null);
           setIsFacebook(false);
           setIsInstagram(false);
-          setIsScheduleMode(false);
+          setIsScheduleMode(true);
 
           alert(
             isScheduleMode
@@ -798,27 +800,8 @@ const pickAudio = async () => {
             </View>
           )}
 
-          {/* Schedule Toggle */}
-          {!isPublishedConfig && !isUcut && (
-            <View className='px-6 mt-4'>
-              <View className='flex-row justify-between items-center'>
-                <Text className='text-black dark:text-white text-base font-medium'>
-                  {isScheduleMode ? tx(10, 'Schedule Post') : tx(8, 'Post Now')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setIsScheduleMode(!isScheduleMode)}
-                  className='bg-[#F0F2F5] dark:bg-[#FFFFFF0D] px-4 py-2 rounded-lg'
-                >
-                  <Text className='text-black dark:text-white text-sm'>
-                    {isScheduleMode ? tx(8, 'Post Now') : tx(9, 'Schedule')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
           {/* Schedule Options */}
-          {isScheduleMode && !isUcut && (
+          {!isPublishedConfig && !isUcut && (
             <View className='px-6 mt-4'>
               <View className='bg-white dark:bg-[#FFFFFF0D] border border-black/10 dark:border-[#FFFFFF1A] rounded-lg p-4'>
                 <Text className='text-black dark:text-white text-base font-medium mb-3'>
@@ -1239,3 +1222,9 @@ const pickAudio = async () => {
 };
 
 export default CreatePost;
+
+
+
+
+
+

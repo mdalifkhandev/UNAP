@@ -34,12 +34,18 @@ const getErrorMessage = (err: unknown) => {
   }
 };
 
+const isAuthEndpoint = (url?: string) =>
+  typeof url === 'string' && /\/api\/auth(?:\/|$)/.test(url);
+
 api.interceptors.request.use(
   async config => {
     const token = getAuth().user?.token;
+    const authRoute = isAuthEndpoint(config.url);
 
-    if (token) {
+    if (token && !authRoute) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (authRoute && config.headers?.Authorization) {
+      delete config.headers.Authorization;
     }
 
     return config;
@@ -72,11 +78,9 @@ api.interceptors.response.use(
     }
 
     const originalRequest = error.config || {};
-    const isRefreshCall =
-      typeof originalRequest?.url === 'string' &&
-      originalRequest.url.includes('/api/auth/refresh');
+    const isAuthCall = isAuthEndpoint(originalRequest?.url);
 
-    if (status === 401 && !originalRequest._retry && !isRefreshCall) {
+    if (status === 401 && !originalRequest._retry && !isAuthCall) {
       const authState = getAuth();
       const refreshToken = authState.user?.refreshToken;
       const hasAccessToken = Boolean(authState.user?.token);

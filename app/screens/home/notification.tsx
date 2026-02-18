@@ -3,8 +3,9 @@ import NotificationCard from '@/components/card/NotificationCard';
 import GradientBackground from '@/components/main/GradientBackground';
 import { useDeleteNotification, useGetNotifications, useMarkNotificationRead } from '@/hooks/app/notification';
 import { useTranslateTexts } from '@/hooks/app/translate';
-import { connectSocket, disconnectSocket } from '@/lib/socketClient';
+import { connectSocket } from '@/lib/socketClient';
 import useLanguageStore from '@/store/language.store';
+import useAuthStore from '@/store/auth.store';
 import useNotificationStore from '@/store/notification.store';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
@@ -115,9 +116,14 @@ const Notification = () => {
     markAsRead: markAsReadLocal,
     resetBadgeCount,
     removeNotification: removeNotificationLocal,
+    syncNotificationsFromServer,
   } = useNotificationStore();
   const { language } = useLanguageStore();
-  const { data: notificationData, refetch } = useGetNotifications({ limit: 100 });
+  const { user } = useAuthStore();
+  const { data: notificationData, refetch } = useGetNotifications({
+    limit: 100,
+    enabled: !!user?.token,
+  });
   const { mutateAsync: markNotificationRead } = useMarkNotificationRead();
   const { mutateAsync: deleteNotification } = useDeleteNotification();
   const { data: t } = useTranslateTexts({
@@ -146,6 +152,23 @@ const Notification = () => {
   );
 
   useEffect(() => {
+    if (!Array.isArray(notificationData?.notifications)) return;
+
+    const serverItems = notificationData.notifications.map((item: any) => ({
+      id: String(item.id),
+      title: String(item.title || 'Notification'),
+      body: String(item.body || ''),
+      type: String(item.type || 'system'),
+      createdAt: item?.createdAt || new Date().toISOString(),
+      screen: typeof item?.screen === 'string' ? item.screen : undefined,
+      data: item?.data && typeof item.data === 'object' ? item.data : {},
+      read: Boolean(item?.read),
+    }));
+
+    syncNotificationsFromServer(serverItems as any);
+  }, [notificationData, syncNotificationsFromServer]);
+
+  useEffect(() => {
     const socket = connectSocket();
     if (!socket) return;
 
@@ -168,7 +191,7 @@ const Notification = () => {
 
     return () => {
       socket.off('notification:new', handleNotification);
-      disconnectSocket(socket);
+      // keep global socket alive; only remove this screen listener
     };
   }, [addNotification, refetch]);
 
@@ -176,8 +199,23 @@ const Notification = () => {
     ? notificationData.notifications
     : [];
 
-  const sourceNotifications =
-    serverNotifications.length > 0 ? serverNotifications : localNotifications;
+  const sourceNotifications = useMemo(() => {
+    const byId = new Map<string, any>();
+
+    localNotifications.forEach((item: any) => {
+      byId.set(String(item.id), item);
+    });
+
+    serverNotifications.forEach((item: any) => {
+      byId.set(String(item.id), item);
+    });
+
+    return Array.from(byId.values()).sort((a: any, b: any) => {
+      const aTs = new Date(a?.createdAt || 0).getTime();
+      const bTs = new Date(b?.createdAt || 0).getTime();
+      return bTs - aTs;
+    });
+  }, [localNotifications, serverNotifications]);
 
   const mappedNotifications = useMemo(
     () =>
@@ -297,3 +335,5 @@ const Notification = () => {
 };
 
 export default Notification;
+
+
